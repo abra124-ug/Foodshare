@@ -3,1158 +3,1012 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Food Share App</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        :root {
-            --primary-green: #22c55e;
-            --primary-green-dark: #16a34a;
-            --primary-green-light: #86efac;
-            --secondary-green: #4ade80;
-            --bg-green-light: #f0fdf4;
-            --gray-100: #f3f4f6;
-            --gray-200: #e5e7eb;
-            --gray-300: #d1d5db;
-            --gray-400: #9ca3af;
-            --gray-600: #4b5563;
-            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
-            --font-main: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: var(--font-main);
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        body {
-            background-color: var(--gray-100);
-            padding-bottom: 70px;
-            overscroll-behavior: none;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        /* Splash Screen */
-        .splash-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, var(--primary-green-light), var(--primary-green));
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-            animation: fade-out 1.5s ease-in-out forwards;
-            animation-delay: 2s;
-        }
-
-        @keyframes fade-out {
-            0% { opacity: 1; }
-            100% { opacity: 0; visibility: hidden; }
-        }
-
-        .splash-logo {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-
-        .splash-logo i {
-            font-size: 5rem;
-            color: white;
-            margin-bottom: 1rem;
-        }
-
-        .splash-logo h1 {
-            color: white;
-            font-size: 2.5rem;
-            letter-spacing: 1px;
-        }
-
-        /* Auth Screens */
-        .auth-screen {
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            padding: 2rem;
-            background: white;
-        }
-
-        .auth-logo {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .auth-logo i {
-            font-size: 2rem;
-            color: var(--primary-green);
-        }
-
-        .auth-logo h1 {
-            color: var(--primary-green-dark);
-            font-size: 1.75rem;
-        }
-
-        .auth-tabs {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 2rem;
-            border-bottom: 1px solid var(--gray-200);
-        }
-
-        .auth-tab {
-            padding: 0.75rem 1rem;
-            color: var(--gray-600);
-            cursor: pointer;
-            position: relative;
-        }
-
-        .auth-tab.active {
-            color: var(--primary-green);
-            font-weight: 500;
-        }
-
-        .auth-tab.active::after {
-            content: '';
-            position: absolute;
-            left: 0;
-            bottom: -1px;
-            width: 100%;
-            height: 2px;
-            background-color: var(--primary-green);
-        }
-
-        .auth-form-container {
-            flex: 1;
-        }
-
-        .auth-form {
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-        }
-
-        .input-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .input-group label {
-            color: var(--gray-600);
-            font-size: 0.875rem;
-            font-weight: 500;
-        }
-
-        .input-field {
-            display: flex;
-            align-items: center;
-            border: 1px solid var(--gray-300);
-            border-radius: 12px;
-            padding: 0 1rem;
-            overflow: hidden;
-            transition: border-color 0.2s, box-shadow 0.2s;
-        }
-
-        .input-field i {
-            color: var(--gray-400);
-            margin-right: 0.75rem;
-        }
-
-        .input-field input {
-            width: 100%;
-            padding: 0.85rem 0;
-            border: none;
-            font-size: 1rem;
-        }
-
-        .input-field input:focus {
-            outline: none;
-        }
-
-        .input-field:focus-within {
-            border-color: var(--primary-green);
-            box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
-        }
-
-        .role-options {
-            display: flex;
-            gap: 1rem;
-            margin-top: 1rem;
-        }
-
-        .role-option {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 1.5rem;
-            border: 1px solid var(--gray-300);
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .role-option:hover {
-            background-color: var(--bg-green-light);
-        }
-
-        .role-option.selected {
-            border-color: var(--primary-green);
-            background-color: var(--bg-green-light);
-        }
-
-        .role-option i {
-            font-size: 1.75rem;
-            color: var(--primary-green);
-        }
-
-        .role-option h3 {
-            color: var(--gray-600);
-            font-size: 1rem;
-            font-weight: 500;
-        }
-
-        .role-option p {
-            color: var(--gray-400);
-            font-size: 0.875rem;
-            text-align: center;
-        }
-
-        .google-btn {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 0.75rem;
-            width: 100%;
-            padding: 0.85rem 0;
-            border: 1px solid var(--gray-300);
-            border-radius: 12px;
-            background-color: white;
-            color: var(--gray-600);
-            font-weight: 500;
-            cursor: pointer;
-            transition: background-color 0.2s, box-shadow 0.2s;
-        }
-
-        .google-btn:hover {
-            background-color: var(--gray-100);
-        }
-
-        .google-btn img {
-            width: 20px;
-            height: 20px;
-        }
-
-        .auth-divider {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin: 1.5rem 0;
-            color: var(--gray-400);
-        }
-
-        .auth-divider::before,
-        .auth-divider::after {
-            content: '';
-            flex: 1;
-            height: 1px;
-            background-color: var(--gray-200);
-        }
-
-        /* App Header */
-        .app-header {
-            background-color: white;
-            padding: 1rem;
-            box-shadow: var(--shadow-sm);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .header-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 1rem;
-        }
-
-        .logo {
-            color: var(--primary-green-dark);
-            font-size: 1.5rem;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        /* Food Listings */
-        .section-title {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-            padding: 0 1rem;
-        }
-
-        .section-title h2 {
-            color: var(--gray-600);
-            font-size: 1.5rem;
-        }
-
-        .food-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
-            padding: 1rem;
-        }
-
-        .food-card {
-            background-color: white;
-            border-radius: 15px;
-            overflow: hidden;
-            box-shadow: var(--shadow-sm);
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .food-card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-md);
-        }
-
-        .food-image {
-            width: 100%;
-            height: 150px;
-            object-fit: cover;
-        }
-
-        .food-content {
-            padding: 1.5rem;
-        }
-
-        .food-title {
-            color: var(--gray-600);
-            font-size: 1.25rem;
-            margin-bottom: 1rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: start;
-        }
-
-        .food-badge {
-            background-color: var(--primary-green-light);
-            color: var(--primary-green-dark);
-            padding: 0.25rem 0.75rem;
-            border-radius: 999px;
-            font-size: 0.875rem;
-        }
-
-        .food-meta {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        .meta-item {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            color: var(--gray-600);
-            font-size: 0.875rem;
-        }
-
-        .meta-item i {
-            color: var(--primary-green);
-        }
-
-        .food-description {
-            color: var(--gray-600);
-            margin-bottom: 1rem;
-            line-height: 1.5;
-        }
-
-        .food-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 1rem;
-        }
-
-        /* Bottom Navigation */
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background-color: white;
-            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
-            padding: 0.75rem 0;
-            z-index: 1000;
-            border-top-left-radius: 20px;
-            border-top-right-radius: 20px;
-        }
-
-        .nav-content {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
-        .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 0.25rem;
-            color: var(--gray-600);
-            text-decoration: none;
-            font-size: 0.75rem;
-            padding: 0.5rem;
-            border-radius: 8px;
-            transition: all 0.2s;
-        }
-
-        .nav-item:hover {
-            background-color: var(--gray-100);
-        }
-
-        .nav-item.active {
-            color: var(--primary-green);
-        }
-
-        .nav-item i {
-            font-size: 1.25rem;
-        }
-
-        /* Profile Page */
-        .profile-header {
-            background-color: var(--primary-green);
-            padding: 2rem 1.5rem;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            color: white;
-        }
-
-        .profile-pic {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            background-color: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: 1rem;
-            border: 3px solid white;
-            box-shadow: var(--shadow-md);
-        }
-
-        .profile-pic i {
-            font-size: 3rem;
-            color: var(--primary-green);
-        }
-
-        .profile-name {
-            font-size: 1.5rem;
-            font-weight: bold;
-            margin-bottom: 0.25rem;
-        }
-
-        .profile-role {
-            font-size: 0.875rem;
-            opacity: 0.9;
-        }
-
-        .profile-stats {
-            background-color: white;
-            border-radius: 20px;
-            margin-top: -20px;
-            padding: 1.5rem;
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1rem;
-            text-align: center;
-            box-shadow: var(--shadow-sm);
-        }
-
-        .stat-item {
-            display: flex;
-            flex-direction: column;
-            gap: 0.25rem;
-        }
-
-        .stat-value {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: var(--primary-green-dark);
-        }
-
-        .stat-label {
-            font-size: 0.75rem;
-            color: var(--gray-600);
-        }
-
-        .profile-sections {
-            padding: 1.5rem;
-        }
-
-        .profile-section {
-            background-color: white;
-            border-radius: 15px;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            box-shadow: var(--shadow-sm);
-        }
-
-        .section-header {
-            font-size: 1.25rem;
-            color: var(--gray-600);
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .section-header i {
-            color: var(--primary-green);
-        }
-
-        .menu-list {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .menu-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1rem 0;
-            border-bottom: 1px solid var(--gray-200);
-            cursor: pointer;
-        }
-
-        .menu-item:last-child {
-            border-bottom: none;
-        }
-
-        .menu-item-content {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .menu-item-content i {
-            font-size: 1.25rem;
-            color: var(--primary-green);
-            width: 20px;
-            text-align: center;
-        }
-
-        .menu-item-text {
-            color: var(--gray-600);
-        }
-
-        .menu-item-arrow {
-            color: var(--gray-400);
-        }
-
-        .logout-btn, .delete-btn {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            width: 100%;
-            padding: 1rem;
-            border: none;
-            border-radius: 12px;
-            font-size: 1rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .logout-btn {
-            background-color: var(--gray-100);
-            color: var(--gray-600);
-            margin-bottom: 1rem;
-        }
-
-        .logout-btn:hover {
-            background-color: var(--gray-200);
-        }
-
-        .delete-btn {
-            background-color: #FEE2E2;
-            color: #DC2626;
-        }
-
-        .delete-btn:hover {
-            background-color: #FECACA;
-        }
-
-        /* Chat Modal */
-        .chat-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 2000;
-        }
-
-        .chat-container {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background-color: white;
-            border-radius: 20px 20px 0 0;
-            padding: 1.5rem;
-            max-height: 80vh;
-            overflow-y: auto;
-        }
-
-        .chat-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid var(--gray-200);
-        }
-
-        .chat-messages {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            margin-bottom: 1rem;
-            max-height: 50vh;
-            overflow-y: auto;
-        }
-
-        .message {
-            max-width: 80%;
-            padding: 0.75rem 1rem;
-            border-radius: 15px;
-            line-height: 1.4;
-        }
-
-        .message.sent {
-            background-color: var(--primary-green);
-            color: white;
-            align-self: flex-end;
-            border-bottom-right-radius: 5px;
-        }
-
-        .message.received {
-            background-color: var(--gray-200);
-            color: var(--gray-600);
-            align-self: flex-start;
-            border-bottom-left-radius: 5px;
-        }
-
-        .chat-input {
-            display: flex;
-            gap: 1rem;
-            padding-top: 1rem;
-            border-top: 1px solid var(--gray-200);
-        }
-
-        /* Buttons */
-        .btn {
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: 12px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-        }
-
-        .btn i {
-            font-size: 1.1em;
-        }
-
-        .btn-primary {
-            background-color: var(--primary-green);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background-color: var(--primary-green-dark);
-        }
-
-        .btn-secondary {
-            background-color: white;
-            color: var(--primary-green);
-            border: 1px solid var(--primary-green);
-        }
-
-        .btn-secondary:hover {
-            background-color: var(--bg-green-light);
-        }
-
-        .btn-icon {
-            padding: 0.75rem;
-            border-radius: 50%;
-        }
-
-        input[type="text"],
-        input[type="email"],
-        input[type="password"],
-        textarea {
-            width: 100%;
-            padding: 0.75rem 1rem;
-            border: 1px solid var(--gray-300);
-            border-radius: 8px;
-            font-size: 1rem;
-            transition: border-color 0.2s;
-        }
-
-        input[type="text"]:focus,
-        input[type="email"]:focus,
-        input[type="password"]:focus,
-        textarea:focus {
-            outline: none;
-            border-color: var(--primary-green);
-        }
-
-        /* Loading Animation */
-        .loading-spinner {
-            width: 30px;
-            height: 30px;
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 1s linear infinite;
-            margin: 0 auto;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-    </style>
+    <title>FoodShare - Reduce Waste, Share Love</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <!-- Splash Screen -->
-    <div class="splash-screen" id="splashScreen">
-        <div class="splash-logo">
-            <i class="fas fa-seedling"></i>
-            <h1>Food Share</h1>
-        </div>
-    </div>
-
-    <!-- Auth Screen -->
-    <div class="auth-screen" id="authScreen" style="display: none;">
-        <div class="auth-logo">
-            <i class="fas fa-seedling"></i>
-            <h1>Food Share</h1>
-        </div>
-
-        <div class="auth-tabs">
-            <div class="auth-tab active" id="loginTab" onclick="switchTab('login')">Login</div>
-            <div class="auth-tab" id="signupTab" onclick="switchTab('signup')">Sign Up</div>
+    <div class="app-container">
+        <!-- Splash Screen -->
+        <div class="screen active" id="splashScreen">
+            <div class="splash-screen">
+                <div class="splash-logo">
+                    <div class="logo-icon">
+                        <i class="fas fa-seedling splash-logo"></i>
+                    </div>
+                    <h1 class="logo-text">Food Share</h1>
+                    <p class="logo-tagline">Sharing food. Reducing waste.</p>
+                </div>
+                <div class="loading-indicator"></div>
+            </div>
         </div>
 
-        <div class="auth-form-container">
-            <!-- Login Form -->
-            <form class="auth-form" id="loginForm">
-                <div class="input-group">
-                    <label for="loginEmail">Email</label>
-                    <div class="input-field">
-                        <i class="fas fa-envelope"></i>
-                        <input type="email" id="loginEmail" placeholder="Enter your email">
-                    </div>
-                </div>
-
-                <div class="input-group">
-                    <label for="loginPassword">Password</label>
-                    <div class="input-field">
-                        <i class="fas fa-lock"></i>
-                        <input type="password" id="loginPassword" placeholder="Enter your password">
-                    </div>
-                </div>
-
-                <button type="button" class="btn btn-primary" onclick="login()" id="loginBtn">
-                    <span>Login</span>
-                </button>
-
-                <div class="auth-divider">OR</div>
-
-                <button type="button" class="google-btn" onclick="signInWithGoogle()">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="Google">
-                    <span>Continue with Google</span>
-                </button>
-            </form>
-
-            <!-- Signup Form -->
-            <form class="auth-form" id="signupForm" style="display: none;">
-                <div class="input-group">
-                    <label for="signupName">Full Name</label>
-                    <div class="input-field">
-                        <i class="fas fa-user"></i>
-                        <input type="text" id="signupName" placeholder="Enter your full name">
-                    </div>
-                </div>
-
-                <div class="input-group">
-                    <label for="signupEmail">Email</label>
-                    <div class="input-field">
-                        <i class="fas fa-envelope"></i>
-                        <input type="email" id="signupEmail" placeholder="Enter your email">
-                    </div>
-                </div>
-
-                <div class="input-group">
-                    <label for="signupPassword">Password</label>
-                    <div class="input-field">
-                        <i class="fas fa-lock"></i>
-                        <input type="password" id="signupPassword" placeholder="Enter your password">
-                    </div>
-                </div>
-
-                <div class="input-group">
-                    <label>Select your role</label>
-                    <div class="role-options">
-                        <div class="role-option selected" onclick="selectRoleOption(this, 'donor')">
-                            <i class="fas fa-hand-holding-heart"></i>
-                            <h3>Donor</h3>
-                            <p>Share surplus food</p>
-                        </div>
-                        <div class="role-option" onclick="selectRoleOption(this, 'receiver')">
-                            <i class="fas fa-hands-helping"></i>
-                            <h3>Receiver</h3>
-                            <p>Find available food</p>
+        <!-- Onboarding Screens -->
+        <div id="onboardingScreen" class="screen">
+            
+            <div class="onboarding-slide" id="slide1">
+                <div class="slide-content">
+                    <div class="onboarding-illustration">
+                        <div class="onboarding-icon">
+                            <i class="fas fa-seedling"></i>
                         </div>
                     </div>
+                    <h2>Welcome to Food Share</h2>
+                    <p>Join our community of conscious individuals working together to reduce food waste and share resources.</p>
                 </div>
-
-                <button type="button" class="btn btn-primary" onclick="signup()" id="signupBtn">
-                    <span>Create Account</span>
-                </button>
-
-                <div class="auth-divider">OR</div>
-
-                <button type="button" class="google-btn" onclick="signInWithGoogle()">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="Google">
-                    <span>Continue with Google</span>
-                </button>
-            </form>
-        </div>
-    </div>
-
-    <!-- Donor Screen -->
-    <div class="app-screen" id="donorScreen" style="display: none;">
-        <header class="app-header">
-            <div class="header-content">
-                <div class="logo">
-                    <i class="fas fa-seedling"></i>
-                    <span>Food Share</span>
-                </div>
-                <div class="user-info">
-                    <!-- User info will be added here -->
+                
+                <div class="onboarding-navigation">
+                    <div class="onboarding-dots">
+                        <div class="dot active"></div>
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                    </div>
+                    <button class="btn btn-primary" onclick="showSlide(2)">Next</button>
                 </div>
             </div>
-        </header>
 
-        <div class="container">
+            <div class="onboarding-slide" id="slide2" style="display: none;">
+                <i class="fas fa-users onboarding-icon"></i>
+                <h1>Join a Community</h1>
+                <p>Connect with others who care about reducing food waste and creating a sustainable neighborhood.</p>
+                
+                <div class="onboarding-navigation">
+                    <div class="onboarding-dots">
+                        <div class="dot"></div>
+                        <div class="dot active"></div>
+                        <div class="dot"></div>
+                    </div>
+                    <button class="btn btn-primary" onclick="showSlide(3)">Next</button>
+                </div>
+            </div>
+
+            <div class="onboarding-slide" id="slide3" style="display: none;">
+                <i class="fas fa-map-marker-alt onboarding-icon"></i>
+                <h1>Local Connection</h1>
+                <p>Find nearby food sharing opportunities or post your own availability to help your local community.</p>
+                
+                <div class="onboarding-navigation">
+                    <div class="onboarding-dots">
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                        <div class="dot active"></div>
+                    </div>
+                    <button class="btn btn-primary" onclick="showPage('authOptions')">Get Started</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Auth Options Screen -->
+        <div id="authOptionsScreen" class="screen">
+            <div class="auth-header">
+                <div class="auth-logo">
+                    <i class="fas fa-seedling"></i>
+                </div>
+                <h1 class="auth-title">Welcome to FoodShare</h1>
+                <p>Let's get you started with your account</p>
+            </div>
+
+            <button class="btn btn-primary btn-block" onclick="showPage('login')">
+                <i class="fas fa-sign-in-alt"></i>
+                Sign In
+            </button>
+            
+            <div class="divider">
+                <span>or</span>
+            </div>
+            
+            <button class="btn btn-outline btn-block" onclick="showPage('signup')">
+                <i class="fas fa-user-plus"></i>
+                Create an Account
+            </button>
+        </div>
+
+        <!-- Login Screen -->
+        <div id="loginScreen" class="screen">
+            <div class="screen-header">
+                <button class="header-back" onclick="showPage('authOptions')">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <h2>Sign In</h2>
+            </div>
+
+            <div class="content login-content">
+                <form id="loginForm">
+                    <div class="input-group">
+                        <label class="form-label" for="loginEmail">Email</label>
+                        <i class="fas fa-envelope input-icon"></i>
+                        <input type="email" id="loginEmail" class="form-input" placeholder="your@email.com" required>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label class="form-label" for="loginPassword">Password</label>
+                        <i class="fas fa-lock input-icon"></i>
+                        <input type="password" id="loginPassword" class="form-input" placeholder="••••••••" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-block">Sign In</button>
+                </form>
+
+                <div class="auth-footer">
+                    Don't have an account? 
+                    <a href="#" class="auth-link" onclick="showPage('signup')">Sign Up</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Signup Screen -->
+        <div id="signupScreen" class="screen">
+            <div class="screen-header">
+                <button class="header-back" onclick="showPage('authOptions')">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <h2>Create Account</h2>
+            </div>
+
+            <div class="content">
+                <form id="signupForm">
+                    <div class="input-group">
+                        <label class="form-label" for="name">Full Name</label>
+                        <i class="fas fa-user input-icon"></i>
+                        <input type="text" id="name" class="form-input" placeholder="John Doe" required>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label class="form-label" for="email">Email</label>
+                        <i class="fas fa-envelope input-icon"></i>
+                        <input type="email" id="email" class="form-input" placeholder="your@email.com" required>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label class="form-label" for="password">Password</label>
+                        <i class="fas fa-lock input-icon"></i>
+                        <input type="password" id="password" class="form-input" placeholder="••••••••" required>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label class="form-label" for="confirmPassword">Confirm Password</label>
+                        <i class="fas fa-lock input-icon"></i>
+                        <input type="password" id="confirmPassword" class="form-input" placeholder="••••••••" required>
+                    </div>
+
+                    <label class="form-label">I want to:</label>
+                    <div class="user-type-selection">
+                        <div class="user-type-option" id="sharerOption" onclick="selectUserType('donor')">
+                            <i class="fas fa-share-alt user-type-icon"></i>
+                            <span class="user-type-label">Share Food</span>
+                            <input type="radio" name="userType" value="donor" style="display: none;" required>
+                        </div>
+                        <div class="user-type-option" id="seekerOption" onclick="selectUserType('receiver')">
+                            <i class="fas fa-hand-holding-heart user-type-icon"></i>
+                            <span class="user-type-label">Find Food</span>
+                            <input type="radio" name="userType" value="receiver" style="display: none;" required>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-block">Create Account</button>
+                </form>
+
+                <div class="auth-footer">
+                    Already have an account? 
+                    <a href="#" class="auth-link" onclick="showPage('login')">Sign In</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Welcome Screen -->
+        <div id="welcomeScreen" class="screen">
+            <div class="welcome-screen">
+                <i class="fas fa-check-circle success-icon"></i>
+                <h1>Welcome!</h1>
+                <p id="welcomeMessage">Account created successfully. Setting up your profile...</p>
+            </div>
+        </div>
+
+        <!-- Donor Dashboard Screen -->
+        <div id="donorScreen" class="screen">
+            <div class="dashboard-header">
+                <div class="user-greeting">
+                    <img src="https://via.placeholder.com/50x50" alt="User Avatar" class="user-avatar" id="donorAvatar">
+                    <div class="greeting-text">
+                        <h3>Hello, <span id="donorName">User</span>!</h3>
+                        <p>Ready to share food today?</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="container">
+                <div class="section-title">
+                    <h2>Your Donations</h2>
+                    <button class="btn btn-primary" onclick="showDonationForm()">
+                        <i class="fas fa-plus"></i>
+                        New Listing
+                    </button>
+                </div>
+                
+                <div class="food-grid" id="donorListings">
+                    <!-- Donor listings will be populated here -->
+                </div>
+            </div>
+
+            <nav class="bottom-nav">
+                <div class="nav-content">
+                    <a href="#" class="nav-item active" onclick="navigateTo('home', 'donor')">
+                        <i class="fas fa-home"></i>
+                        <span>Home</span>
+                    </a>
+                    <a href="#" class="nav-item" onclick="navigateTo('listings', 'donor')">
+                        <i class="fas fa-list"></i>
+                        <span>Listings</span>
+                    </a>
+                    <a href="#" class="nav-item" onclick="navigateTo('messages', 'donor')">
+                        <i class="fas fa-message"></i>
+                        <span>Messages</span>
+                    </a>
+                    <a href="#" class="nav-item" onclick="navigateTo('profile', 'donor')">
+                        <i class="fas fa-user"></i>
+                        <span>Profile</span>
+                    </a>
+                </div>
+            </nav>
+        </div>
+
+        <!-- Receiver Dashboard Screen -->
+        <div id="receiverScreen" class="screen">
+            <header class="app-header">
+                <div class="header-content">
+                    <div class="logo">
+                        <i class="fas fa-seedling"></i>
+                        <span>Food Share</span>
+                    </div>
+                    <div class="user-info">
+                        <!-- User info will be added here -->
+                    </div>
+                </div>
+            </header>
+
+            <div class="container">
+                <div class="section-title">
+                    <h2>Available Food</h2>
+                    <div class="search-box">
+                        <input type="text" placeholder="Search food items..." onkeyup="searchListings(this.value)">
+                    </div>
+                </div>
+                
+                <div class="food-grid" id="availableListings">
+                    <!-- Available food listings will be populated here -->
+                </div>
+            </div>
+
+            <nav class="bottom-nav">
+                <div class="nav-content">
+                    <a href="#" class="nav-item active" onclick="navigateTo('home', 'receiver')">
+                        <i class="fas fa-home"></i>
+                        <span>Home</span>
+                    </a>
+                    <a href="#" class="nav-item" onclick="navigateTo('search', 'receiver')">
+                        <i class="fas fa-search"></i>
+                        <span>Search</span>
+                    </a>
+                    <a href="#" class="nav-item" onclick="navigateTo('messages', 'receiver')">
+                        <i class="fas fa-message"></i>
+                        <span>Messages</span>
+                    </a>
+                    <a href="#" class="nav-item" onclick="navigateTo('profile', 'receiver')">
+                        <i class="fas fa-user"></i>
+                        <span>Profile</span>
+                    </a>
+                </div>
+            </nav>
+        </div>
+
+        <!-- Profile Screen -->
+        <div id="profileScreen" class="screen">
+            <div class="profile-header">
+                <div class="profile-pic">
+                    <i class="fas fa-user"></i>
+                </div>
+                <h2 class="profile-name" id="profileName">Jane Smith</h2>
+                <p class="profile-role" id="profileRole">Food Donor</p>
+            </div>
+
+            <div class="profile-sections">
+                <div class="profile-section">
+                    <h3 class="section-header">
+                        <i class="fas fa-cog"></i>
+                        Account Settings
+                    </h3>
+                    <div class="menu-list">
+                        <div class="menu-item" onclick="openSettings('personal')">
+                            <div class="menu-item-content">
+                                <i class="fas fa-user"></i>
+                                <div class="menu-item-text">Personal Information</div>
+                            </div>
+                            <i class="fas fa-chevron-right menu-item-arrow"></i>
+                        </div>
+                        <div class="menu-item" onclick="openSettings('notifications')">
+                            <div class="menu-item-content">
+                                <i class="fas fa-bell"></i>
+                                <div class="menu-item-text">Notifications</div>
+                            </div>
+                            <i class="fas fa-chevron-right menu-item-arrow"></i>
+                        </div>
+                        <div class="menu-item" onclick="openSettings('password')">
+                            <div class="menu-item-content">
+                                <i class="fas fa-lock"></i>
+                                <div class="menu-item-text">Change Password</div>
+                            </div>
+                            <i class="fas fa-chevron-right menu-item-arrow"></i>
+                        </div>
+                    </div>
+                </div>
+    
+                <div class="profile-section">
+                    <h3 class="section-header">
+                        <i class="fas fa-info-circle"></i>
+                        About
+                    </h3>
+                    <div class="menu-list">
+                        <div class="menu-item" onclick="openAbout('terms')">
+                            <div class="menu-item-content">
+                                <i class="fas fa-file-alt"></i>
+                                <div class="menu-item-text">Terms of Service</div>
+                            </div>
+                            <i class="fas fa-chevron-right menu-item-arrow"></i>
+                        </div>
+                        <div class="menu-item" onclick="openAbout('privacy')">
+                            <div class="menu-item-content">
+                                <i class="fas fa-shield-alt"></i>
+                                <div class="menu-item-text">Privacy Policy</div>
+                            </div>
+                            <i class="fas fa-chevron-right menu-item-arrow"></i>
+                        </div>
+                        <div class="menu-item" onclick="openAbout('contact')">
+                            <div class="menu-item-content">
+                                <i class="fas fa-envelope"></i>
+                                <div class="menu-item-text">Contact Us</div>
+                            </div>
+                            <i class="fas fa-chevron-right menu-item-arrow"></i>
+                        </div>
+                    </div>
+                </div>
+    
+                <button type="button" class="logout-btn" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Log out</span>
+                </button>
+    
+                <button type="button" class="delete-btn" onclick="confirmDeleteAccount()">
+                    <i class="fas fa-trash"></i>
+                    <span>Delete Account</span>
+                </button>
+            </div>
+
+            <nav class="bottom-nav">
+                <div class="nav-content">
+                    <a href="#" class="nav-item" id="profileHomeNav">
+                        <i class="fas fa-home"></i>
+                        <span>Home</span>
+                    </a>
+                    <a href="#" class="nav-item" id="profileListingsNav">
+                        <i class="fas fa-list"></i>
+                        <span>Listings</span>
+                    </a>
+                    <a href="#" class="nav-item" id="profileMessagesNav">
+                        <i class="fas fa-message"></i>
+                        <span>Messages</span>
+                    </a>
+                    <a href="#" class="nav-item active" id="profileProfileNav">
+                        <i class="fas fa-user"></i>
+                        <span>Profile</span>
+                    </a>
+                </div>
+            </nav>
+        </div>
+
+        <!-- Chat Modal -->
+        <div class="chat-modal" id="chatModal" style="display: none;">
+            <div class="chat-container">
+                <div class="chat-header">
+                    <h3 id="chatRecipientName">John Doe</h3>
+                    <button class="btn btn-icon" onclick="closeChat()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="chat-messages" id="chatMessages">
+                    <!-- Messages will be populated here -->
+                </div>
+                
+                <div class="chat-input">
+                    <input type="text" id="messageInput" placeholder="Type your message..." onkeypress="sendMessageOnEnter(event)">
+                    <button class="btn btn-primary btn-icon" onclick="sendMessage()">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Donation Form Modal -->
+        <div class="chat-modal" id="donationFormModal" style="display: none;">
+            <div class="chat-container">
+                <div class="chat-header">
+                    <h3>Add New Food Listing</h3>
+                    <button class="btn btn-icon" onclick="closeDonationForm()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <form id="donationForm">
+                    <div class="input-group">
+                        <label for="foodTitle">Food Title</label>
+                        <input type="text" id="foodTitle" placeholder="What are you sharing?">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="foodDescription">Description</label>
+                        <textarea id="foodDescription" rows="3" placeholder="Describe the food (quantity, condition, etc.)"></textarea>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="expiryDate">Expiry Date</label>
+                        <input type="date" id="expiryDate">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="pickupAddress">Pickup Address</label>
+                        <input type="text" id="pickupAddress" placeholder="Where can it be picked up?">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="foodCategory">Category</label>
+                        <select id="foodCategory">
+                            <option value="bakery">Bakery</option>
+                            <option value="produce">Produce</option>
+                            <option value="dairy">Dairy</option>
+                            <option value="pantry">Pantry</option>
+                            <option value="prepared">Prepared Meals</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="foodImage">Upload Image (optional)</label>
+                        <input type="file" id="foodImage" accept="image/*">
+                    </div>
+                    
+                    <button type="button" class="btn btn-primary" style="width: 100%; margin-top: 1rem;" onclick="submitDonation()">
+                        <i class="fas fa-plus"></i>
+                        <span>Add Listing</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+        <!-- Firebase SDKs -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.7.1/firebase-app-compat.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.7.1/firebase-auth-compat.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.7.1/firebase-firestore-compat.min.js"></script>
+<script>
+  // DOM elements cache for better performance
+const screens = {
+    splash: document.getElementById('splashScreen'),
+    onboarding: document.getElementById('onboardingScreen'),
+    authOptions: document.getElementById('authOptionsScreen'),
+    login: document.getElementById('loginScreen'),
+    signup: document.getElementById('signupScreen'),
+    welcome: document.getElementById('welcomeScreen'),
+    donor: document.getElementById('donorScreen'),
+    receiver: document.getElementById('receiverScreen'),
+    profile: document.getElementById('profileScreen')
+};
+
+const onboardingSlides = [
+    document.getElementById('slide1'),
+    document.getElementById('slide2'),
+    document.getElementById('slide3')
+];
+
+const modals = {
+    chat: document.getElementById('chatModal'),
+    donationForm: document.getElementById('donationFormModal')
+};
+
+// Firebase config 
+const firebaseConfig = {
+    apiKey: "AIzaSyDgRi43mb42KExpplTBF6T9Z6IsedrTw7E",
+    authDomain: "foodshare-5951e.firebaseapp.com",
+    projectId: "foodshare-5951e",
+    storageBucket: "foodshare-5951e.firebasestorage.app",
+    messagingSenderId: "460631614669",
+    appId: "1:460631614669:web:8e1379b952c757ea7a7584",
+    measurementId: "G-E6Z0RDYK70"
+};
+
+// Initialize Firebase (this will be called after DOM is loaded)
+let auth, db, storage, currentUser;
+
+function initializeFirebase() {
+    try {
+        if (typeof firebase !== 'undefined') {
+            // Initialize Firebase
+            firebase.initializeApp(firebaseConfig);
+            auth = firebase.auth();
+            db = firebase.firestore();
+            storage = firebase.storage();
+
+            // Listen for auth state changes
+            auth.onAuthStateChanged(user => {
+                if (user) {
+                    currentUser = user;
+                    loadUserData();
+                    // Skip onboarding for authenticated users
+                    setOnboardingCompleted();
+                } else {
+                    // Check if onboarding has been completed before
+                    if (isOnboardingCompleted()) {
+                        showPage('authOptions');
+                    } else {
+                        showPage('onboarding');
+                    }
+                }
+            });
+        } else {
+            console.error("Firebase SDK not loaded.");
+            // Fallback to demo mode
+            checkOnboardingStatus();
+        }
+    } catch (error) {
+        console.error("Firebase initialization failed: ", error);
+        // Fallback to demo mode or show an error message
+        checkOnboardingStatus();
+    }
+}
+
+// Check onboarding status
+function checkOnboardingStatus() {
+    if (isOnboardingCompleted()) {
+        showPage('authOptions');
+    } else {
+        showPage('onboarding');
+    }
+}
+
+// Mark onboarding as completed
+function setOnboardingCompleted() {
+    localStorage.setItem('onboardingCompleted', 'true');
+}
+
+// Check if onboarding is completed
+function isOnboardingCompleted() {
+    return localStorage.getItem('onboardingCompleted') === 'true';
+}
+
+// Splash screen timer and initial page load
+document.addEventListener('DOMContentLoaded', () => {
+    // Show splash screen for 2 seconds then check auth state
+    setTimeout(() => {
+        if (auth) {
+            // If Firebase is initialized, onAuthStateChanged will handle routing
+            // Just wait for it to fire
+        } else {
+            // If Firebase isn't available, check onboarding status manually
+            checkOnboardingStatus();
+        }
+    }, 10000);
+
+    // Initialize form submit handlers
+    initFormHandlers();
+
+    // Setup profile navigation handlers
+    setupProfileNavigation();
+
+    // Try to initialize Firebase if available
+    try {
+        initializeFirebase();
+    } catch (error) {
+        console.log("Firebase not initialized: ", error);
+    }
+});
+
+// Page navigation functions
+function showPage(pageId) {
+    // Hide all screens first
+    Object.values(screens).forEach(screen => {
+        screen.classList.remove('active');
+    });
+
+    // Show the requested screen
+    screens[pageId].classList.add('active', 'animate-in');
+
+    // Special case for returning to first onboarding slide
+    if (pageId === 'onboarding') {
+        showSlide(1);
+    }
+
+    // If this is the last onboarding slide, mark as completed
+    if (pageId === 'authOptions' && screens.onboarding.classList.contains('active')) {
+        setOnboardingCompleted();
+    }
+}
+
+// Onboarding slide navigation
+function showSlide(slideNumber) {
+    // Hide all slides
+    onboardingSlides.forEach(slide => {
+        slide.style.display = 'none';
+    });
+
+    // Show the requested slide (adjust for zero-based array)
+    onboardingSlides[slideNumber - 1].style.display = 'flex';
+}
+
+// User type selection in signup
+function selectUserType(type) {
+    const sharerOption = document.getElementById('sharerOption');
+    const seekerOption = document.getElementById('seekerOption');
+
+    // Reset both options
+    sharerOption.classList.remove('selected');
+    seekerOption.classList.remove('selected');
+
+    // Select the chosen type
+    if (type === 'donor') {
+        sharerOption.classList.add('selected');
+        document.querySelector('input[value="donor"]').checked = true;
+    } else {
+        seekerOption.classList.add('selected');
+        document.querySelector('input[value="receiver"]').checked = true;
+    }
+}
+
+// Initialize form handlers
+function initFormHandlers() {
+    // Login form handler
+    const loginForm = document.getElementById('loginForm');
+    if (loginForm) {
+        loginForm.addEventListener('submit', handleLogin);
+    }
+
+    // Signup form handler
+    const signupForm = document.getElementById('signupForm');
+    if (signupForm) {
+        signupForm.addEventListener('submit', handleSignup);
+    }
+}
+
+// Setup profile navigation
+function setupProfileNavigation() {
+    // Set up profile navigation based on user type
+    document.getElementById('profileHomeNav').addEventListener('click', function(e) {
+        e.preventDefault();
+        const userType = currentUser?.userType || 'donor';
+        navigateTo('home', userType);
+    });
+    
+    document.getElementById('profileListingsNav').addEventListener('click', function(e) {
+        e.preventDefault();
+        const userType = currentUser?.userType || 'donor';
+        navigateTo('listings', userType);
+    });
+    
+    document.getElementById('profileMessagesNav').addEventListener('click', function(e) {
+        e.preventDefault();
+        const userType = currentUser?.userType || 'donor';
+        navigateTo('messages', userType);
+    });
+}
+
+// Handle login form submission
+function handleLogin(e) {
+    e.preventDefault();
+
+    const email = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPassword').value;
+
+    if (auth) {
+        // Firebase login
+        auth.signInWithEmailAndPassword(email, password)
+            .then((userCredential) => {
+                // Successful login
+                currentUser = userCredential.user;
+                loadUserData();
+                // Dashboard will be shown after user data is loaded
+            })
+            .catch((error) => {
+                // Handle errors - show appropriate message
+                let errorMessage = "Login failed. Please try again.";
+                if (error.code === "auth/user-not-found" || error.code === "auth/wrong-password") {
+                    errorMessage = "Invalid email or password.";
+                }
+                alert(errorMessage);
+            });
+    } else {
+        // Demo mode without Firebase
+        simulateLogin(email);
+    }
+}
+
+// Handle signup form submission
+function handleSignup(e) {
+    e.preventDefault();
+
+    const name = document.getElementById('name').value;
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+    const userType = document.querySelector('input[name="userType"]:checked')?.value;
+
+    // Basic validation
+    if (password !== confirmPassword) {
+        alert("Passwords don't match");
+        return;
+    }
+
+    if (!userType) {
+        alert("Please select a user type");
+        return;
+    }
+
+    if (auth) {
+        // Firebase signup
+        auth.createUserWithEmailAndPassword(email, password)
+            .then((userCredential) => {
+                // Create user profile in database
+                createUserProfile(userCredential.user.uid, {
+                    name,
+                    email,
+                    userType
+                });
+
+                // Show welcome screen
+                document.getElementById('welcomeMessage').textContent =
+                    `Welcome, ${name}! Setting up your profile...`;
+                showPage('welcome');
+
+                // Transition to appropriate dashboard after delay
+                setTimeout(() => {
+                    routeUserToDashboard(userType, name);
+                }, 2000);
+            })
+            .catch((error) => {
+                let errorMessage = "Signup failed. Please try again.";
+                if (error.code === "auth/email-already-in-use") {
+                    errorMessage = "This email is already in use.";
+                }
+                alert(errorMessage);
+            });
+    } else {
+        // Demo mode without Firebase
+        simulateSignup(name, email, userType);
+    }
+}
+
+// Function to route user to appropriate dashboard
+function routeUserToDashboard(userType, name) {
+    if (userType === 'donor') {
+        document.getElementById('donorName').textContent = name;
+        showPage('donor');
+    } else if (userType === 'receiver') {
+        document.getElementById('receiverName').textContent = name;
+        showPage('receiver');
+    }
+}
+
+// Create user profile in database
+async function createUserProfile(userId, userData) {
+    try {
+        let profileImageUrl = null;
+
+        // Create user document in Firestore
+        if (db) {
+            await db.collection('users').doc(userId).set({
+                name: userData.name,
+                email: userData.email,
+                userType: userData.userType,
+                profileImageUrl: profileImageUrl,
+                createdAt: new Date()
+            });
+        }
+
+        // Update currentUser
+        currentUser = {
+            uid: userId,
+            ...userData,
+            profileImageUrl
+        };
+
+    } catch (error) {
+        console.error("Error creating user profile:", error);
+        alert("Error creating user profile. Please try again.");
+    }
+}
+
+// Load user data from database and route to correct dashboard
+async function loadUserData() {
+    if (!currentUser || !db) return;
+
+    try {
+        const userDoc = await db.collection('users').doc(currentUser.uid).get();
+        
+        if (userDoc.exists) {
+            const userData = userDoc.data();
+            const userType = userData.userType;
+            const name = userData.name;
+            
+            // Route to the correct dashboard based on user type
+            if (userType === 'donor') {
+                document.getElementById('donorName').textContent = name;
+                if (userData.profileImageUrl) {
+                    document.getElementById('donorAvatar').src = userData.profileImageUrl;
+                }
+                showPage('donor');
+            } else if (userType === 'receiver') {
+                document.getElementById('receiverName').textContent = name;
+                if (userData.profileImageUrl) {
+                    document.getElementById('receiverAvatar').src = userData.profileImageUrl;
+                }
+                showPage('receiver');
+            }
+        }
+    } catch (error) {
+        console.error("Error loading user data:", error);
+    }
+}
+
+
+// Logout function
+function logout() {
+    if (auth) {
+        auth.signOut().then(() => {
+            currentUser = null; // Clear local state
+            showPage('authOptions');
+        }).catch((error) => {
+            console.error("Logout error:", error);
+        });
+    } else {
+        // Demo mode
+        currentUser = null;
+        showPage('authOptions');
+    }
+}
+
+// Navigation function for bottom navigation bar
+function navigateTo(screen, userType) {
+    // Get all navigation items for the current user type
+    const navItems = document.querySelectorAll(`.bottom-nav .nav-item`);
+    
+    // Remove active class from all navigation items
+    navItems.forEach(item => {
+        item.classList.remove('active');
+    });
+    
+    // Add active class to the clicked navigation item
+    event.currentTarget.classList.add('active');
+    
+    // Handle navigation based on user type and selected screen
+    switch(screen) {
+        case 'home':
+            // Navigate to the appropriate home screen based on user type
+            if (userType === 'donor') {
+                showDonorHome();
+            } else {
+                showReceiverHome();
+            }
+            break;
+            
+        case 'listings':
+        case 'search':
+            // Show listings for donor or search page for receiver
+            if (userType === 'donor') {
+                showDonorListings();
+            } else {
+                showReceiverSearch();
+            }
+            break;
+            
+        case 'messages':
+            // Show messages screen (common for both user types)
+            showMessages(userType);
+            break;
+            
+        case 'profile':
+            // Show profile screen (common for both user types but with different data)
+            showProfile(userType);
+            break;
+            
+        default:
+            console.error('Unknown screen:', screen);
+    }
+}
+
+// Function to show donor home screen
+function showDonorHome() {
+    // Hide any visible container screens within donor screen
+    hideAllDonorContainers();
+    
+    // Show the donor home container
+    const homeContainer = document.querySelector('#donorScreen .container');
+    if (homeContainer) {
+        homeContainer.style.display = 'block';
+    }
+    
+    // Load donor's active listings
+    loadDonorListings();
+}
+
+// Function to show receiver home screen
+function showReceiverHome() {
+    // Hide any visible container screens within receiver screen
+    hideAllReceiverContainers();
+    
+    // Show the receiver home container
+    const homeContainer = document.querySelector('#receiverScreen .container');
+    if (homeContainer) {
+        homeContainer.style.display = 'block';
+    }
+    
+    // Load available food listings
+    loadAvailableListings();
+}
+
+// Function to show donor's listings
+function showDonorListings() {
+    // Hide any visible container screens within donor screen
+    hideAllDonorContainers();
+    
+    // Create and show a listings-specific container if it doesn't exist
+    let listingsContainer = document.querySelector('#donorListingsContainer');
+    if (!listingsContainer) {
+        listingsContainer = document.createElement('div');
+        listingsContainer.id = 'donorListingsContainer';
+        listingsContainer.className = 'container';
+        listingsContainer.innerHTML = `
             <div class="section-title">
-                <h2>Your Donations</h2>
+                <h2>Manage Your Listings</h2>
                 <button class="btn btn-primary" onclick="showDonationForm()">
                     <i class="fas fa-plus"></i>
                     New Listing
                 </button>
             </div>
-            
-            <div class="food-grid" id="donorListings">
-                <!-- Donor listings will be populated here -->
+            <div class="tabs">
+                <button class="tab-btn active" onclick="filterDonorListings('active')">Active</button>
+                <button class="tab-btn" onclick="filterDonorListings('pending')">Pending</button>
+                <button class="tab-btn" onclick="filterDonorListings('completed')">Completed</button>
             </div>
-        </div>
-
-        <nav class="bottom-nav">
-            <div class="nav-content">
-                <a href="#" class="nav-item active" onclick="navigateTo('home', 'donor')">
-                    <i class="fas fa-home"></i>
-                    <span>Home</span>
-                </a>
-                <a href="#" class="nav-item" onclick="navigateTo('listings', 'donor')">
-                    <i class="fas fa-list"></i>
-                    <span>Listings</span>
-                </a>
-                <a href="#" class="nav-item" onclick="navigateTo('messages', 'donor')">
-                    <i class="fas fa-message"></i>
-                    <span>Messages</span>
-                </a>
-                <a href="#" class="nav-item" onclick="navigateTo('profile', 'donor')">
-                    <i class="fas fa-user"></i>
-                    <span>Profile</span>
-                </a>
+            <div class="food-grid" id="filteredDonorListings">
+                <!-- Filtered listings will be populated here -->
             </div>
-        </nav>
-    </div>
+        `;
+        document.getElementById('donorScreen').appendChild(listingsContainer);
+    }
+    
+    listingsContainer.style.display = 'block';
+    
+    // Load and filter donor's listings
+    loadDonorListings('active');
+}
 
-    <!-- Receiver Screen -->
-    <div class="app-screen" id="receiverScreen" style="display: none;">
-        <header class="app-header">
-            <div class="header-content">
-                <div class="logo">
-                    <i class="fas fa-seedling"></i>
-                    <span>Food Share</span>
-                </div>
-                <div class="user-info">
-                    <!-- User info will be added here -->
-                </div>
-            </div>
-        </header>
-
-        <div class="container">
+// Function to show receiver's search page
+function showReceiverSearch() {
+    // Hide any visible container screens within receiver screen
+    hideAllReceiverContainers();
+    
+    // Create and show a search-specific container if it doesn't exist
+    let searchContainer = document.querySelector('#receiverSearchContainer');
+    if (!searchContainer) {
+        searchContainer = document.createElement('div');
+        searchContainer.id = 'receiverSearchContainer';
+        searchContainer.className = 'container';
+        searchContainer.innerHTML = `
             <div class="section-title">
-                <h2>Available Food</h2>
-                <div class="search-box">
-                    <input type="text" placeholder="Search food items..." onkeyup="searchListings(this.value)">
-                </div>
+                <h2>Find Food</h2>
             </div>
-            
-            <div class="food-grid" id="availableListings">
-                <!-- Available food listings will be populated here -->
-            </div>
-        </div>
-
-        <nav class="bottom-nav">
-            <div class="nav-content">
-                <a href="#" class="nav-item active" onclick="navigateTo('home', 'receiver')">
-                    <i class="fas fa-home"></i>
-                    <span>Home</span>
-                </a>
-                <a href="#" class="nav-item" onclick="navigateTo('search', 'receiver')">
-                    <i class="fas fa-search"></i>
-                    <span>Search</span>
-                </a>
-                <a href="#" class="nav-item" onclick="navigateTo('messages', 'receiver')">
-                    <i class="fas fa-message"></i>
-                    <span>Messages</span>
-                </a>
-                <a href="#" class="nav-item" onclick="navigateTo('profile', 'receiver')">
-                    <i class="fas fa-user"></i>
-                    <span>Profile</span>
-                </a>
-            </div>
-        </nav>
-    </div>
-
-    <!-- Profile Screen -->
-    <div class="app-screen" id="profileScreen" style="display: none;">
-        <div class="profile-header">
-            <div class="profile-pic">
-                <i class="fas fa-user"></i>
-            </div>
-            <h2 class="profile-name" id="profileName">Jane Smith</h2>
-            <p class="profile-role" id="profileRole">Food Donor</p>
-        </div>
-
-        <div class="profile-stats">
-            <div class="stat-item">
-                <div class="stat-value" id="totalDonations">12</div>
-                <div class="stat-label">Donations</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-value" id="totalHelped">58</div>
-                <div class="stat-label">People Helped</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-value" id="rating">4.8</div>
-                <div class="stat-label">Rating</div>
-            </div>
-        </div>
-
-        <!-- Continuing from the previous code -->
-        <div class="profile-sections">
-            <div class="profile-section">
-                <h3 class="section-header">
-                    <i class="fas fa-cog"></i>
-                    Account Settings
-                </h3>
-                <div class="menu-list">
-                    <div class="menu-item" onclick="openSettings('personal')">
-                        <div class="menu-item-content">
-                            <i class="fas fa-user"></i>
-                            <div class="menu-item-text">Personal Information</div>
-                        </div>
-                        <i class="fas fa-chevron-right menu-item-arrow"></i>
-                    </div>
-                    <div class="menu-item" onclick="openSettings('notifications')">
-                        <div class="menu-item-content">
-                            <i class="fas fa-bell"></i>
-                            <div class="menu-item-text">Notifications</div>
-                        </div>
-                        <i class="fas fa-chevron-right menu-item-arrow"></i>
-                    </div>
-                    <div class="menu-item" onclick="openSettings('password')">
-                        <div class="menu-item-content">
-                            <i class="fas fa-lock"></i>
-                            <div class="menu-item-text">Change Password</div>
-                        </div>
-                        <i class="fas fa-chevron-right menu-item-arrow"></i>
-                    </div>
-                </div>
-            </div>
-
-            <div class="profile-section">
-                <h3 class="section-header">
-                    <i class="fas fa-info-circle"></i>
-                    About
-                </h3>
-                <div class="menu-list">
-                    <div class="menu-item" onclick="openAbout('terms')">
-                        <div class="menu-item-content">
-                            <i class="fas fa-file-alt"></i>
-                            <div class="menu-item-text">Terms of Service</div>
-                        </div>
-                        <i class="fas fa-chevron-right menu-item-arrow"></i>
-                    </div>
-                    <div class="menu-item" onclick="openAbout('privacy')">
-                        <div class="menu-item-content">
-                            <i class="fas fa-shield-alt"></i>
-                            <div class="menu-item-text">Privacy Policy</div>
-                        </div>
-                        <i class="fas fa-chevron-right menu-item-arrow"></i>
-                    </div>
-                    <div class="menu-item" onclick="openAbout('contact')">
-                        <div class="menu-item-content">
-                            <i class="fas fa-envelope"></i>
-                            <div class="menu-item-text">Contact Us</div>
-                        </div>
-                        <i class="fas fa-chevron-right menu-item-arrow"></i>
-                    </div>
-                </div>
-            </div>
-
-            <button type="button" class="logout-btn" onclick="logout()">
-                <i class="fas fa-sign-out-alt"></i>
-                <span>Log out</span>
-            </button>
-
-            <button type="button" class="delete-btn" onclick="confirmDeleteAccount()">
-                <i class="fas fa-trash"></i>
-                <span>Delete Account</span>
-            </button>
-        </div>
-
-        <nav class="bottom-nav">
-            <div class="nav-content">
-                <a href="#" class="nav-item" onclick="navigateTo('home')">
-                    <i class="fas fa-home"></i>
-                    <span>Home</span>
-                </a>
-                <a href="#" class="nav-item" onclick="navigateTo('listings')">
-                    <i class="fas fa-list"></i>
-                    <span>Listings</span>
-                </a>
-                <a href="#" class="nav-item" onclick="navigateTo('messages')">
-                    <i class="fas fa-message"></i>
-                    <span>Messages</span>
-                </a>
-                <a href="#" class="nav-item active" onclick="navigateTo('profile')">
-                    <i class="fas fa-user"></i>
-                    <span>Profile</span>
-                </a>
-            </div>
-        </nav>
-    </div>
-
-    <!-- Chat Modal -->
-    <div class="chat-modal" id="chatModal">
-        <div class="chat-container">
-            <div class="chat-header">
-                <h3 id="chatRecipientName">John Doe</h3>
-                <button class="btn btn-icon" onclick="closeChat()">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            
-            <div class="chat-messages" id="chatMessages">
-                <!-- Messages will be populated here -->
-                <div class="message received">
-                    Hi, I'm interested in your bread donation. Is it still available?
-                </div>
-                <div class="message sent">
-                    Yes, it's still available! When would you like to pick it up?
-                </div>
-                <div class="message received">
-                    Would today at 4pm work for you?
-                </div>
-            </div>
-            
-            <div class="chat-input">
-                <input type="text" id="messageInput" placeholder="Type your message..." onkeypress="sendMessageOnEnter(event)">
-                <button class="btn btn-primary btn-icon" onclick="sendMessage()">
-                    <i class="fas fa-paper-plane"></i>
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Donation Form Modal -->
-    <div class="chat-modal" id="donationFormModal">
-        <div class="chat-container">
-            <div class="chat-header">
-                <h3>Add New Food Listing</h3>
-                <button class="btn btn-icon" onclick="closeDonationForm()">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            
-            <form id="donationForm">
-                <div class="input-group">
-                    <label for="foodTitle">Food Title</label>
-                    <input type="text" id="foodTitle" placeholder="What are you sharing?">
-                </div>
-                
-                <div class="input-group">
-                    <label for="foodDescription">Description</label>
-                    <textarea id="foodDescription" rows="3" placeholder="Describe the food (quantity, condition, etc.)"></textarea>
-                </div>
-                
-                <div class="input-group">
-                    <label for="expiryDate">Expiry Date</label>
-                    <input type="date" id="expiryDate">
-                </div>
-                
-                <div class="input-group">
-                    <label for="pickupAddress">Pickup Address</label>
-                    <input type="text" id="pickupAddress" placeholder="Where can it be picked up?">
-                </div>
-                
-                <div class="input-group">
-                    <label for="foodCategory">Category</label>
-                    <select id="foodCategory">
+            <div class="search-filters">
+                <div class="filter-group">
+                    <label>Category</label>
+                    <select id="categoryFilter" onchange="applyFilters()">
+                        <option value="">All Categories</option>
                         <option value="bakery">Bakery</option>
                         <option value="produce">Produce</option>
                         <option value="dairy">Dairy</option>
@@ -1163,550 +1017,472 @@
                         <option value="other">Other</option>
                     </select>
                 </div>
-                
-                <div class="input-group">
-                    <label for="foodImage">Upload Image (optional)</label>
-                    <input type="file" id="foodImage" accept="image/*">
+                <div class="filter-group">
+                    <label>Distance</label>
+                    <select id="distanceFilter" onchange="applyFilters()">
+                        <option value="">Any Distance</option>
+                        <option value="1">< 1 mile</option>
+                        <option value="3">< 3 miles</option>
+                        <option value="5">< 5 miles</option>
+                        <option value="10">< 10 miles</option>
+                    </select>
                 </div>
-                
-                <button type="button" class="btn btn-primary" style="width: 100%; margin-top: 1rem;" onclick="submitDonation()">
-                    <i class="fas fa-plus"></i>
-                    <span>Add Listing</span>
+                <div class="filter-group">
+                    <label>Sort By</label>
+                    <select id="sortFilter" onchange="applyFilters()">
+                        <option value="distance">Distance</option>
+                        <option value="expiry">Expiry Date</option>
+                        <option value="recent">Recently Added</option>
+                    </select>
+                </div>
+            </div>
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Search food items..." onkeyup="searchListings()">
+                <button class="search-btn" onclick="searchListings()">
+                    <i class="fas fa-search"></i>
                 </button>
-            </form>
-        </div>
-    </div>
+            </div>
+            <div class="food-grid" id="searchResults">
+                <!-- Search results will be populated here -->
+            </div>
+        `;
+        document.getElementById('receiverScreen').appendChild(searchContainer);
+    }
+    
+    searchContainer.style.display = 'block';
+    
+    // Load initial search results
+    searchListings();
+}
 
-    <script>
-        // Mock data for demonstration
-        const mockFoodListings = [
-            {
-                id: 1,
-                title: "Fresh Bread (2 loaves)",
-                description: "Two loaves of freshly baked sourdough bread. Baked today morning.",
-                image: "https://images.unsplash.com/photo-1549931319-a545dcf3bc7c?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60",
-                category: "Bakery",
-                expiry: "2025-03-12",
-                location: "Downtown, City Center",
-                distance: "0.8 miles",
-                donor: "Jane Smith",
-                isAvailable: true
-            },
-            {
-                id: 2,
-                title: "Organic Vegetables",
-                description: "Assorted organic vegetables: carrots, potatoes, onions, and bell peppers. From local farmer's market.",
-                image: "https://images.unsplash.com/photo-1557844352-761f2023520d?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60",
-                category: "Produce",
-                expiry: "2025-03-14",
-                location: "Westside, Green Park",
-                distance: "1.2 miles",
-                donor: "John Doe",
-                isAvailable: true
-            },
-            {
-                id: 3,
-                title: "Pasta and Sauce",
-                description: "Unopened pack of spaghetti and homemade tomato sauce. Enough for 4 servings.",
-                image: "https://images.unsplash.com/photo-1551462147-ff29053bfc14?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60",
-                category: "Pantry",
-                expiry: "2025-04-20",
-                location: "Northside, Hill Avenue",
-                distance: "2.5 miles",
-                donor: "Maria Garcia",
-                isAvailable: true
-            }
-        ];
+// Function to show messages screen
+function showMessages(userType) {
+    // Determine which screen is currently active based on user type
+    const activeScreen = userType === 'donor' ? 'donorScreen' : 'receiverScreen';
+    
+    // Hide any visible container screens
+    if (userType === 'donor') {
+        hideAllDonorContainers();
+    } else {
+        hideAllReceiverContainers();
+    }
+    
+    // Create and show a messages-specific container if it doesn't exist
+    let messagesContainer = document.querySelector(`#${activeScreen}MessagesContainer`);
+    if (!messagesContainer) {
+        messagesContainer = document.createElement('div');
+        messagesContainer.id = `${activeScreen}MessagesContainer`;
+        messagesContainer.className = 'container';
+        messagesContainer.innerHTML = `
+            <div class="section-title">
+                <h2>Messages</h2>
+            </div>
+            <div class="messages-list" id="${userType}MessagesList">
+                <!-- Message threads will be populated here -->
+            </div>
+        `;
+        document.getElementById(activeScreen).appendChild(messagesContainer);
+    }
+    
+    messagesContainer.style.display = 'block';
+    
+    // Load message threads
+    loadMessageThreads(userType);
+}
 
-        const mockUserData = {
-            name: "Jane Smith",
-            email: "jane.smith@example.com",
-            role: "donor",
-            totalDonations: 12,
-            peopleHelped: 58,
-            rating: 4.8
-        };
+// Function to show profile screen
+function showProfile(userType) {
+    // Show the profile screen
+    showPage('profile');
+    
+    // Update profile screen navigation based on user type
+    document.getElementById('profileHomeNav').onclick = function(e) {
+        e.preventDefault();
+        showPage(userType === 'donor' ? 'donor' : 'receiver');
+        navigateTo('home', userType);
+    };
+    
+    document.getElementById('profileListingsNav').onclick = function(e) {
+        e.preventDefault();
+        showPage(userType === 'donor' ? 'donor' : 'receiver');
+        navigateTo(userType === 'donor' ? 'listings' : 'search', userType);
+    };
+    
+    // Load user profile data
+    loadUserProfile(userType);
+}
 
-        // App state
-        let currentUser = null;
-        let selectedRole = "donor";
-        let currentScreen = "splash";
+// Helper functions for containers visibility
+function hideAllDonorContainers() {
+    const containers = document.querySelectorAll('#donorScreen .container');
+    containers.forEach(container => {
+        container.style.display = 'none';
+    });
+}
 
-        // Initialize the app
-        document.addEventListener("DOMContentLoaded", function() {
-            // Show splash screen for 3 seconds
-            setTimeout(() => {
-                document.getElementById("splashScreen").style.display = "none";
-                
-                // Check if user is logged in
-                const loggedInUser = localStorage.getItem("currentUser");
-                if (loggedInUser) {
-                    currentUser = JSON.parse(loggedInUser);
-                    showAppScreen();
-                } else {
-                    document.getElementById("authScreen").style.display = "block";
-                    currentScreen = "auth";
+function hideAllReceiverContainers() {
+    const containers = document.querySelectorAll('#receiverScreen .container');
+    containers.forEach(container => {
+        container.style.display = 'none';
+    });
+}
+
+// Placeholder functions for data loading - these would be implemented with actual data in a real app
+function loadDonorListings(filter = 'all') {
+    // This would fetch listings from the database in a real app
+    console.log('Loading donor listings with filter:', filter);
+    
+    // For demo purposes, show sample listings
+    const listings = [
+        { id: 1, title: 'Organic Apples', category: 'produce', expiry: '2025-03-25', status: 'active' },
+        { id: 2, title: 'Fresh Bread', category: 'bakery', expiry: '2025-03-23', status: 'pending' },
+        { id: 3, title: 'Leftover Pasta', category: 'prepared', expiry: '2025-03-22', status: 'active' }
+    ];
+    
+    // Filter listings based on selected filter
+    const filteredListings = filter === 'all' ? listings : listings.filter(item => item.status === filter);
+    
+    // Display listings
+    displayDonorListings(filteredListings);
+}
+
+function loadAvailableListings() {
+    // This would fetch available listings from the database in a real app
+    console.log('Loading available listings for receiver');
+    
+    // For demo purposes, show sample listings
+    const listings = [
+        { id: 4, title: 'Fresh Vegetables', category: 'produce', expiry: '2025-03-24', distance: '0.5 miles' },
+        { id: 5, title: 'Milk and Yogurt', category: 'dairy', expiry: '2025-03-23', distance: '1.2 miles' },
+        { id: 6, title: 'Canned Goods', category: 'pantry', expiry: '2025-04-15', distance: '0.8 miles' }
+    ];
+    
+    // Display listings
+    displayAvailableListings(listings);
+}
+
+function searchListings() {
+    // Get search term
+    const searchTerm = document.getElementById('searchInput')?.value || '';
+    console.log('Searching for:', searchTerm);
+    
+    // Apply any filters
+    applyFilters();
+}
+
+function applyFilters() {
+    // Get filter values
+    const category = document.getElementById('categoryFilter')?.value || '';
+    const distance = document.getElementById('distanceFilter')?.value || '';
+    const sortBy = document.getElementById('sortFilter')?.value || 'distance';
+    
+    console.log('Applying filters:', { category, distance, sortBy });
+    
+    // This would fetch filtered listings from the database in a real app
+    // For demo purposes, use sample data
+    const listings = [
+        { id: 4, title: 'Fresh Vegetables', category: 'produce', expiry: '2025-03-24', distance: '0.5 miles' },
+        { id: 5, title: 'Milk and Yogurt', category: 'dairy', expiry: '2025-03-23', distance: '1.2 miles' },
+        { id: 6, title: 'Canned Goods', category: 'pantry', expiry: '2025-04-15', distance: '0.8 miles' }
+    ];
+    
+    // Filter and sort listings based on criteria
+    let filteredListings = listings;
+    if (category) {
+        filteredListings = filteredListings.filter(item => item.category === category);
+    }
+    
+    // Display results
+    const resultsContainer = document.getElementById('searchResults');
+    if (resultsContainer) {
+        displayListingsInContainer(filteredListings, resultsContainer);
+    }
+}
+
+function loadMessageThreads(userType) {
+    // This would fetch message threads from the database in a real app
+    console.log('Loading message threads for', userType);
+    
+    // For demo purposes, show sample threads
+    const threads = [
+        { id: 1, name: 'Jane Doe', lastMessage: 'Is the bread still available?', time: '10:30 AM', unread: true },
+        { id: 2, name: 'Alex Smith', lastMessage: 'Thanks for the vegetables!', time: 'Yesterday', unread: false }
+    ];
+    
+    // Display threads
+    displayMessageThreads(threads, userType);
+}
+
+function loadUserProfile(userType) {
+    // This would fetch user profile data from the database in a real app
+    console.log('Loading profile for', userType);
+    
+    // For demo purposes, use sample data
+    const profileData = {
+        name: userType === 'donor' ? 'Jane Smith' : 'Alex Johnson',
+        role: userType === 'donor' ? 'Food Donor' : 'Food Receiver',
+        totalDonations: userType === 'donor' ? 12 : 0,
+        totalReceived: userType === 'receiver' ? 8 : 0,
+        totalHelped: userType === 'donor' ? 58 : 0,
+        rating: userType === 'donor' ? 4.8 : 4.6
+    };
+    
+    // Update profile UI
+    document.getElementById('profileName').textContent = profileData.name;
+    document.getElementById('profileRole').textContent = profileData.role;
+    document.getElementById('totalDonations').textContent = userType === 'donor' ? 
+        profileData.totalDonations : profileData.totalReceived;
+    document.getElementById('totalHelped').textContent = profileData.totalHelped;
+    document.getElementById('rating').textContent = profileData.rating;
+}
+
+// Helper functions for displaying content
+function displayDonorListings(listings) {
+    const container = document.getElementById('donorListings') || 
+                      document.getElementById('filteredDonorListings');
+    if (container) {
+        displayListingsInContainer(listings, container, true);
+    }
+}
+
+function displayAvailableListings(listings) {
+    const container = document.getElementById('availableListings');
+    if (container) {
+        displayListingsInContainer(listings, container, false);
+    }
+}
+
+function displayListingsInContainer(listings, container, isDonor = false) {
+    // Clear container
+    container.innerHTML = '';
+    
+    if (listings.length === 0) {
+        container.innerHTML = '<p class="empty-message">No listings found</p>';
+        return;
+    }
+    
+    // Create HTML for each listing
+    listings.forEach(listing => {
+        const listingElement = document.createElement('div');
+        listingElement.className = 'food-item';
+        
+        listingElement.innerHTML = `
+            <div class="food-image">
+                <img src="/api/placeholder/200/200" alt="${listing.title}">
+                ${listing.status === 'pending' ? '<div class="status-badge pending">Pending</div>' : ''}
+                ${listing.status === 'completed' ? '<div class="status-badge completed">Completed</div>' : ''}
+            </div>
+            <div class="food-info">
+                <h3>${listing.title}</h3>
+                <p class="food-category">${listing.category}</p>
+                <p class="food-expiry">Expires: ${listing.expiry}</p>
+                ${!isDonor ? `<p class="food-distance">${listing.distance}</p>` : ''}
+            </div>
+            <div class="food-actions">
+                ${isDonor ? 
+                    `<button class="btn btn-outline btn-sm" onclick="editListing(${listing.id})">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-outline btn-sm" onclick="deleteListing(${listing.id})">
+                        <i class="fas fa-trash"></i>
+                    </button>` : 
+                    `<button class="btn btn-primary btn-sm" onclick="requestFood(${listing.id})">
+                        Request
+                    </button>`
                 }
-            }, 3000);
+            </div>
+        `;
+        
+        container.appendChild(listingElement);
+    });
+}
 
-            // For demo purposes, populate listings
-            populateListings();
-        });
-
-        // Authentication functions
-        function switchTab(tab) {
-            const loginTab = document.getElementById("loginTab");
-            const signupTab = document.getElementById("signupTab");
-            const loginForm = document.getElementById("loginForm");
-            const signupForm = document.getElementById("signupForm");
-
-            if (tab === "login") {
-                loginTab.classList.add("active");
-                signupTab.classList.remove("active");
-                loginForm.style.display = "flex";
-                signupForm.style.display = "none";
-            } else {
-                loginTab.classList.remove("active");
-                signupTab.classList.add("active");
-                loginForm.style.display = "none";
-                signupForm.style.display = "flex";
-            }
-        }
-
-        function selectRoleOption(element, role) {
-            // Remove selected class from all options
-            const roleOptions = document.querySelectorAll(".role-option");
-            roleOptions.forEach(option => {
-                option.classList.remove("selected");
-            });
-
-            // Add selected class to clicked option
-            element.classList.add("selected");
-            selectedRole = role;
-        }
-
-        function login() {
-            const loginBtn = document.getElementById("loginBtn");
-            const email = document.getElementById("loginEmail").value;
-            const password = document.getElementById("loginPassword").value;
-
-            if (!email || !password) {
-                alert("Please enter both email and password");
-                return;
-            }
-
-            // Show loading state
-            loginBtn.innerHTML = '<div class="loading-spinner"></div>';
-            
-            // Simulate API call
-            setTimeout(() => {
-                // For demo, use mock data
-                currentUser = mockUserData;
-                localStorage.setItem("currentUser", JSON.stringify(currentUser));
-                
-                // Reset button state
-                loginBtn.innerHTML = '<span>Login</span>';
-                
-                // Show app screen
-                showAppScreen();
-            }, 1500);
-        }
-
-        function signup() {
-            const signupBtn = document.getElementById("signupBtn");
-            const name = document.getElementById("signupName").value;
-            const email = document.getElementById("signupEmail").value;
-            const password = document.getElementById("signupPassword").value;
-
-            if (!name || !email || !password) {
-                alert("Please fill in all fields");
-                return;
-            }
-
-            // Show loading state
-            signupBtn.innerHTML = '<div class="loading-spinner"></div>';
-            
-            // Simulate API call
-            setTimeout(() => {
-                // Create user object
-                currentUser = {
-                    name: name,
-                    email: email,
-                    role: selectedRole,
-                    totalDonations: 0,
-                    peopleHelped: 0,
-                    rating: 5.0
-                };
-                
-                localStorage.setItem("currentUser", JSON.stringify(currentUser));
-                
-                // Reset button state
-                signupBtn.innerHTML = '<span>Create Account</span>';
-                
-                // Show app screen
-                showAppScreen();
-            }, 1500);
-        }
-
-        function signInWithGoogle() {
-            // Simulate Google authentication
-            setTimeout(() => {
-                currentUser = mockUserData;
-                localStorage.setItem("currentUser", JSON.stringify(currentUser));
-                showAppScreen();
-            }, 1500);
-        }
-
-        function logout() {
-            localStorage.removeItem("currentUser");
-            currentUser = null;
-            
-            // Hide all screens
-            document.querySelectorAll(".app-screen").forEach(screen => {
-                screen.style.display = "none";
-            });
-            
-            // Show auth screen
-            document.getElementById("authScreen").style.display = "block";
-            currentScreen = "auth";
-        }
-
-        function confirmDeleteAccount() {
-            const confirmed = confirm("Are you sure you want to delete your account? This action cannot be undone.");
-            if (confirmed) {
-                logout();
-            }
-        }
-
-        // Navigation functions
-        function showAppScreen() {
-            // Hide auth screen
-            document.getElementById("authScreen").style.display = "none";
-            
-            // Show appropriate screen based on user role
-            const role = currentUser.role;
-            if (role === "donor") {
-                document.getElementById("donorScreen").style.display = "block";
-                currentScreen = "donor";
-            } else {
-                document.getElementById("receiverScreen").style.display = "block";
-                currentScreen = "receiver";
-            }
-            
-            // Update profile data
-            updateProfileData();
-        }
-
-        function navigateTo(screen, userRole = currentUser.role) {
-            // Update active nav item
-            const navItems = document.querySelectorAll(".nav-item");
-            navItems.forEach(item => item.classList.remove("active"));
-            
-            // Find clicked nav item and make active
-            const clickedNav = event.currentTarget;
-            clickedNav.classList.add("active");
-            
-            // Handle navigation based on screen and role
-            if (screen === "profile") {
-                // Hide current screen
-                document.querySelectorAll(".app-screen").forEach(screen => {
-                    screen.style.display = "none";
-                });
-                
-                // Show profile screen
-                document.getElementById("profileScreen").style.display = "block";
-                currentScreen = "profile";
-            } else if (screen === "home") {
-                // Hide current screen
-                document.querySelectorAll(".app-screen").forEach(screen => {
-                    screen.style.display = "none";
-                });
-                
-                // Show appropriate home screen
-                if (userRole === "donor") {
-                    document.getElementById("donorScreen").style.display = "block";
-                    currentScreen = "donor";
-                } else {
-                    document.getElementById("receiverScreen").style.display = "block";
-                    currentScreen = "receiver";
-                }
-            } else if (screen === "messages") {
-                // Open chat modal for demo
-                openChat({
-                    name: "John Doe",
-                    id: 123
-                });
-            }
-        }
-
-        // Listings functions
-        function populateListings() {
-            const donorListings = document.getElementById("donorListings");
-            const availableListings = document.getElementById("availableListings");
-            
-            if (donorListings) {
-                donorListings.innerHTML = '';
-                
-                // For donor, show owned listings
-                mockFoodListings.forEach(listing => {
-                    const listingElement = createListingElement(listing, true);
-                    donorListings.appendChild(listingElement);
-                });
-            }
-            
-            if (availableListings) {
-                availableListings.innerHTML = '';
-                
-                // For receiver, show available listings
-                mockFoodListings.forEach(listing => {
-                    if (listing.isAvailable) {
-                        const listingElement = createListingElement(listing, false);
-                        availableListings.appendChild(listingElement);
-                    }
-                });
-            }
-        }
-
-        function createListingElement(listing, isOwner) {
-            const foodCard = document.createElement("div");
-            foodCard.className = "food-card";
-            
-            const expiry = new Date(listing.expiry);
-            const today = new Date();
-            const daysUntilExpiry = Math.ceil((expiry - today) / (1000 * 60 * 60 * 24));
-            
-            foodCard.innerHTML = `
-                <img src="${listing.image}" alt="${listing.title}" class="food-image">
-                <div class="food-content">
-                    <div class="food-title">
-                        <h3>${listing.title}</h3>
-                        <span class="food-badge">${listing.category}</span>
-                    </div>
-                    <div class="food-meta">
-                        <div class="meta-item">
-                            <i class="fas fa-clock"></i>
-                            <span>Expires in ${daysUntilExpiry} days</span>
-                        </div>
-                        <div class="meta-item">
-                            <i class="fas fa-map-marker-alt"></i>
-                            <span>${listing.distance}</span>
-                        </div>
-                    </div>
-                    <p class="food-description">${listing.description}</p>
-                    <div class="food-actions">
-                        ${isOwner ? 
-                            `<button class="btn btn-secondary" onclick="editListing(${listing.id})">
-                                <i class="fas fa-edit"></i>
-                                <span>Edit</span>
-                            </button>
-                            <button class="btn btn-primary" onclick="viewRequests(${listing.id})">
-                                <i class="fas fa-users"></i>
-                                <span>Requests</span>
-                            </button>` :
-                            `<button class="btn btn-secondary" onclick="viewDetails(${listing.id})">
-                                <i class="fas fa-info-circle"></i>
-                                <span>Details</span>
-                            </button>
-                            <button class="btn btn-primary" onclick="requestFood(${listing.id})">
-                                <i class="fas fa-hand-holding-heart"></i>
-                                <span>Request</span>
-                            </button>`
-                        }
-                    </div>
+function displayMessageThreads(threads, userType) {
+    const container = document.getElementById(`${userType}MessagesList`);
+    if (!container) return;
+    
+    // Clear container
+    container.innerHTML = '';
+    
+    if (threads.length === 0) {
+        container.innerHTML = '<p class="empty-message">No messages yet</p>';
+        return;
+    }
+    
+    // Create HTML for each thread
+    threads.forEach(thread => {
+        const threadElement = document.createElement('div');
+        threadElement.className = `message-thread ${thread.unread ? 'unread' : ''}`;
+        threadElement.onclick = () => openChat(thread.id, thread.name);
+        
+        threadElement.innerHTML = `
+            <div class="thread-avatar">
+                <i class="fas fa-user"></i>
+            </div>
+            <div class="thread-content">
+                <div class="thread-header">
+                    <h3 class="thread-name">${thread.name}</h3>
+                    <span class="thread-time">${thread.time}</span>
                 </div>
-            `;
-            
-            return foodCard;
-        }
+                <p class="thread-preview">${thread.lastMessage}</p>
+            </div>
+            ${thread.unread ? '<div class="unread-indicator"></div>' : ''}
+        `;
+        
+        container.appendChild(threadElement);
+    });
+}
 
-        function searchListings(query) {
-            const availableListings = document.getElementById("availableListings");
-            availableListings.innerHTML = '';
-            
-            // Filter listings based on search query
-            const filteredListings = mockFoodListings.filter(listing => {
-                return listing.isAvailable && 
-                       (listing.title.toLowerCase().includes(query.toLowerCase()) || 
-                        listing.description.toLowerCase().includes(query.toLowerCase()) ||
-                        listing.category.toLowerCase().includes(query.toLowerCase()));
-            });
-            
-            // Display filtered listings
-            filteredListings.forEach(listing => {
-                const listingElement = createListingElement(listing, false);
-                availableListings.appendChild(listingElement);
-            });
-            
-            // Show message if no listings found
-            if (filteredListings.length === 0) {
-                availableListings.innerHTML = `
-                    <div style="grid-column: 1/-1; text-align: center; padding: 2rem;">
-                        <i class="fas fa-search" style="font-size: 3rem; color: var(--gray-300); margin-bottom: 1rem;"></i>
-                        <h3>No results found</h3>
-                        <p>Try different keywords or check back later</p>
-                    </div>
-                `;
-            }
-        }
+// Chat functions
+function openChat(threadId, recipientName) {
+    // Set chat recipient name
+    document.getElementById('chatRecipientName').textContent = recipientName;
+    
+    // Show chat modal
+    document.getElementById('chatModal').style.display = 'flex';
+    
+    // Focus on input
+    document.getElementById('messageInput').focus();
+    
+    // Load chat messages
+    loadChatMessages(threadId);
+}
 
-        // Profile functions
-        function updateProfileData() {
-            if (currentUser) {
-                document.getElementById("profileName").textContent = currentUser.name;
-                document.getElementById("profileRole").textContent = currentUser.role === "donor" ? "Food Donor" : "Food Receiver";
-                document.getElementById("totalDonations").textContent = currentUser.totalDonations;
-                document.getElementById("totalHelped").textContent = currentUser.peopleHelped;
-                document.getElementById("rating").textContent = currentUser.rating;
-            }
-        }
+function closeChat() {
+    document.getElementById('chatModal').style.display = 'none';
+}
 
-        function openSettings(type) {
-            alert(`Settings page for ${type} would open here`);
-        }
+function sendMessage() {
+    const messageInput = document.getElementById('messageInput');
+    const message = messageInput.value.trim();
+    
+    if (message) {
+        // In a real app, this would save the message to the database
+        console.log('Sending message:', message);
+        
+        // Add message to UI
+        addMessageToChat('sent', message);
+        
+        // Clear input
+        messageInput.value = '';
+    }
+}
 
-        function openAbout(type) {
-            alert(`About page for ${type} would open here`);
-        }
+function sendMessageOnEnter(event) {
+    if (event.key === 'Enter') {
+        sendMessage();
+    }
+}
 
-        // Chat functions
-        function openChat(recipient) {
-            document.getElementById("chatModal").style.display = "flex";
-            document.getElementById("chatRecipientName").textContent = recipient.name;
-            
-            // Scroll to bottom of chat
-            const chatMessages = document.getElementById("chatMessages");
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
+function loadChatMessages(threadId) {
+    // This would fetch chat messages from the database in a real app
+    console.log('Loading chat messages for thread:', threadId);
+    
+    // For demo purposes, show sample messages
+    const messages = [
+        { type: 'received', text: 'Hello, is this item still available?', time: '10:30 AM' },
+        { type: 'sent', text: 'Yes, it is! When would you like to pick it up?', time: '10:32 AM' },
+        { type: 'received', text: 'Would this afternoon work?', time: '10:35 AM' }
+    ];
+    
+    // Display messages
+    const chatContainer = document.getElementById('chatMessages');
+    chatContainer.innerHTML = '';
+    
+    messages.forEach(message => {
+        addMessageToChat(message.type, message.text, message.time);
+    });
+    
+    // Scroll to bottom
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+}
 
-        function closeChat() {
-            document.getElementById("chatModal").style.display = "none";
-        }
+function addMessageToChat(type, text, time) {
+    const chatContainer = document.getElementById('chatMessages');
+    const messageElement = document.createElement('div');
+    messageElement.className = `chat-message ${type}`;
+    
+    // Get current time if not provided
+    const messageTime = time || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    
+    messageElement.innerHTML = `
+        <div class="message-content">
+            <p>${text}</p>
+            <span class="message-time">${messageTime}</span>
+        </div>
+    `;
+    
+    chatContainer.appendChild(messageElement);
+    
+    // Scroll to bottom
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+}
 
-        function sendMessage() {
-            const messageInput = document.getElementById("messageInput");
-            const message = messageInput.value.trim();
-            
-            if (message) {
-                // Create message element
-                const messageElement = document.createElement("div");
-                messageElement.className = "message sent";
-                messageElement.textContent = message;
-                
-                // Add to chat
-                document.getElementById("chatMessages").appendChild(messageElement);
-                
-                // Clear input
-                messageInput.value = "";
-                
-                // Scroll to bottom
-                const chatMessages = document.getElementById("chatMessages");
-                chatMessages.scrollTop = chatMessages.scrollHeight;
-                
-                // Simulate reply after delay
-                setTimeout(() => {
-                    const replyElement = document.createElement("div");
-                    replyElement.className = "message received";
-                    replyElement.textContent = "Thanks for your message. I'll get back to you soon!";
-                    
-                    document.getElementById("chatMessages").appendChild(replyElement);
-                    chatMessages.scrollTop = chatMessages.scrollHeight;
-                }, 1000);
-            }
-        }
+// Donation form functions
+function showDonationForm() {
+    document.getElementById('donationFormModal').style.display = 'flex';
+}
 
-        function sendMessageOnEnter(event) {
-            if (event.key === "Enter") {
-                sendMessage();
-            }
-        }
+function closeDonationForm() {
+    document.getElementById('donationFormModal').style.display = 'none';
+}
 
-        // Donation form functions
-        function showDonationForm() {
-            document.getElementById("donationFormModal").style.display = "flex";
-        }
+function submitDonation() {
+    const title = document.getElementById('foodTitle').value;
+    const description = document.getElementById('foodDescription').value;
+    const expiry = document.getElementById('expiryDate').value;
+    const address = document.getElementById('pickupAddress').value;
+    const category = document.getElementById('foodCategory').value;
+    
+    // Basic validation
+    if (!title || !description || !expiry || !address) {
+        alert('Please fill out all required fields');
+        return;
+    }
+    
+    // In a real app, this would save the donation to the database
+    console.log('Submitting donation:', { title, description, expiry, address, category });
+    
+    // Close form and refresh listings
+    closeDonationForm();
+    loadDonorListings();
+    
+    // Reset form
+    document.getElementById('donationForm').reset();
+}
 
-        function closeDonationForm() {
-            document.getElementById("donationFormModal").style.display = "none";
-        }
+// Placeholder functions for interaction handlers
+function editListing(listingId) {
+    console.log('Edit listing:', listingId);
+    // This would open an edit form in a real app
+}
 
-        function submitDonation() {
-            const title = document.getElementById("foodTitle").value;
-            const description = document.getElementById("foodDescription").value;
-            const expiry = document.getElementById("expiryDate").value;
-            const address = document.getElementById("pickupAddress").value;
-            const category = document.getElementById("foodCategory").value;
-            
-            if (!title || !description || !expiry || !address) {
-                alert("Please fill in all required fields");
-                return;
-            }
-            
-            // Simulate API call
-            setTimeout(() => {
-                // Create new listing
-                const newListing = {
-                    id: mockFoodListings.length + 1,
-                    title: title,
-                    description: description,
-                    image: "https://images.unsplash.com/photo-1590779033100-9f60a05a013d?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60",
-                    category: category.charAt(0).toUpperCase() + category.slice(1),
-                    expiry: expiry,
-                    location: address,
-                    distance: "0.0 miles",
-                    donor: currentUser.name,
-                    isAvailable: true
-                };
-                
-                // Add to mock data
-                mockFoodListings.unshift(newListing);
-                
-                // Update listings
-                populateListings();
-                
-                // Close form
-                closeDonationForm();
-                
-                // Reset form
-                document.getElementById("donationForm").reset();
-                
-                // Update user stats
-                currentUser.totalDonations++;
-                localStorage.setItem("currentUser", JSON.stringify(currentUser));
-                updateProfileData();
-                
-                // Show success message
-                alert("Donation added successfully!");
-            }, 1000);
-        }
+function deleteListing(listingId) {
+    console.log('Delete listing:', listingId);
+    // This would show a confirmation dialog in a real app
+}
 
-        // Listing action functions
-        function editListing(id) {
-            alert(`Edit form for listing ${id} would open here`);
-        }
+function requestFood(listingId) {
+    console.log('Request food:', listingId);
+    // This would send a request and open chat in a real app
+    
+    // For demo purposes, open a chat
+    openChat(listingId, 'Food Owner');
+}
 
-        function viewRequests(id) {
-            alert(`Requests for listing ${id} would show here`);
-        }
-
-        function viewDetails(id) {
-            alert(`Details for listing ${id} would show here`);
-        }
-
-        function requestFood(id) {
-            // Find listing
-            const listing = mockFoodListings.find(item => item.id === id);
-            
-            if (listing) {
-                // Open chat with donor
-                openChat({
-                    name: listing.donor,
-                    id: id
-                });
-                
-                // Add template message
-                document.getElementById("messageInput").value = `Hi, I'm interested in your "${listing.title}" listing. Is it still available?`;
-            }
-        }
-    </script>
+// Filter donor listings
+function filterDonorListings(filter) {
+    // Update active tab
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    tabButtons.forEach(btn => {
+        btn.classList.remove('active');
+    });
+    event.currentTarget.classList.add('active');
+    
+    // Load filtered listings
+    loadDonorListings(filter);
+}
+</script>
 </body>
 </html>
+
