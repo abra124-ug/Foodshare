@@ -10,7 +10,6 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-storage-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-messaging-compat.js"></script>
     <style>
         :root {
             --primary-green: #22c55e;
@@ -38,7 +37,6 @@
 
         body {
             background-color: var(--gray-100);
-            padding-bottom: 70px;
             overscroll-behavior: none;
         }
 
@@ -94,19 +92,28 @@
             letter-spacing: 1px;
         }
 
-        /* Onboarding */
-        .onboarding-screen {
-            position: fixed;
+        /* Onboarding Slides */
+        .onboarding-container {
+            display: none;
+            position:absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             background-color: white;
             z-index: 9998;
-            display: none;
+            overflow: hidden;
+        }
+
+        .onboarding-slides {
+            display: flex;
+            height: 100%;
+            padding-bottom: 100px;
+            transition: transform 0.3s ease;
         }
 
         .onboarding-slide {
+            min-width: 100%;
             height: 100%;
             display: flex;
             flex-direction: column;
@@ -116,57 +123,70 @@
             text-align: center;
         }
 
-        .onboarding-image {
-            width: 200px;
-            height: 200px;
+        .slide-image {
+            width: 250px;
+            height: 250px;
             margin-bottom: 2rem;
             object-fit: contain;
         }
 
-        .onboarding-title {
-            font-size: 1.5rem;
+        .slide-title {
+            font-size: 1.75rem;
             color: var(--primary-green-dark);
             margin-bottom: 1rem;
         }
 
-        .onboarding-description {
+        .slide-description {
             color: var(--gray-600);
             margin-bottom: 2rem;
             line-height: 1.5;
+            max-width: 400px;
         }
 
-        .onboarding-indicators {
+        .slide-indicators {
             display: flex;
             gap: 0.5rem;
             margin-bottom: 2rem;
         }
 
-        .indicator {
+        .slide-indicator {
             width: 8px;
             height: 8px;
             border-radius: 50%;
             background-color: var(--gray-300);
         }
 
-        .indicator.active {
+        .slide-indicator.active {
             background-color: var(--primary-green);
         }
 
-        .onboarding-btn {
+        .onboarding-actions {
+            display: flex;
+            gap: 8rem;
+            width: 100%;
             position: absolute;
-            bottom: 2rem;
-            left: 2rem;
-            right: 2rem;
+            bottom: 40px;
+            left: 0;
+            right: 0;
+            padding: 0 2rem;
+            z-index: 1;
+        }
+
+        .skip-btn {
+            background-color: transparent;
+            border: none;
+            color: var(--gray-400);
+            font-weight: 500;
+            cursor: pointer;
         }
 
         /* Auth Screens */
         .auth-screen {
             min-height: 100vh;
-            display: flex;
+            display: none;
             flex-direction: column;
             padding: 2rem;
             background: white;
-            display: none;
         }
 
         .auth-logo {
@@ -247,6 +267,10 @@
             transition: border-color 0.2s, box-shadow 0.2s;
         }
 
+        .input-field.error {
+            border-color: #ef4444;
+        }
+
         .input-field i {
             color: var(--gray-400);
             margin-right: 0.75rem;
@@ -266,6 +290,13 @@
         .input-field:focus-within {
             border-color: var(--primary-green);
             box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
+        }
+
+        .error-message {
+            color: #ef4444;
+            font-size: 0.75rem;
+            margin-top: 0.25rem;
+            display: none;
         }
 
         .role-options {
@@ -401,6 +432,33 @@
             font-size: 1.5rem;
         }
 
+        .search-box {
+            position: relative;
+            flex: 1;
+            max-width: 300px;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray-400);
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 0.75rem 1rem 0.75rem 2.5rem;
+            border: 1px solid var(--gray-300);
+            border-radius: 12px;
+            font-size: 1rem;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--primary-green);
+        }
+
         .food-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -523,6 +581,21 @@
 
         .nav-item i {
             font-size: 1.25rem;
+        }
+
+        .nav-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: var(--primary-green);
+            color: white;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            font-size: 0.6rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         /* Profile Page */
@@ -690,24 +763,64 @@
             background-color: #FECACA;
         }
 
-        /* Chat Screens */
-        .chat-screen {
+        /* Chat Page */
+        .chat-page {
             display: none;
-            min-height: calc(100vh - 120px);
+            padding-bottom: 70px;
+        }
+
+        .chat-list-container {
+            padding: 1rem;
+        }
+
+        .chat-list-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .chat-search {
+            position: relative;
+            margin-bottom: 1rem;
+        }
+
+        .chat-search i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray-400);
+        }
+
+        .chat-search input {
+            width: 100%;
+            padding: 0.75rem 1rem 0.75rem 2.5rem;
+            border: 1px solid var(--gray-300);
+            border-radius: 12px;
+            font-size: 1rem;
+        }
+
+        .chat-search input:focus {
+            outline: none;
+            border-color: var(--primary-green);
         }
 
         .chat-list {
             display: flex;
             flex-direction: column;
+            gap: 0.5rem;
         }
 
         .chat-item {
             display: flex;
             align-items: center;
+            gap: 1rem;
             padding: 1rem;
-            border-bottom: 1px solid var(--gray-200);
+            background-color: white;
+            border-radius: 12px;
             cursor: pointer;
-            transition: background-color 0.2s;
+            transition: all 0.2s;
         }
 
         .chat-item:hover {
@@ -720,14 +833,10 @@
             border-radius: 50%;
             background-color: var(--gray-200);
             display: flex;
-            justify-content: center;
             align-items: center;
-            margin-right: 1rem;
-        }
-
-        .chat-item-avatar i {
+            justify-content: center;
             color: var(--gray-600);
-            font-size: 1.5rem;
+            font-size: 1.25rem;
         }
 
         .chat-item-content {
@@ -737,6 +846,7 @@
         .chat-item-header {
             display: flex;
             justify-content: space-between;
+            align-items: center;
             margin-bottom: 0.25rem;
         }
 
@@ -750,7 +860,7 @@
             color: var(--gray-400);
         }
 
-        .chat-item-preview {
+        .chat-item-message {
             font-size: 0.875rem;
             color: var(--gray-400);
             white-space: nowrap;
@@ -764,64 +874,59 @@
             width: 20px;
             height: 20px;
             border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
             font-size: 0.75rem;
-            margin-left: 0.5rem;
-        }
-
-        /* Conversation Screen */
-        .conversation-screen {
-            display: none;
-            min-height: calc(100vh - 120px);
-            flex-direction: column;
-        }
-
-        .conversation-header {
             display: flex;
             align-items: center;
-            padding: 1rem;
-            border-bottom: 1px solid var(--gray-200);
-            background-color: white;
-            position: sticky;
-            top: 60px;
-            z-index: 10;
+            justify-content: center;
         }
 
-        .conversation-back {
-            margin-right: 1rem;
-            color: var(--gray-600);
+        /* Chat Conversation */
+        .chat-conversation {
+            display: none;
+            flex-direction: column;
+            height: calc(100vh - 60px);
+            background-color: var(--gray-100);
+        }
+
+        .chat-conversation-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background-color: white;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .back-button {
+            background: none;
+            border: none;
+            font-size: 1.25rem;
             cursor: pointer;
         }
 
-        .conversation-avatar {
+        .chat-recipient-avatar {
             width: 40px;
             height: 40px;
             border-radius: 50%;
             background-color: var(--gray-200);
             display: flex;
-            justify-content: center;
             align-items: center;
-            margin-right: 1rem;
-        }
-
-        .conversation-avatar i {
+            justify-content: center;
             color: var(--gray-600);
-            font-size: 1.25rem;
         }
 
-        .conversation-name {
+        .chat-recipient-name {
             font-weight: 500;
             color: var(--gray-600);
         }
 
-        .conversation-messages {
+        .chat-messages {
             flex: 1;
             padding: 1rem;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
+            gap: 0.75rem;
         }
 
         .message {
@@ -829,8 +934,7 @@
             padding: 0.75rem 1rem;
             border-radius: 15px;
             line-height: 1.4;
-            margin-bottom: 0.5rem;
-            position: relative;
+            font-size: 0.9375rem;
         }
 
         .message.sent {
@@ -841,41 +945,139 @@
         }
 
         .message.received {
-            background-color: var(--gray-200);
+            background-color: white;
             color: var(--gray-600);
             align-self: flex-start;
             border-bottom-left-radius: 5px;
+            box-shadow: var(--shadow-sm);
         }
 
         .message-time {
             font-size: 0.75rem;
-            color: rgba(255, 255, 255, 0.8);
+            color: var(--gray-400);
             margin-top: 0.25rem;
             text-align: right;
         }
 
-        .message.received .message-time {
-            color: var(--gray-400);
+        .chat-input-container {
+            display: flex;
+            gap: 0.5rem;
+            padding: 1rem;
+            background-color: white;
+            border-top: 1px solid var(--gray-200);
         }
 
-        .conversation-input {
+        .chat-input {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--gray-300);
+            border-radius: 20px;
+            font-size: 1rem;
+        }
+
+        .chat-input:focus {
+            outline: none;
+            border-color: var(--primary-green);
+        }
+
+        .send-button {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--primary-green);
+            color: white;
+            border: none;
             display: flex;
-            gap: 1rem;
-            padding: 1rem;
-            border-top: 1px solid var(--gray-200);
-            background-color: white;
-            position: sticky;
-            bottom: 70px;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
         }
 
         /* Donation Form */
-        .donation-form {
+        .donation-form-container {
             padding: 1rem;
+            padding-bottom: 70px;
             display: none;
         }
 
         .form-group {
             margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--gray-600);
+            font-weight: 500;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--gray-300);
+            border-radius: 12px;
+            font-size: 1rem;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-green);
+            box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--gray-300);
+            border-radius: 12px;
+            font-size: 1rem;
+            background-color: white;
+        }
+
+        .form-select:focus {
+            outline: none;
+            border-color: var(--primary-green);
+        }
+
+        .image-upload {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 1.5rem;
+            border: 2px dashed var(--gray-300);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .image-upload:hover {
+            border-color: var(--primary-green);
+            background-color: var(--bg-green-light);
+        }
+
+        .image-upload i {
+            font-size: 2rem;
+            color: var(--gray-400);
+            margin-bottom: 0.5rem;
+        }
+
+        .image-upload-text {
+            color: var(--gray-600);
+            text-align: center;
+        }
+
+        .image-upload-text small {
+            color: var(--gray-400);
+            display: block;
+            margin-top: 0.25rem;
+        }
+
+        .image-preview {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 12px;
+            display: none;
         }
 
         /* Buttons */
@@ -920,30 +1122,6 @@
             border-radius: 50%;
         }
 
-        /* Form Elements */
-        input[type="text"],
-        input[type="email"],
-        input[type="password"],
-        textarea,
-        select {
-            width: 100%;
-            padding: 0.75rem 1rem;
-            border: 1px solid var(--gray-300);
-            border-radius: 8px;
-            font-size: 1rem;
-            transition: border-color 0.2s;
-        }
-
-        input[type="text"]:focus,
-        input[type="email"]:focus,
-        input[type="password"]:focus,
-        textarea:focus,
-        select:focus {
-            outline: none;
-            border-color: var(--primary-green);
-            box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
-        }
-
         /* Loading Animation */
         .loading-spinner {
             width: 30px;
@@ -960,29 +1138,45 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* Empty State */
-        .empty-state {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 3rem 1rem;
+        /* Utility Classes */
+        .hidden {
+            display: none !important;
+        }
+
+        .text-center {
             text-align: center;
         }
 
-        .empty-state i {
-            font-size: 3rem;
-            color: var(--gray-300);
-            margin-bottom: 1rem;
+        .mt-1 {
+            margin-top: 0.25rem;
         }
 
-        .empty-state h3 {
-            color: var(--gray-600);
+        .mt-2 {
+            margin-top: 0.5rem;
+        }
+
+        .mt-3 {
+            margin-top: 1rem;
+        }
+
+        .mt-4 {
+            margin-top: 1.5rem;
+        }
+
+        .mb-1 {
+            margin-bottom: 0.25rem;
+        }
+
+        .mb-2 {
             margin-bottom: 0.5rem;
         }
 
-        .empty-state p {
-            color: var(--gray-400);
+        .mb-3 {
+            margin-bottom: 1rem;
+        }
+
+        .mb-4 {
+            margin-bottom: 1.5rem;
         }
     </style>
 </head>
@@ -995,45 +1189,35 @@
         </div>
     </div>
 
-    <!-- Onboarding Screen -->
-    <div class="onboarding-screen" id="onboardingScreen">
-        <!-- Slide 1 -->
-        <div class="onboarding-slide" id="slide1">
-            <img src="https://cdn-icons-png.flaticon.com/512/3079/3079153.png" alt="Share Food" class="onboarding-image">
-            <h2 class="onboarding-title">Share Surplus Food</h2>
-            <p class="onboarding-description">Connect with your community by sharing extra food that would otherwise go to waste.</p>
-            <div class="onboarding-indicators">
-                <div class="indicator active"></div>
-                <div class="indicator"></div>
-                <div class="indicator"></div>
+    <!-- Onboarding Slides -->
+    <div class="onboarding-container" id="onboardingContainer">
+        <div class="onboarding-slides" id="onboardingSlides">
+            <div class="onboarding-slide">
+                <img src="https://cdn-icons-png.flaticon.com/512/869/869636.png" alt="Share Food" class="slide-image">
+                <h2 class="slide-title">Share Surplus Food</h2>
+                <p class="slide-description">Connect with your community to share excess food and reduce waste.</p>
             </div>
-            <button class="btn btn-primary onboarding-btn" onclick="nextSlide()">Next</button>
+            <div class="onboarding-slide">
+                <img src="https://cdn-icons-png.flaticon.com/512/3174/3174825.png" alt="Find Food" class="slide-image">
+                <h2 class="slide-title">Find Available Food</h2>
+                <p class="slide-description">Discover fresh food shared by others in your neighborhood.</p>
+            </div>
+            <div class="onboarding-slide">
+                <img src="https://cdn-icons-png.flaticon.com/512/2491/2491909.png" alt="Make a Difference" class="slide-image">
+                <h2 class="slide-title">Make a Difference</h2>
+                <p class="slide-description">Join the movement to fight food waste and help those in need.</p>
+            </div>
         </div>
-
-        <!-- Slide 2 -->
-        <div class="onboarding-slide" id="slide2" style="display: none;">
-            <img src="https://cdn-icons-png.flaticon.com/512/3079/3079086.png" alt="Find Food" class="onboarding-image">
-            <h2 class="onboarding-title">Find Available Food</h2>
-            <p class="onboarding-description">Discover fresh food shared by people in your neighborhood for free or at low cost.</p>
-            <div class="onboarding-indicators">
-                <div class="indicator"></div>
-                <div class="indicator active"></div>
-                <div class="indicator"></div>
-            </div>
-            <button class="btn btn-primary onboarding-btn" onclick="nextSlide()">Next</button>
+        
+        <div class="slide-indicators" id="slideIndicators">
+            <div class="slide-indicator active"></div>
+            <div class="slide-indicator"></div>
+            <div class="slide-indicator"></div>
         </div>
-
-        <!-- Slide 3 -->
-        <div class="onboarding-slide" id="slide3" style="display: none;">
-            <img src="https://cdn-icons-png.flaticon.com/512/3079/3079132.png" alt="Make a Difference" class="onboarding-image">
-            <h2 class="onboarding-title">Make a Difference</h2>
-            <p class="onboarding-description">Help reduce food waste and support your community by joining our network.</p>
-            <div class="onboarding-indicators">
-                <div class="indicator"></div>
-                <div class="indicator"></div>
-                <div class="indicator active"></div>
-            </div>
-            <button class="btn btn-primary onboarding-btn" onclick="completeOnboarding()">Get Started</button>
+        
+        <div class="onboarding-actions">
+            <button class="btn skip-btn" id="skipBtn">Skip</button>
+            <button class="btn btn-primary" id="nextBtn">Next</button>
         </div>
     </div>
 
@@ -1056,16 +1240,18 @@
                     <label for="loginEmail">Email</label>
                     <div class="input-field">
                         <i class="fas fa-envelope"></i>
-                        <input type="email" id="loginEmail" placeholder="Enter your email" required>
+                        <input type="email" id="loginEmail" placeholder="Enter your email">
                     </div>
+                    <div class="error-message" id="loginEmailError">Please enter a valid email</div>
                 </div>
 
                 <div class="input-group">
                     <label for="loginPassword">Password</label>
                     <div class="input-field">
                         <i class="fas fa-lock"></i>
-                        <input type="password" id="loginPassword" placeholder="Enter your password" required>
+                        <input type="password" id="loginPassword" placeholder="Enter your password">
                     </div>
+                    <div class="error-message" id="loginPasswordError">Password must be at least 6 characters</div>
                 </div>
 
                 <button type="button" class="btn btn-primary" onclick="login()" id="loginBtn">
@@ -1074,7 +1260,7 @@
 
                 <div class="auth-divider">OR</div>
 
-                <button type="button" class="google-btn" onclick="signInWithGoogle()">
+                <button type="button" class="google-btn" onclick="signInWithGoogle()" id="googleLoginBtn">
                     <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="Google">
                     <span>Continue with Google</span>
                 </button>
@@ -1086,24 +1272,27 @@
                     <label for="signupName">Full Name</label>
                     <div class="input-field">
                         <i class="fas fa-user"></i>
-                        <input type="text" id="signupName" placeholder="Enter your full name" required>
+                        <input type="text" id="signupName" placeholder="Enter your full name">
                     </div>
+                    <div class="error-message" id="signupNameError">Please enter your name</div>
                 </div>
 
                 <div class="input-group">
                     <label for="signupEmail">Email</label>
                     <div class="input-field">
                         <i class="fas fa-envelope"></i>
-                        <input type="email" id="signupEmail" placeholder="Enter your email" required>
+                        <input type="email" id="signupEmail" placeholder="Enter your email">
                     </div>
+                    <div class="error-message" id="signupEmailError">Please enter a valid email</div>
                 </div>
 
                 <div class="input-group">
                     <label for="signupPassword">Password</label>
                     <div class="input-field">
                         <i class="fas fa-lock"></i>
-                        <input type="password" id="signupPassword" placeholder="Enter your password (min 6 characters)" minlength="6" required>
+                        <input type="password" id="signupPassword" placeholder="Enter your password">
                     </div>
+                    <div class="error-message" id="signupPasswordError">Password must be at least 6 characters</div>
                 </div>
 
                 <div class="input-group">
@@ -1128,7 +1317,7 @@
 
                 <div class="auth-divider">OR</div>
 
-                <button type="button" class="google-btn" onclick="signInWithGoogle()">
+                <button type="button" class="google-btn" onclick="signInWithGoogle()" id="googleSignupBtn">
                     <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="Google">
                     <span>Continue with Google</span>
                 </button>
@@ -1145,8 +1334,8 @@
                     <span>Food Share</span>
                 </div>
                 <div class="header-actions">
-                    <button class="btn btn-icon" onclick="showNotification()">
-                        <i class="fas fa-bell"></i>
+                    <button class="btn btn-icon" onclick="navigateTo('profile')">
+                        <i class="fas fa-user"></i>
                     </button>
                 </div>
             </div>
@@ -1163,11 +1352,6 @@
             
             <div class="food-grid" id="donorListings">
                 <!-- Donor listings will be populated here -->
-                <div class="empty-state">
-                    <i class="fas fa-utensils"></i>
-                    <h3>No listings yet</h3>
-                    <p>Start by creating your first food donation listing</p>
-                </div>
             </div>
         </div>
 
@@ -1184,6 +1368,7 @@
                 <a href="#" class="nav-item" onclick="navigateTo('messages', 'donor')">
                     <i class="fas fa-message"></i>
                     <span>Messages</span>
+                    <span class="nav-badge" id="messagesBadge" style="display: none;">3</span>
                 </a>
                 <a href="#" class="nav-item" onclick="navigateTo('profile', 'donor')">
                     <i class="fas fa-user"></i>
@@ -1202,8 +1387,8 @@
                     <span>Food Share</span>
                 </div>
                 <div class="header-actions">
-                    <button class="btn btn-icon" onclick="showNotification()">
-                        <i class="fas fa-bell"></i>
+                    <button class="btn btn-icon" onclick="navigateTo('profile')">
+                        <i class="fas fa-user"></i>
                     </button>
                 </div>
             </div>
@@ -1213,17 +1398,13 @@
             <div class="section-title">
                 <h2>Available Food</h2>
                 <div class="search-box">
+                    <i class="fas fa-search"></i>
                     <input type="text" placeholder="Search food items..." onkeyup="searchListings(this.value)">
                 </div>
             </div>
             
             <div class="food-grid" id="availableListings">
                 <!-- Available food listings will be populated here -->
-                <div class="empty-state">
-                    <i class="fas fa-search"></i>
-                    <h3>No food available nearby</h3>
-                    <p>Check back later or try searching in a different area</p>
-                </div>
             </div>
         </div>
 
@@ -1240,6 +1421,7 @@
                 <a href="#" class="nav-item" onclick="navigateTo('messages', 'receiver')">
                     <i class="fas fa-message"></i>
                     <span>Messages</span>
+                    <span class="nav-badge" id="messagesBadge" style="display: none;">3</span>
                 </a>
                 <a href="#" class="nav-item" onclick="navigateTo('profile', 'receiver')">
                     <i class="fas fa-user"></i>
@@ -1252,24 +1434,24 @@
     <!-- Profile Screen -->
     <div class="app-screen" id="profileScreen" style="display: none;">
         <div class="profile-header">
-            <div class="profile-pic" id="profilePic">
-                <i class="fas fa-user"></i>
+            <div class="profile-pic">
+                <i class="fas fa-user" id="profileAvatar"></i>
             </div>
-            <h2 class="profile-name" id="profileName">Loading...</h2>
-            <p class="profile-role" id="profileRole">Loading...</p>
+            <h2 class="profile-name" id="profileName">Jane Smith</h2>
+            <p class="profile-role" id="profileRole">Food Donor</p>
         </div>
 
         <div class="profile-stats">
             <div class="stat-item">
-                <div class="stat-value" id="totalDonations">0</div>
+                <div class="stat-value" id="totalDonations">12</div>
                 <div class="stat-label">Donations</div>
             </div>
             <div class="stat-item">
-                <div class="stat-value" id="totalHelped">0</div>
+                <div class="stat-value" id="totalHelped">58</div>
                 <div class="stat-label">People Helped</div>
             </div>
             <div class="stat-item">
-                <div class="stat-value" id="rating">0</div>
+                <div class="stat-value" id="rating">4.8</div>
                 <div class="stat-label">Rating</div>
             </div>
         </div>
@@ -1359,6 +1541,7 @@
                 <a href="#" class="nav-item" onclick="navigateTo('messages')">
                     <i class="fas fa-message"></i>
                     <span>Messages</span>
+                    <span class="nav-badge" id="messagesBadge" style="display: none;">3</span>
                 </a>
                 <a href="#" class="nav-item active" onclick="navigateTo('profile')">
                     <i class="fas fa-user"></i>
@@ -1368,8 +1551,8 @@
         </nav>
     </div>
 
-    <!-- Chat Screen -->
-    <div class="app-screen" id="chatScreen" style="display: none;">
+    <!-- Chat Page -->
+    <div class="chat-page" id="chatPage">
         <header class="app-header">
             <div class="header-content">
                 <div class="logo">
@@ -1377,44 +1560,21 @@
                     <span>Messages</span>
                 </div>
                 <div class="header-actions">
-                    <button class="btn btn-icon" onclick="showNotification()">
-                        <i class="fas fa-bell"></i>
+                    <button class="btn btn-icon" onclick="navigateTo('home')">
+                        <i class="fas fa-times"></i>
                     </button>
                 </div>
             </div>
         </header>
 
-        <div class="chat-screen" id="chatListScreen">
+        <div class="chat-list-container">
+            <div class="chat-search">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Search conversations...">
+            </div>
+            
             <div class="chat-list" id="chatList">
-                <!-- Chat items will be populated here -->
-                <div class="empty-state">
-                    <i class="fas fa-comments"></i>
-                    <h3>No messages yet</h3>
-                    <p>Start a conversation by requesting food from a listing</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="conversation-screen" id="conversationScreen" style="display: none;">
-            <div class="conversation-header">
-                <button class="btn btn-icon conversation-back" onclick="backToChatList()">
-                    <i class="fas fa-arrow-left"></i>
-                </button>
-                <div class="conversation-avatar" id="conversationAvatar">
-                    <i class="fas fa-user"></i>
-                </div>
-                <div class="conversation-name" id="conversationName">Loading...</div>
-            </div>
-            
-            <div class="conversation-messages" id="conversationMessages">
-                <!-- Messages will be populated here -->
-            </div>
-            
-            <div class="conversation-input">
-                <input type="text" id="messageInput" placeholder="Type your message..." onkeypress="sendMessageOnEnter(event)">
-                <button class="btn btn-primary btn-icon" onclick="sendMessage()">
-                    <i class="fas fa-paper-plane"></i>
-                </button>
+                <!-- Chats will be populated here -->
             </div>
         </div>
 
@@ -1431,6 +1591,7 @@
                 <a href="#" class="nav-item active" onclick="navigateTo('messages')">
                     <i class="fas fa-message"></i>
                     <span>Messages</span>
+                    <span class="nav-badge" id="messagesBadge" style="display: none;">3</span>
                 </a>
                 <a href="#" class="nav-item" onclick="navigateTo('profile')">
                     <i class="fas fa-user"></i>
@@ -1440,8 +1601,32 @@
         </nav>
     </div>
 
+    <!-- Chat Conversation -->
+    <div class="chat-conversation" id="chatConversation">
+        <div class="chat-conversation-header">
+            <button class="back-button" onclick="backToChatList()">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            <div class="chat-recipient-avatar" id="chatRecipientAvatar">
+                <i class="fas fa-user"></i>
+            </div>
+            <div class="chat-recipient-name" id="chatRecipientName">John Doe</div>
+        </div>
+        
+        <div class="chat-messages" id="chatMessages">
+            <!-- Messages will be populated here -->
+        </div>
+        
+        <div class="chat-input-container">
+            <input type="text" class="chat-input" id="messageInput" placeholder="Type your message..." onkeypress="if(event.key === 'Enter') sendMessage()">
+            <button class="send-button" onclick="sendMessage()">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>
+
     <!-- Donation Form -->
-    <div class="donation-form" id="donationFormScreen" style="display: none;">
+    <div class="donation-form-container" id="donationFormContainer">
         <header class="app-header">
             <div class="header-content">
                 <div class="logo">
@@ -1457,31 +1642,30 @@
         </header>
 
         <div class="container">
-            <form id="donationForm">
+            <form id="donationForm" onsubmit="event.preventDefault(); submitDonation();">
                 <div class="form-group">
-                    <label for="foodTitle">Food Title</label>
-                    <input type="text" id="foodTitle" placeholder="What are you sharing?" required>
+                    <label for="foodTitle" class="form-label">Food Title</label>
+                    <input type="text" id="foodTitle" class="form-control" placeholder="What are you sharing?">
                 </div>
                 
                 <div class="form-group">
-                    <label for="foodDescription">Description</label>
-                    <textarea id="foodDescription" rows="3" placeholder="Describe the food (quantity, condition, etc.)" required></textarea>
+                    <label for="foodDescription" class="form-label">Description</label>
+                    <textarea id="foodDescription" class="form-control" rows="3" placeholder="Describe the food (quantity, condition, etc.)"></textarea>
                 </div>
                 
                 <div class="form-group">
-                    <label for="expiryDate">Expiry Date</label>
-                    <input type="date" id="expiryDate" required>
+                    <label for="expiryDate" class="form-label">Expiry Date</label>
+                    <input type="date" id="expiryDate" class="form-control">
                 </div>
                 
                 <div class="form-group">
-                    <label for="pickupAddress">Pickup Address</label>
-                    <input type="text" id="pickupAddress" placeholder="Where can it be picked up?" required>
+                    <label for="pickupAddress" class="form-label">Pickup Address</label>
+                    <input type="text" id="pickupAddress" class="form-control" placeholder="Where can it be picked up?">
                 </div>
                 
                 <div class="form-group">
-                    <label for="foodCategory">Category</label>
-                    <select id="foodCategory" required>
-                        <option value="">Select a category</option>
+                    <label for="foodCategory" class="form-label">Category</label>
+                    <select id="foodCategory" class="form-select">
                         <option value="bakery">Bakery</option>
                         <option value="produce">Produce</option>
                         <option value="dairy">Dairy</option>
@@ -1492,8 +1676,16 @@
                 </div>
                 
                 <div class="form-group">
-                    <label for="foodImage">Upload Image (optional)</label>
-                    <input type="file" id="foodImage" accept="image/*">
+                    <label class="form-label">Food Image</label>
+                    <div class="image-upload" onclick="document.getElementById('foodImage').click()">
+                        <i class="fas fa-camera"></i>
+                        <div class="image-upload-text">
+                            Upload Food Image
+                            <small>Click to select an image</small>
+                        </div>
+                        <img id="imagePreview" class="image-preview">
+                    </div>
+                    <input type="file" id="foodImage" accept="image/*" style="display: none;" onchange="previewImage(this)">
                 </div>
                 
                 <button type="button" class="btn btn-primary" style="width: 100%; margin-top: 1rem;" onclick="submitDonation()" id="submitDonationBtn">
@@ -1502,39 +1694,18 @@
                 </button>
             </form>
         </div>
-
-        <nav class="bottom-nav">
-            <div class="nav-content">
-                <a href="#" class="nav-item" onclick="navigateTo('home')">
-                    <i class="fas fa-home"></i>
-                    <span>Home</span>
-                </a>
-                <a href="#" class="nav-item" onclick="navigateTo('listings')">
-                    <i class="fas fa-list"></i>
-                    <span>Listings</span>
-                </a>
-                <a href="#" class="nav-item" onclick="navigateTo('messages')">
-                    <i class="fas fa-message"></i>
-                    <span>Messages</span>
-                </a>
-                <a href="#" class="nav-item" onclick="navigateTo('profile')">
-                    <i class="fas fa-user"></i>
-                    <span>Profile</span>
-                </a>
-            </div>
-        </nav>
     </div>
 
     <script>
         // Firebase configuration
         const firebaseConfig = {
-          apiKey: "AIzaSyDgRi43mb42KExpplTBF6T9Z6IsedrTw7E",
-          authDomain: "foodshare-5951e.firebaseapp.com",
-          projectId: "foodshare-5951e",
-          storageBucket: "foodshare-5951e.firebasestorage.app",
-          messagingSenderId: "460631614669",
-          appId: "1:460631614669:web:8e1379b952c757ea7a7584",
-          measurementId: "G-E6Z0RDYK70"
+            apiKey: "AIzaSyDgRi43mb42KExpplTBF6T9Z6IsedrTw7E",
+            authDomain: "foodshare-5951e.firebaseapp.com",
+            projectId: "foodshare-5951e",
+            storageBucket: "foodshare-5951e.appspot.com",
+            messagingSenderId: "460631614669",
+            appId: "1:460631614669:web:8e1379b952c757ea7a7584",
+            measurementId: "G-E6Z0RDYK70"
         };
 
         // Initialize Firebase
@@ -1542,100 +1713,100 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
         const storage = firebase.storage();
-        const messaging = firebase.messaging();
-
-        // Request notification permission
-        function requestNotificationPermission() {
-            Notification.requestPermission().then((permission) => {
-                if (permission === 'granted') {
-                    console.log('Notification permission granted.');
-                    // Get FCM token
-                    messaging.getToken({ vapidKey: 'YOUR_VAPID_KEY' }).then((currentToken) => {
-                        if (currentToken) {
-                            // Save the token to Firestore
-                            if (auth.currentUser) {
-                                db.collection('users').doc(auth.currentUser.uid).update({
-                                    fcmToken: currentToken
-                                });
-                            }
-                        } else {
-                            console.log('No registration token available. Request permission to generate one.');
-                        }
-                    }).catch((err) => {
-                        console.log('An error occurred while retrieving token. ', err);
-                    });
-                } else {
-                    console.log('Unable to get permission to notify.');
-                }
-            });
-        }
+        
+        // Default listing data
+        const DEFAULT_LISTING = {
+          id: "default-listing",
+          title: "Sample Food Donation",
+          description: "This is a sample listing to show the format",
+          imageUrl: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60",
+          category: "produce",
+          expiryDate: firebase.firestore.Timestamp.fromDate(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)), // 7 days from now
+          pickupAddress: "123 Sample Street",
+          distance: "1.2 miles",
+          donorId: "default-donor",
+          donorName: "Sample Donor",
+          isAvailable: true
+        };
+        
 
         // App state
         let currentUser = null;
         let selectedRole = "donor";
         let currentScreen = "splash";
-        let currentChat = null;
-        let unsubscribeChats = null;
-        let unsubscribeMessages = null;
+        let currentChatId = null;
+        let currentSlide = 0;
+        const totalSlides = 3;
 
         // Initialize the app
         document.addEventListener("DOMContentLoaded", function() {
+            // Initialize onboarding slides
+            initOnboarding();
+            
             // Show splash screen for 3 seconds
             setTimeout(() => {
                 document.getElementById("splashScreen").style.display = "none";
                 
-                // Check if user is logged in
-                auth.onAuthStateChanged((user) => {
-                    if (user) {
-                        // User is signed in
-                        currentUser = user;
-                        loadUserProfile(user.uid);
-                    } else {
-                        // User is signed out
-                        // Check if onboarding has been shown
-                        const onboardingCompleted = sessionStorage.getItem('onboardingCompleted');
-                        if (!onboardingCompleted) {
-                            // Show onboarding
-                            document.getElementById("onboardingScreen").style.display = "block";
+                // Check if user has completed onboarding
+                const onboardingCompleted = sessionStorage.getItem("onboardingCompleted");
+                
+                if (!onboardingCompleted) {
+                    // Show onboarding slides
+                    document.getElementById("onboardingContainer").style.display = "block";
+                    currentScreen = "onboarding";
+                } else {
+                    // Check if user is logged in
+                    auth.onAuthStateChanged(user => {
+                        if (user) {
+                            // User is signed in
+                            currentUser = user;
+                            getUserData(user.uid);
                         } else {
-                            // Show auth screen
+                            // No user is signed in
                             document.getElementById("authScreen").style.display = "block";
                             currentScreen = "auth";
                         }
-                    }
-                });
+                    });
+                }
             }, 3000);
-
-            // Set default date for expiry date input (today + 3 days)
-            const today = new Date();
-            const defaultDate = new Date(today);
-            defaultDate.setDate(today.getDate() + 3);
-            document.getElementById('expiryDate').valueAsDate = defaultDate;
         });
 
         // Onboarding functions
+        function initOnboarding() {
+            document.getElementById("nextBtn").addEventListener("click", nextSlide);
+            document.getElementById("skipBtn").addEventListener("click", skipOnboarding);
+        }
+
         function nextSlide() {
-            const currentSlide = document.querySelector('.onboarding-slide:not([style*="display: none"])');
-            const nextSlide = currentSlide.nextElementSibling;
+            currentSlide++;
             
-            if (nextSlide) {
-                currentSlide.style.display = "none";
-                nextSlide.style.display = "flex";
+            if (currentSlide < totalSlides) {
+                // Update slide position
+                document.getElementById("onboardingSlides").style.transform = `translateX(-${currentSlide * 100}%)`;
                 
                 // Update indicators
-                const indicators = document.querySelectorAll('.indicator');
+                const indicators = document.querySelectorAll(".slide-indicator");
                 indicators.forEach((indicator, index) => {
-                    indicator.classList.remove('active');
-                    if (nextSlide === document.getElementById(`slide${index + 1}`)) {
-                        indicator.classList.add('active');
+                    if (index === currentSlide) {
+                        indicator.classList.add("active");
+                    } else {
+                        indicator.classList.remove("active");
                     }
                 });
+                
+                // Update button text on last slide
+                if (currentSlide === totalSlides - 1) {
+                    document.getElementById("nextBtn").textContent = "Get Started";
+                }
+            } else {
+                // Onboarding completed
+                skipOnboarding();
             }
         }
 
-        function completeOnboarding() {
-            sessionStorage.setItem('onboardingCompleted', 'true');
-            document.getElementById("onboardingScreen").style.display = "none";
+        function skipOnboarding() {
+            sessionStorage.setItem("onboardingCompleted", "true");
+            document.getElementById("onboardingContainer").style.display = "none";
             document.getElementById("authScreen").style.display = "block";
             currentScreen = "auth";
         }
@@ -1672,32 +1843,88 @@
             selectedRole = role;
         }
 
+        function validateEmail(email) {
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(email);
+        }
+
+        function validatePassword(password) {
+            return password.length >= 6;
+        }
+
+        function showError(fieldId, message) {
+            const field = document.getElementById(fieldId);
+            const errorElement = document.getElementById(`${fieldId}Error`);
+            
+            field.classList.add("error");
+            errorElement.textContent = message;
+            errorElement.style.display = "block";
+        }
+
+        function hideError(fieldId) {
+            const field = document.getElementById(fieldId);
+            const errorElement = document.getElementById(`${fieldId}Error`);
+            
+            field.classList.remove("error");
+            errorElement.style.display = "none";
+        }
+
         function login() {
             const loginBtn = document.getElementById("loginBtn");
             const email = document.getElementById("loginEmail").value;
             const password = document.getElementById("loginPassword").value;
-
-            if (!email || !password) {
-                alert("Please enter both email and password");
-                return;
+            
+            // Validate inputs
+            let isValid = true;
+            
+            if (!email) {
+                showError("loginEmail", "Please enter your email");
+                isValid = false;
+            } else if (!validateEmail(email)) {
+                showError("loginEmail", "Please enter a valid email");
+                isValid = false;
+            } else {
+                hideError("loginEmail");
             }
-
+            
+            if (!password) {
+                showError("loginPassword", "Please enter your password");
+                isValid = false;
+            } else if (!validatePassword(password)) {
+                showError("loginPassword", "Password must be at least 6 characters");
+                isValid = false;
+            } else {
+                hideError("loginPassword");
+            }
+            
+            if (!isValid) return;
+            
             // Show loading state
             loginBtn.innerHTML = '<div class="loading-spinner"></div>';
+            loginBtn.disabled = true;
             
-            // Firebase login
+            // Sign in with Firebase
             auth.signInWithEmailAndPassword(email, password)
                 .then((userCredential) => {
                     // Signed in
                     currentUser = userCredential.user;
-                    loadUserProfile(currentUser.uid);
+                    getUserData(currentUser.uid);
                 })
                 .catch((error) => {
                     // Reset button state
                     loginBtn.innerHTML = '<span>Login</span>';
+                    loginBtn.disabled = false;
                     
-                    // Show error
-                    alert(error.message);
+                    // Show error message
+                    const errorCode = error.code;
+                    const errorMessage = error.message;
+                    
+                    if (errorCode === "auth/user-not-found" || errorCode === "auth/wrong-password") {
+                        showError("loginEmail", "Invalid email or password");
+                        showError("loginPassword", "Invalid email or password");
+                    } else {
+                        alert(errorMessage);
+                    }
                 });
         }
 
@@ -1706,28 +1933,51 @@
             const name = document.getElementById("signupName").value;
             const email = document.getElementById("signupEmail").value;
             const password = document.getElementById("signupPassword").value;
-
-            if (!name || !email || !password) {
-                alert("Please fill in all fields");
-                return;
+            
+            // Validate inputs
+            let isValid = true;
+            
+            if (!name) {
+                showError("signupName", "Please enter your name");
+                isValid = false;
+            } else {
+                hideError("signupName");
             }
-
-            if (password.length < 6) {
-                alert("Password must be at least 6 characters");
-                return;
+            
+            if (!email) {
+                showError("signupEmail", "Please enter your email");
+                isValid = false;
+            } else if (!validateEmail(email)) {
+                showError("signupEmail", "Please enter a valid email");
+                isValid = false;
+            } else {
+                hideError("signupEmail");
             }
-
+            
+            if (!password) {
+                showError("signupPassword", "Please enter a password");
+                isValid = false;
+            } else if (!validatePassword(password)) {
+                showError("signupPassword", "Password must be at least 6 characters");
+                isValid = false;
+            } else {
+                hideError("signupPassword");
+            }
+            
+            if (!isValid) return;
+            
             // Show loading state
             signupBtn.innerHTML = '<div class="loading-spinner"></div>';
+            signupBtn.disabled = true;
             
-            // Firebase signup
+            // Create user with Firebase
             auth.createUserWithEmailAndPassword(email, password)
                 .then((userCredential) => {
                     // Signed in
                     currentUser = userCredential.user;
                     
-                    // Create user profile in Firestore
-                    return db.collection('users').doc(currentUser.uid).set({
+                    // Create user document in Firestore
+                    return db.collection("users").doc(currentUser.uid).set({
                         name: name,
                         email: email,
                         role: selectedRole,
@@ -1738,23 +1988,40 @@
                     });
                 })
                 .then(() => {
-                    // Request notification permission
-                    requestNotificationPermission();
-                    
                     // Show app screen
                     showAppScreen();
                 })
                 .catch((error) => {
                     // Reset button state
                     signupBtn.innerHTML = '<span>Create Account</span>';
+                    signupBtn.disabled = false;
                     
-                    // Show error
-                    alert(error.message);
+                    // Show error message
+                    const errorCode = error.code;
+                    const errorMessage = error.message;
+                    
+                    if (errorCode === "auth/email-already-in-use") {
+                        showError("signupEmail", "Email already in use");
+                    } else {
+                        alert(errorMessage);
+                    }
                 });
         }
 
         function signInWithGoogle() {
             const provider = new firebase.auth.GoogleAuthProvider();
+            
+            // Set button loading state
+            const loginBtn = document.getElementById("googleLoginBtn");
+            const signupBtn = document.getElementById("googleSignupBtn");
+            
+            if (currentScreen === "login") {
+                loginBtn.innerHTML = '<div class="loading-spinner"></div>';
+                loginBtn.disabled = true;
+            } else {
+                signupBtn.innerHTML = '<div class="loading-spinner"></div>';
+                signupBtn.disabled = true;
+            }
             
             auth.signInWithPopup(provider)
                 .then((result) => {
@@ -1766,98 +2033,114 @@
                     currentUser = result.user;
                     
                     // Check if user exists in Firestore
-                    db.collection('users').doc(currentUser.uid).get()
-                        .then((doc) => {
-                            if (!doc.exists) {
-                                // User doesn't exist, create profile
-                                return db.collection('users').doc(currentUser.uid).set({
-                                    name: currentUser.displayName,
-                                    email: currentUser.email,
-                                    role: selectedRole,
-                                    totalDonations: 0,
-                                    peopleHelped: 0,
-                                    rating: 5.0,
-                                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                                });
-                            }
-                        })
-                        .then(() => {
-                            // Request notification permission
-                            requestNotificationPermission();
-                            
-                            // Show app screen
-                            showAppScreen();
+                    return db.collection("users").doc(currentUser.uid).get();
+                })
+                .then((doc) => {
+                    if (!doc.exists) {
+                        // User doesn't exist, create new document
+                        return db.collection("users").doc(currentUser.uid).set({
+                            name: currentUser.displayName || "User",
+                            email: currentUser.email,
+                            role: selectedRole,
+                            totalDonations: 0,
+                            peopleHelped: 0,
+                            rating: 5.0,
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
                         });
+                    }
+                })
+                .then(() => {
+                    // Show app screen
+                    showAppScreen();
                 })
                 .catch((error) => {
-                    alert(error.message);
+                    // Reset button state
+                    if (currentScreen === "login") {
+                        loginBtn.innerHTML = '<img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="Google"><span>Continue with Google</span>';
+                        loginBtn.disabled = false;
+                    } else {
+                        signupBtn.innerHTML = '<img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="Google"><span>Continue with Google</span>';
+                        signupBtn.disabled = false;
+                    }
+                    
+                    // Handle error
+                    const errorCode = error.code;
+                    const errorMessage = error.message;
+                    alert(errorMessage);
                 });
         }
 
-        function loadUserProfile(userId) {
-            db.collection('users').doc(userId).get()
+        function getUserData(userId) {
+            db.collection("users").doc(userId).get()
                 .then((doc) => {
                     if (doc.exists) {
-                        // Merge auth user data with profile data
+                        // Merge auth user data with Firestore data
                         currentUser = {
                             ...currentUser,
-                            ...doc.data()
+                            ...doc.data(),
+                            uid: userId
                         };
                         
                         // Show app screen
                         showAppScreen();
                         
-                        // Request notification permission
-                        requestNotificationPermission();
+                        // Load user-specific data
+                        loadUserData();
                     } else {
-                        // Profile doesn't exist (shouldn't happen)
-                        console.error("User profile not found");
+                        // User document doesn't exist (shouldn't happen)
+                        console.error("No user data found");
                         logout();
                     }
                 })
                 .catch((error) => {
-                    console.error("Error getting user profile:", error);
+                    console.error("Error getting user data:", error);
                     logout();
                 });
         }
 
         function logout() {
-            // Unsubscribe from realtime listeners
-            if (unsubscribeChats) unsubscribeChats();
-            if (unsubscribeMessages) unsubscribeMessages();
-            
             auth.signOut()
                 .then(() => {
+                    // Sign-out successful
                     currentUser = null;
                     
                     // Hide all screens
                     document.querySelectorAll(".app-screen").forEach(screen => {
                         screen.style.display = "none";
                     });
+                    document.getElementById("chatPage").style.display = "none";
+                    document.getElementById("chatConversation").style.display = "none";
+                    document.getElementById("donationFormContainer").style.display = "none";
+                    
+                    // Reset forms
+                    document.getElementById("loginForm").reset();
+                    document.getElementById("signupForm").reset();
                     
                     // Show auth screen
                     document.getElementById("authScreen").style.display = "block";
                     currentScreen = "auth";
                 })
                 .catch((error) => {
-                    alert(error.message);
+                    console.error("Logout error:", error);
                 });
         }
 
         function confirmDeleteAccount() {
             const confirmed = confirm("Are you sure you want to delete your account? This action cannot be undone.");
             if (confirmed) {
-                // Delete user from Firestore first
-                db.collection('users').doc(currentUser.uid).delete()
+                // Delete user from Firebase Auth
+                currentUser.delete()
                     .then(() => {
-                        // Then delete the auth user
-                        return currentUser.delete();
+                        // Delete user data from Firestore
+                        return db.collection("users").doc(currentUser.uid).delete();
                     })
                     .then(() => {
+                        // Account deleted
                         logout();
                     })
                     .catch((error) => {
-                        alert("Error deleting account: " + error.message);
+                        console.error("Error deleting account:", error);
+                        alert("Error deleting account. Please try again.");
                     });
             }
         }
@@ -1866,162 +2149,233 @@
         function showAppScreen() {
             // Hide auth screen
             document.getElementById("authScreen").style.display = "none";
+            document.getElementById("chatPage").style.display = "none";
+            document.getElementById("chatConversation").style.display = "none";
+            document.getElementById("donationFormContainer").style.display = "none";
             
             // Show appropriate screen based on user role
             if (currentUser.role === "donor") {
-                navigateTo("home", "donor");
+                document.getElementById("donorScreen").style.display = "block";
+                currentScreen = "donor";
             } else {
-                navigateTo("home", "receiver");
+                document.getElementById("receiverScreen").style.display = "block";
+                currentScreen = "receiver";
             }
             
-            // Load user data
+            // Update profile data
             updateProfileData();
             
-            // Load listings
+            // Load initial data
             loadListings();
-            
-            // Load chats if on messages screen
-            if (currentScreen === "messages") {
-                loadChats();
-            }
+            loadChats();
         }
 
         function navigateTo(screen, userRole = currentUser.role) {
+            // Hide all screens first
+            document.querySelectorAll(".app-screen").forEach(screen => {
+                screen.style.display = "none";
+            });
+            document.getElementById("chatPage").style.display = "none";
+            document.getElementById("chatConversation").style.display = "none";
+            document.getElementById("donationFormContainer").style.display = "none";
+            
             // Update active nav item
             const navItems = document.querySelectorAll(".nav-item");
             navItems.forEach(item => item.classList.remove("active"));
             
             // Find clicked nav item and make active
-            const clickedNav = event?.currentTarget;
-            if (clickedNav) {
-                clickedNav.classList.add("active");
-            }
-            
-            // Hide all screens first
-            document.querySelectorAll(".app-screen").forEach(screen => {
-                screen.style.display = "none";
-            });
+            const clickedNav = event.currentTarget;
+            clickedNav.classList.add("active");
             
             // Handle navigation based on screen and role
             if (screen === "profile") {
                 document.getElementById("profileScreen").style.display = "block";
                 currentScreen = "profile";
-                updateProfileData();
             } 
-            else if (screen === "messages") {
-                document.getElementById("chatScreen").style.display = "block";
-                currentScreen = "messages";
-                loadChats();
-            }
             else if (screen === "home") {
                 if (userRole === "donor") {
                     document.getElementById("donorScreen").style.display = "block";
                     currentScreen = "donor";
-                    loadListings();
                 } else {
                     document.getElementById("receiverScreen").style.display = "block";
                     currentScreen = "receiver";
-                    loadListings();
+                }
+            } 
+            else if (screen === "messages") {
+                document.getElementById("chatPage").style.display = "block";
+                document.getElementById("chatConversation").style.display = "none";
+                currentScreen = "messages";
+            }
+            else if (screen === "listings" || screen === "search") {
+                if (userRole === "donor") {
+                    document.getElementById("donorScreen").style.display = "block";
+                    currentScreen = "donor";
+                } else {
+                    document.getElementById("receiverScreen").style.display = "block";
+                    currentScreen = "receiver";
                 }
             }
         }
 
         function backToChatList() {
-            document.getElementById("chatListScreen").style.display = "block";
-            document.getElementById("conversationScreen").style.display = "none";
-            
-            // Unsubscribe from messages listener
-            if (unsubscribeMessages) {
-                unsubscribeMessages();
-                unsubscribeMessages = null;
-            }
-            
-            // Reset current chat
-            currentChat = null;
+            document.getElementById("chatConversation").style.display = "none";
+            document.getElementById("chatList").style.display = "block";
+            currentChatId = null;
         }
 
         // Listings functions
-        function loadListings() {
-            if (currentUser.role === "donor") {
-                // Load donor's listings
-                db.collection("listings")
-                    .where("donorId", "==", currentUser.uid)
-                    .orderBy("createdAt", "desc")
-                    .get()
-                    .then((querySnapshot) => {
-                        const listingsContainer = document.getElementById("donorListings");
-                        listingsContainer.innerHTML = '';
-                        
-                        if (querySnapshot.empty) {
-                            listingsContainer.innerHTML = `
-                                <div class="empty-state" style="grid-column: 1/-1;">
-                                    <i class="fas fa-utensils"></i>
-                                    <h3>No listings yet</h3>
-                                    <p>Start by creating your first food donation listing</p>
-                                </div>
-                            `;
-                            return;
-                        }
-                        
-                        querySnapshot.forEach((doc) => {
-                            const listing = doc.data();
-                            listing.id = doc.id;
-                            const listingElement = createListingElement(listing, true);
-                            listingsContainer.appendChild(listingElement);
-                        });
-                    })
-                    .catch((error) => {
-                        console.error("Error getting listings: ", error);
-                    });
-            } else {
-                // Load available listings for receivers
-                db.collection("listings")
-                    .where("isAvailable", "==", true)
-                    .orderBy("createdAt", "desc")
-                    .get()
-                    .then((querySnapshot) => {
-                        const listingsContainer = document.getElementById("availableListings");
-                        listingsContainer.innerHTML = '';
-                        
-                        if (querySnapshot.empty) {
-                            listingsContainer.innerHTML = `
-                                <div class="empty-state" style="grid-column: 1/-1;">
-                                    <i class="fas fa-search"></i>
-                                    <h3>No food available nearby</h3>
-                                    <p>Check back later or try searching in a different area</p>
-                                </div>
-                            `;
-                            return;
-                        }
-                        
-                        querySnapshot.forEach((doc) => {
-                            const listing = doc.data();
-                            listing.id = doc.id;
-                            const listingElement = createListingElement(listing, false);
-                            listingsContainer.appendChild(listingElement);
-                        });
-                    })
-                    .catch((error) => {
-                        console.error("Error getting listings: ", error);
-                    });
+          function loadListings() {
+        try {
+        if (currentUser.role === "donor") {
+        // Your existing donor query
+        db.collection("listings")
+          .where("donorId", "==", currentUser.uid)
+          .orderBy("createdAt", "desc")
+          .onSnapshot(
+            (querySnapshot) => {
+              const listings = [];
+              querySnapshot.forEach((doc) => {
+                if (doc.exists) {
+                  listings.push({ id: doc.id, ...doc.data() });
+                }
+              });
+              console.log("Firestore listings:", listings);
+              populateDonorListings(listings);
+            },
+            (error) => {
+              console.error("Firestore error:", error);
+              // Fall back to just showing default listing
+              populateDonorListings([]);
             }
+          );
+        } else {
+        // Your existing receiver query
+        db.collection("listings")
+          .where("isAvailable", "==", true)
+          .orderBy("createdAt", "desc")
+          .onSnapshot(
+            (querySnapshot) => {
+              const listings = [];
+              querySnapshot.forEach((doc) => {
+                if (doc.exists) {
+                  listings.push({ id: doc.id, ...doc.data() });
+                }
+              });
+              console.log("Firestore listings:", listings);
+              populateAvailableListings(listings);
+            },
+            (error) => {
+              console.error("Firestore error:", error);
+              // Fall back to just showing default listing
+              populateAvailableListings([]);
+            }
+          );
         }
+        } catch (error) {
+        console.error("Load listings error:", error);
+        // Fall back to just showing default listing
+        if (currentUser.role === "donor") {
+        populateDonorListings([]);
+        } else {
+        populateAvailableListings([]);
+        }
+        }
+        }
+
+        function populateDonorListings(listings) {
+          const donorListings = document.getElementById("donorListings");
+          donorListings.innerHTML = '';
+          
+          // Always include the default listing first
+          const allListings = [DEFAULT_LISTING, ...listings];
+          
+          if (allListings.length === 0) {
+            // Show empty state (keep your existing code)
+          } else {
+            allListings.forEach(listing => {
+              const listingElement = createListingElement(listing, true);
+              donorListings.appendChild(listingElement);
+            });
+          }
+        }
+        
+        function populateAvailableListings(listings) {
+          const availableListings = document.getElementById("availableListings");
+          availableListings.innerHTML = '';
+          
+          // Always include the default listing first
+          const allListings = [DEFAULT_LISTING, ...listings];
+          
+          if (allListings.length === 0) {
+            // Show empty state (keep your existing code)
+          } else {
+            allListings.forEach(listing => {
+              if (listing.isAvailable !== false) { // Show only available listings
+                const listingElement = createListingElement(listing, false);
+                availableListings.appendChild(listingElement);
+              }
+            });
+          }
+        }
+      
+      function populateAvailableListings(listings) {
+          const availableListings = document.getElementById("availableListings");
+          availableListings.innerHTML = '';
+          
+          if (listings.length === 0) {
+              availableListings.innerHTML = `
+                  <div style="grid-column: 1/-1; text-align: center; padding: 2rem;">
+                      <i class="fas fa-search" style="font-size: 3rem; color: var(--gray-300); margin-bottom: 1rem;"></i>
+                      <h3>No listings available</h3>
+                      <p>Check back later for new food listings</p>
+                  </div>
+              `;
+              return;
+          }
+          
+          listings.forEach(listing => {
+              const listingElement = createListingElement(listing, false);
+              availableListings.appendChild(listingElement);
+          });
+      }
+
 
         function createListingElement(listing, isOwner) {
             const foodCard = document.createElement("div");
             foodCard.className = "food-card";
             
-            const expiryDate = listing.expiryDate.toDate();
-            const today = new Date();
-            const timeDiff = expiryDate.getTime() - today.getTime();
-            const daysUntilExpiry = Math.ceil(timeDiff / (1000 * 3600 * 24));
+            // Safely handle expiry date (could be Timestamp or string)
+            let daysUntilExpiry = "N/A";
+            if (listing.expiryDate) {
+                try {
+                    const expiryDate = listing.expiryDate.toDate 
+                        ? listing.expiryDate.toDate() 
+                        : new Date(listing.expiryDate);
+                    const today = new Date();
+                    const timeDiff = expiryDate.getTime() - today.getTime();
+                    daysUntilExpiry = Math.ceil(timeDiff / (1000 * 3600 * 24));
+                } catch (e) {
+                    console.error("Error processing expiry date:", e);
+                }
+            }
+        
+            // Safely handle image URL
+            const imageUrl = listing.imageUrl || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60';
             
+            // Safely handle category
+            const category = listing.category 
+                ? listing.category.charAt(0).toUpperCase() + listing.category.slice(1)
+                : 'Other';
+        
+            // Safely handle distance
+            const distance = listing.distance || '0.5 miles';
+        
             foodCard.innerHTML = `
-                <img src="${listing.imageUrl || 'https://via.placeholder.com/300x150?text=No+Image'}" alt="${listing.title}" class="food-image">
+                <img src="${imageUrl}" alt="${listing.title}" class="food-image">
                 <div class="food-content">
                     <div class="food-title">
-                        <h3>${listing.title}</h3>
-                        <span class="food-badge">${listing.category.charAt(0).toUpperCase() + listing.category.slice(1)}</span>
+                        <h3>${listing.title || 'Unnamed Listing'}</h3>
+                        <span class="food-badge">${category}</span>
                     </div>
                     <div class="food-meta">
                         <div class="meta-item">
@@ -2030,10 +2384,10 @@
                         </div>
                         <div class="meta-item">
                             <i class="fas fa-map-marker-alt"></i>
-                            <span>${listing.distance || '0.5 miles'}</span>
+                            <span>${distance}</span>
                         </div>
                     </div>
-                    <p class="food-description">${listing.description}</p>
+                    <p class="food-description">${listing.description || 'No description provided'}</p>
                     <div class="food-actions">
                         ${isOwner ? 
                             `<button class="btn btn-secondary" onclick="editListing('${listing.id}')">
@@ -2048,7 +2402,7 @@
                                 <i class="fas fa-info-circle"></i>
                                 <span>Details</span>
                             </button>
-                            <button class="btn btn-primary" onclick="requestFood('${listing.id}', '${listing.donorId}', '${listing.donorName}')">
+                            <button class="btn btn-primary" onclick="requestFood('${listing.id}', '${listing.donorId}')">
                                 <i class="fas fa-hand-holding-heart"></i>
                                 <span>Request</span>
                             </button>`
@@ -2070,215 +2424,144 @@
                 .where("isAvailable", "==", true)
                 .orderBy("title")
                 .startAt(query)
-                .endAt(query + '\uf8ff')
+                .endAt(query + "\uf8ff")
                 .get()
                 .then((querySnapshot) => {
-                    const listingsContainer = document.getElementById("availableListings");
-                    listingsContainer.innerHTML = '';
-                    
-                    if (querySnapshot.empty) {
-                        listingsContainer.innerHTML = `
-                            <div class="empty-state" style="grid-column: 1/-1;">
-                                <i class="fas fa-search"></i>
-                                <h3>No results found</h3>
-                                <p>Try different keywords or check back later</p>
-                            </div>
-                        `;
-                        return;
-                    }
-                    
+                    const listings = [];
                     querySnapshot.forEach((doc) => {
-                        const listing = doc.data();
-                        listing.id = doc.id;
-                        const listingElement = createListingElement(listing, false);
-                        listingsContainer.appendChild(listingElement);
-                    });
-                })
-                .catch((error) => {
-                    console.error("Error searching listings: ", error);
-                });
-        }
-
-        // Donation form functions
-        function showDonationForm() {
-            document.getElementById("donorScreen").style.display = "none";
-            document.getElementById("donationFormScreen").style.display = "block";
-            
-            // Set default date for expiry date input (today + 3 days)
-            const today = new Date();
-            const defaultDate = new Date(today);
-            defaultDate.setDate(today.getDate() + 3);
-            document.getElementById('expiryDate').valueAsDate = defaultDate;
-        }
-
-        function closeDonationForm() {
-            document.getElementById("donationFormScreen").style.display = "none";
-            document.getElementById("donorScreen").style.display = "block";
-            document.getElementById("donationForm").reset();
-        }
-
-        function submitDonation() {
-            const submitBtn = document.getElementById("submitDonationBtn");
-            const title = document.getElementById("foodTitle").value;
-            const description = document.getElementById("foodDescription").value;
-            const expiryDate = document.getElementById("expiryDate").value;
-            const address = document.getElementById("pickupAddress").value;
-            const category = document.getElementById("foodCategory").value;
-            const imageFile = document.getElementById("foodImage").files[0];
-            
-            if (!title || !description || !expiryDate || !address || !category) {
-                alert("Please fill in all required fields");
-                return;
-            }
-            
-            // Show loading state
-            submitBtn.innerHTML = '<div class="loading-spinner"></div>';
-            
-            // Prepare listing data
-            const listingData = {
-                title: title,
-                description: description,
-                expiryDate: new Date(expiryDate),
-                pickupAddress: address,
-                category: category,
-                donorId: currentUser.uid,
-                donorName: currentUser.name,
-                isAvailable: true,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            };
-            
-            // Upload image if selected
-            if (imageFile) {
-                const storageRef = storage.ref(`listings/${currentUser.uid}/${Date.now()}_${imageFile.name}`);
-                const uploadTask = storageRef.put(imageFile);
-                
-                uploadTask.on('state_changed', 
-                    (snapshot) => {
-                        // Progress monitoring can be added here
-                    }, 
-                    (error) => {
-                        console.error("Upload error:", error);
-                        alert("Error uploading image");
-                        submitBtn.innerHTML = '<i class="fas fa-plus"></i><span>Add Listing</span>';
-                    }, 
-                    () => {
-                        // Upload complete, get download URL
-                        uploadTask.snapshot.ref.getDownloadURL().then((downloadURL) => {
-                            listingData.imageUrl = downloadURL;
-                            
-                            // Save listing with image URL
-                            saveListing(listingData);
+                        listings.push({
+                            id: doc.id,
+                            ...doc.data()
                         });
-                    }
-                );
-            } else {
-                // Save listing without image
-                saveListing(listingData);
+                    });
+                    populateAvailableListings(listings);
+                })
+                .catch((error) => {
+                    console.error("Error searching listings:", error);
+                });
+        }
+
+        // Profile functions
+        function updateProfileData() {
+            if (currentUser) {
+                document.getElementById("profileName").textContent = currentUser.name;
+                document.getElementById("profileRole").textContent = currentUser.role === "donor" ? "Food Donor" : "Food Receiver";
+                document.getElementById("totalDonations").textContent = currentUser.totalDonations || 0;
+                document.getElementById("totalHelped").textContent = currentUser.peopleHelped || 0;
+                document.getElementById("rating").textContent = currentUser.rating || 5.0;
+                
+                // Set profile avatar initial
+                const firstLetter = currentUser.name.charAt(0).toUpperCase();
+                document.getElementById("profileAvatar").textContent = firstLetter;
             }
         }
 
-        function saveListing(listingData) {
-            db.collection("listings").add(listingData)
-                .then((docRef) => {
-                    // Update user's donation count
-                    db.collection("users").doc(currentUser.uid).update({
-                        totalDonations: firebase.firestore.FieldValue.increment(1)
-                    });
-                    
-                    // Close form and reset
-                    closeDonationForm();
-                    
-                    // Reload listings
-                    loadListings();
-                    
-                    // Update profile stats
-                    updateProfileData();
-                    
-                    // Show success message
-                    alert("Donation added successfully!");
-                })
-                .catch((error) => {
-                    console.error("Error adding listing: ", error);
-                    alert("Error adding listing");
-                    document.getElementById("submitDonationBtn").innerHTML = '<i class="fas fa-plus"></i><span>Add Listing</span>';
-                });
+        function loadUserData() {
+            // Additional user data can be loaded here
+        }
+
+        function openSettings(type) {
+            alert(`Settings page for ${type} would open here`);
+        }
+
+        function openAbout(type) {
+            alert(`About page for ${type} would open here`);
         }
 
         // Chat functions
         function loadChats() {
-            const chatList = document.getElementById("chatList");
-            chatList.innerHTML = '';
-            
-            // Unsubscribe previous listener if exists
-            if (unsubscribeChats) unsubscribeChats();
-            
-            unsubscribeChats = db.collection("chats")
+            db.collection("chats")
                 .where("participants", "array-contains", currentUser.uid)
                 .orderBy("lastUpdated", "desc")
                 .onSnapshot((querySnapshot) => {
-                    if (querySnapshot.empty) {
-                        chatList.innerHTML = `
-                            <div class="empty-state">
-                                <i class="fas fa-comments"></i>
-                                <h3>No messages yet</h3>
-                                <p>Start a conversation by requesting food from a listing</p>
-                            </div>
-                        `;
-                        return;
-                    }
-                    
-                    chatList.innerHTML = '';
-                    
+                    const chats = [];
                     querySnapshot.forEach((doc) => {
-                        const chat = doc.data();
-                        chat.id = doc.id;
-                        
-                        // Get other participant's info
-                        const otherParticipantId = chat.participants.find(id => id !== currentUser.uid);
-                        const otherParticipantName = chat.participantNames[otherParticipantId];
-                        
-                        const chatItem = document.createElement("div");
-                        chatItem.className = "chat-item";
-                        chatItem.onclick = () => openConversation(chat.id, otherParticipantId, otherParticipantName);
-                        
-                        const lastUpdated = chat.lastUpdated?.toDate();
-                        const timeString = lastUpdated ? formatTime(lastUpdated) : '';
-                        
-                        chatItem.innerHTML = `
-                            <div class="chat-item-avatar">
-                                <i class="fas fa-user"></i>
-                            </div>
-                            <div class="chat-item-content">
-                                <div class="chat-item-header">
-                                    <div class="chat-item-name">${otherParticipantName}</div>
-                                    <div class="chat-item-time">${timeString}</div>
-                                </div>
-                                <div class="chat-item-preview">${chat.lastMessage || 'No messages yet'}</div>
-                            </div>
-                            ${chat.unreadCount && chat.unreadCount[currentUser.uid] > 0 ? 
-                                `<div class="chat-item-unread">${chat.unreadCount[currentUser.uid]}</div>` : ''}
-                        `;
-                        
-                        chatList.appendChild(chatItem);
+                        chats.push({
+                            id: doc.id,
+                            ...doc.data()
+                        });
                     });
-                }, (error) => {
-                    console.error("Error loading chats: ", error);
+                    populateChatList(chats);
                 });
         }
 
-        function openConversation(chatId, participantId, participantName) {
-            currentChat = {
-                id: chatId,
-                participantId: participantId,
-                participantName: participantName
-            };
+        function populateChatList(chats) {
+            const chatList = document.getElementById("chatList");
+            chatList.innerHTML = '';
             
-            // Switch to conversation view
-            document.getElementById("chatListScreen").style.display = "none";
-            document.getElementById("conversationScreen").style.display = "flex";
+            if (chats.length === 0) {
+                chatList.innerHTML = `
+                    <div style="text-align: center; padding: 2rem;">
+                        <i class="fas fa-comment-dots" style="font-size: 3rem; color: var(--gray-300); margin-bottom: 1rem;"></i>
+                        <h3>No messages yet</h3>
+                        <p>Start a conversation by requesting food</p>
+                    </div>
+                `;
+                return;
+            }
             
-            // Set conversation header
-            document.getElementById("conversationName").textContent = participantName;
+            // Update badge count
+            const unreadCount = chats.reduce((count, chat) => count + (chat.unreadCount || 0), 0);
+            const badge = document.getElementById("messagesBadge");
+            
+            if (unreadCount > 0) {
+                badge.textContent = unreadCount;
+                badge.style.display = "flex";
+            } else {
+                badge.style.display = "none";
+            }
+            
+            // Populate chat list
+            chats.forEach(chat => {
+                const otherParticipantId = chat.participants.find(id => id !== currentUser.uid);
+                
+                // Get user data for other participant
+                db.collection("users").doc(otherParticipantId).get()
+                    .then((doc) => {
+                        if (doc.exists) {
+                            const userData = doc.data();
+                            const chatItem = createChatItem(chat, userData);
+                            chatList.appendChild(chatItem);
+                        }
+                    });
+            });
+        }
+
+        function createChatItem(chat, userData) {
+            const chatItem = document.createElement("div");
+            chatItem.className = "chat-item";
+            chatItem.onclick = () => openChatConversation(chat.id, userData);
+            
+            const lastMessage = chat.lastMessage || "No messages yet";
+            const lastMessageTime = chat.lastUpdated ? formatTime(chat.lastUpdated.toDate()) : "";
+            
+            chatItem.innerHTML = `
+                <div class="chat-item-avatar">
+                    ${userData.name.charAt(0).toUpperCase()}
+                </div>
+                <div class="chat-item-content">
+                    <div class="chat-item-header">
+                        <div class="chat-item-name">${userData.name}</div>
+                        <div class="chat-item-time">${lastMessageTime}</div>
+                    </div>
+                    <div class="chat-item-message">${lastMessage}</div>
+                </div>
+                ${chat.unreadCount > 0 ? `<div class="chat-item-unread">${chat.unreadCount}</div>` : ''}
+            `;
+            
+            return chatItem;
+        }
+
+        function openChatConversation(chatId, recipientData) {
+            currentChatId = chatId;
+            
+            // Update UI
+            document.getElementById("chatList").style.display = "none";
+            document.getElementById("chatConversation").style.display = "flex";
+            
+            // Set recipient info
+            document.getElementById("chatRecipientName").textContent = recipientData.name;
+            document.getElementById("chatRecipientAvatar").textContent = recipientData.name.charAt(0).toUpperCase();
             
             // Load messages
             loadMessages(chatId);
@@ -2288,14 +2571,10 @@
         }
 
         function loadMessages(chatId) {
-            const messagesContainer = document.getElementById("conversationMessages");
+            const messagesContainer = document.getElementById("chatMessages");
             messagesContainer.innerHTML = '';
             
-            // Unsubscribe previous listener if exists
-            if (unsubscribeMessages) unsubscribeMessages();
-            
-            unsubscribeMessages = db.collection("chats").doc(chatId)
-                .collection("messages")
+            db.collection("chats").doc(chatId).collection("messages")
                 .orderBy("timestamp", "asc")
                 .onSnapshot((querySnapshot) => {
                     messagesContainer.innerHTML = '';
@@ -2307,121 +2586,204 @@
                     
                     // Scroll to bottom
                     messagesContainer.scrollTop = messagesContainer.scrollHeight;
-                }, (error) => {
-                    console.error("Error loading messages: ", error);
                 });
         }
 
         function addMessageToUI(message) {
-            const messagesContainer = document.getElementById("conversationMessages");
+            const messagesContainer = document.getElementById("chatMessages");
             
             const messageElement = document.createElement("div");
             messageElement.className = `message ${message.senderId === currentUser.uid ? 'sent' : 'received'}`;
             
-            const time = message.timestamp.toDate();
-            const timeString = formatTime(time, true);
+            const messageTime = formatTime(message.timestamp.toDate());
             
             messageElement.innerHTML = `
-                ${message.text}
-                <div class="message-time">${timeString}</div>
+                <div>${message.text}</div>
+                <div class="message-time">${messageTime}</div>
             `;
             
             messagesContainer.appendChild(messageElement);
         }
 
         function markMessagesAsRead(chatId) {
-            // Reset unread count for current user
             db.collection("chats").doc(chatId).update({
-                [`unreadCount.${currentUser.uid}`]: 0
+                unreadCount: 0
             });
         }
 
         function sendMessage() {
-            if (!currentChat) return;
-            
             const messageInput = document.getElementById("messageInput");
             const messageText = messageInput.value.trim();
             
-            if (messageText) {
-                const messagesContainer = document.getElementById("conversationMessages");
-                
-                // Create message object
-                const message = {
-                    text: messageText,
-                    senderId: currentUser.uid,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                };
-                
-                // Add message to Firestore
-                db.collection("chats").doc(currentChat.id)
-                    .collection("messages").add(message)
-                    .then(() => {
-                        // Update chat last message and timestamp
-                        db.collection("chats").doc(currentChat.id).update({
-                            lastMessage: messageText,
-                            lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
-                            [`unreadCount.${currentChat.participantId}`]: firebase.firestore.FieldValue.increment(1)
-                        });
-                        
-                        // Clear input
-                        messageInput.value = "";
-                    })
-                    .catch((error) => {
-                        console.error("Error sending message: ", error);
+            if (!messageText || !currentChatId) return;
+            
+            // Create message object
+            const message = {
+                text: messageText,
+                senderId: currentUser.uid,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            
+            // Add message to Firestore
+            db.collection("chats").doc(currentChatId).collection("messages").add(message)
+                .then(() => {
+                    // Update last message in chat
+                    db.collection("chats").doc(currentChatId).update({
+                        lastMessage: messageText,
+                        lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
                     });
-            }
+                    
+                    // Clear input
+                    messageInput.value = "";
+                })
+                .catch((error) => {
+                    console.error("Error sending message:", error);
+                });
         }
 
-        function sendMessageOnEnter(event) {
-            if (event.key === "Enter") {
-                sendMessage();
-            }
+        function formatTime(date) {
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         }
 
-        function formatTime(date, includeTime = false) {
-            if (!date) return '';
+        // Donation form functions
+        function showDonationForm() {
+    // Hide current screen
+    if (currentUser.role === "donor") {
+        document.getElementById("donorScreen").style.display = "none";
+    } else {
+        document.getElementById("receiverScreen").style.display = "none";
+    }
+    
+    // Show donation form
+    document.getElementById("donationFormContainer").style.display = "block";
+    
+    // Reset form
+    document.getElementById("donationForm").reset();
+    document.getElementById("imagePreview").style.display = "none";
+}
+        
+        function submitDonation() {
+            const submitBtn = document.getElementById("submitDonationBtn");
+            const title = document.getElementById("foodTitle").value.trim();
+            const description = document.getElementById("foodDescription").value.trim();
+            const expiryDate = document.getElementById("expiryDate").value;
+            const pickupAddress = document.getElementById("pickupAddress").value.trim();
+            const category = document.getElementById("foodCategory").value;
+            const imageFile = document.getElementById("foodImage").files[0];
+        
+            // Validate inputs
+            if (!title || !description || !expiryDate || !pickupAddress) {
+                alert("Please fill in all required fields");
+                return;
+            }
+        
+            // Show loading state
+            submitBtn.innerHTML = '<div class="loading-spinner"></div>';
+            submitBtn.disabled = true;
+        
+            // Create listing object with all required fields
+            const listing = {
+                title: title,
+                description: description,
+                expiryDate: firebase.firestore.Timestamp.fromDate(new Date(expiryDate)),
+                pickupAddress: pickupAddress,
+                category: category,
+                donorId: currentUser.uid,
+                donorName: currentUser.name,
+                distance: "0.5 miles", // You might want to calculate this
+                isAvailable: true,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+        
+            // Process with or without image
+            const saveOperation = imageFile 
+                ? uploadImageAndCreateListing(imageFile, listing) 
+                : saveListing(listing);
+        
+            saveOperation
+                .then(() => {
+                    console.log("Listing created successfully");
+                    closeDonationForm();
+                    // No need to manually call loadListings() - the listener will update
+                })
+                .catch(error => {
+                    console.error("Error creating listing:", error);
+                    alert("Error creating listing: " + error.message);
+                })
+                .finally(() => {
+                    submitBtn.innerHTML = '<i class="fas fa-plus"></i><span>Add Listing</span>';
+                    submitBtn.disabled = false;
+                });
+        }
+
+      // Helper function for image upload
+      function uploadImageAndCreateListing(imageFile, listing) {
+          const storageRef = storage.ref(`listings/${currentUser.uid}/${Date.now()}_${imageFile.name}`);
+          return storageRef.put(imageFile)
+              .then(snapshot => snapshot.ref.getDownloadURL())
+              .then(downloadURL => {
+                  listing.imageUrl = downloadURL;
+                  return saveListing(listing);
+              });
+      }
+
+        // Helper function to save listing
+        function saveListing(listing) {
+            return db.collection("listings").add(listing);
+        }
+
+      // Helper function to update user stats
+      function updateUserStats() {
+          return db.collection("users").doc(currentUser.uid).update({
+              totalDonations: firebase.firestore.FieldValue.increment(1)
+          });
+      }
+
+        function closeDonationForm() {
+            document.getElementById("donationFormContainer").style.display = "none";
             
-            const now = new Date();
-            const diffInDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
+            // Reset form
+            document.getElementById("donationForm").reset();
+            document.getElementById("imagePreview").style.display = "none";
             
-            if (diffInDays === 0) {
-                return includeTime ? date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Today';
-            } else if (diffInDays === 1) {
-                return 'Yesterday';
-            } else if (diffInDays < 7) {
-                return date.toLocaleDateString([], { weekday: 'short' });
+            // Show previous screen
+            if (currentUser.role === "donor") {
+                document.getElementById("donorScreen").style.display = "block";
             } else {
-                return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+                document.getElementById("receiverScreen").style.display = "block";
+            }
+        }
+
+        function previewImage(input) {
+            const preview = document.getElementById("imagePreview");
+            
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.style.display = "block";
+                }
+                
+                reader.readAsDataURL(input.files[0]);
             }
         }
 
         // Listing action functions
         function editListing(id) {
-            alert(`Edit functionality for listing ${id} would be implemented here`);
+            alert(`Edit form for listing ${id} would open here`);
         }
 
         function viewRequests(id) {
-            alert(`Request management for listing ${id} would be implemented here`);
+            alert(`Requests for listing ${id} would show here`);
         }
 
         function viewDetails(id) {
-            db.collection("listings").doc(id).get()
-                .then((doc) => {
-                    if (doc.exists) {
-                        const listing = doc.data();
-                        alert(`Details for: ${listing.title}\n\n${listing.description}\n\nExpires: ${listing.expiryDate.toDate().toLocaleDateString()}\n\nPickup: ${listing.pickupAddress}`);
-                    } else {
-                        alert("Listing not found");
-                    }
-                })
-                .catch((error) => {
-                    console.error("Error getting listing: ", error);
-                    alert("Error loading listing details");
-                });
+            alert(`Details for listing ${id} would show here`);
         }
 
-        function requestFood(listingId, donorId, donorName) {
-            // Check if a chat already exists between these users
+        function requestFood(listingId, donorId) {
+            // Check if chat already exists between current user and donor
             db.collection("chats")
                 .where("participants", "array-contains", currentUser.uid)
                 .get()
@@ -2433,110 +2795,70 @@
                         if (chat.participants.includes(donorId)) {
                             existingChat = {
                                 id: doc.id,
-                                participantId: donorId,
-                                participantName: donorName
+                                ...chat
                             };
                         }
                     });
                     
                     if (existingChat) {
                         // Open existing chat
-                        currentChat = existingChat;
-                        navigateTo("messages");
-                        document.getElementById("chatListScreen").style.display = "none";
-                        document.getElementById("conversationScreen").style.display = "flex";
-                        document.getElementById("conversationName").textContent = donorName;
-                        loadMessages(existingChat.id);
-                        markMessagesAsRead(existingChat.id);
-                        
-                        // Get listing details to pre-fill message
-                        db.collection("listings").doc(listingId).get()
+                        db.collection("users").doc(donorId).get()
                             .then((doc) => {
                                 if (doc.exists) {
-                                    const listing = doc.data();
-                                    document.getElementById("messageInput").value = `Hi, I'm interested in your "${listing.title}" listing. Is it still available?`;
+                                    const userData = doc.data();
+                                    navigateTo("messages");
+                                    setTimeout(() => {
+                                        openChatConversation(existingChat.id, userData);
+                                        
+                                        // Add template message about the listing
+                                        db.collection("listings").doc(listingId).get()
+                                            .then((listingDoc) => {
+                                                if (listingDoc.exists) {
+                                                    const listing = listingDoc.data();
+                                                    document.getElementById("messageInput").value = `Hi, I'm interested in your "${listing.title}" listing. Is it still available?`;
+                                                }
+                                            });
+                                    }, 100);
                                 }
                             });
                     } else {
                         // Create new chat
-                        const chatData = {
+                        const chat = {
                             participants: [currentUser.uid, donorId],
-                            participantNames: {
-                                [currentUser.uid]: currentUser.name,
-                                [donorId]: donorName
-                            },
-                            listingId: listingId,
+                            lastMessage: "",
                             lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
-                            unreadCount: {
-                                [currentUser.uid]: 0,
-                                [donorId]: 1
-                            }
+                            unreadCount: 0
                         };
                         
-                        db.collection("chats").add(chatData)
+                        db.collection("chats").add(chat)
                             .then((docRef) => {
-                                // Get listing details to pre-fill message
-                                return db.collection("listings").doc(listingId).get();
+                                // Get donor info
+                                return db.collection("users").doc(donorId).get();
                             })
                             .then((doc) => {
                                 if (doc.exists) {
-                                    const listing = doc.data();
-                                    
-                                    // Open the new chat
-                                    currentChat = {
-                                        id: docRef.id,
-                                        participantId: donorId,
-                                        participantName: donorName
-                                    };
-                                    
+                                    const userData = doc.data();
                                     navigateTo("messages");
-                                    document.getElementById("chatListScreen").style.display = "none";
-                                    document.getElementById("conversationScreen").style.display = "flex";
-                                    document.getElementById("conversationName").textContent = donorName;
-                                    loadMessages(docRef.id);
-                                    
-                                    // Add initial message
-                                    document.getElementById("messageInput").value = `Hi, I'm interested in your "${listing.title}" listing. Is it still available?`;
+                                    setTimeout(() => {
+                                        openChatConversation(docRef.id, userData);
+                                        
+                                        // Add template message about the listing
+                                        db.collection("listings").doc(listingId).get()
+                                            .then((listingDoc) => {
+                                                if (listingDoc.exists) {
+                                                    const listing = listingDoc.data();
+                                                    document.getElementById("messageInput").value = `Hi, I'm interested in your "${listing.title}" listing. Is it still available?`;
+                                                }
+                                            });
+                                    }, 100);
                                 }
                             })
                             .catch((error) => {
-                                console.error("Error creating chat: ", error);
-                                alert("Error starting conversation");
+                                console.error("Error creating chat:", error);
+                                alert("Error starting conversation. Please try again.");
                             });
                     }
-                })
-                .catch((error) => {
-                    console.error("Error checking for existing chats: ", error);
-                    alert("Error starting conversation");
                 });
-        }
-
-        // Profile functions
-        function updateProfileData() {
-            if (currentUser) {
-                document.getElementById("profileName").textContent = currentUser.name || "User";
-                document.getElementById("profileRole").textContent = currentUser.role === "donor" ? "Food Donor" : "Food Receiver";
-                document.getElementById("totalDonations").textContent = currentUser.totalDonations || 0;
-                document.getElementById("totalHelped").textContent = currentUser.peopleHelped || 0;
-                document.getElementById("rating").textContent = currentUser.rating || "0";
-                
-                // Update profile pic if available
-                if (currentUser.photoURL) {
-                    document.getElementById("profilePic").innerHTML = `<img src="${currentUser.photoURL}" alt="Profile" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
-                }
-            }
-        }
-
-        function openSettings(type) {
-            alert(`Settings page for ${type} would open here`);
-        }
-
-        function openAbout(type) {
-            alert(`About page for ${type} would open here`);
-        }
-
-        function showNotification() {
-            alert("Notifications would be displayed here");
         }
     </script>
 </body>
