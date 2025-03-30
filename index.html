@@ -46,56 +46,9 @@
             padding: 20px;
         }
 
-        /* Splash Screen */
-        .splash-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, var(--primary-green-light), var(--primary-green));
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-            animation: fade-out 1.5s ease-in-out forwards;
-            animation-delay: 2s;
-        }
-
-        @keyframes fade-out {
-            0% { opacity: 1; }
-            100% { opacity: 0; visibility: hidden; }
-        }
-
-        .splash-logo {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-
-        .splash-logo i {
-            font-size: 5rem;
-            color: white;
-            margin-bottom: 1rem;
-        }
-
-        .splash-logo h1 {
-            color: white;
-            font-size: 2.5rem;
-            letter-spacing: 1px;
-        }
-
         /* Onboarding Slides */
         .onboarding-container {
-            display: none;
-            position:absolute;
+            position: fixed;
             top: 0;
             left: 0;
             width: 100%;
@@ -766,10 +719,14 @@
         /* Chat Page */
         .chat-page {
             display: none;
-            padding-bottom: 70px;
+            height: calc(100vh - 60px); /* Full height minus header */
+            flex-direction: column;
+            background-color: var(--gray-100);
         }
 
         .chat-list-container {
+            flex: 1;
+            overflow-y: auto;
             padding: 1rem;
         }
 
@@ -884,8 +841,14 @@
         .chat-conversation {
             display: none;
             flex-direction: column;
-            height: calc(100vh - 60px);
+            height: 100vh;
             background-color: var(--gray-100);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 1001;
         }
 
         .chat-conversation-header {
@@ -895,6 +858,9 @@
             padding: 1rem;
             background-color: white;
             border-bottom: 1px solid var(--gray-200);
+            position: sticky;
+            top: 0;
+            z-index: 1;
         }
 
         .back-button {
@@ -965,6 +931,8 @@
             padding: 1rem;
             background-color: white;
             border-top: 1px solid var(--gray-200);
+            position: sticky;
+            bottom: 0;
         }
 
         .chat-input {
@@ -1181,14 +1149,6 @@
     </style>
 </head>
 <body>
-    <!-- Splash Screen -->
-    <div class="splash-screen" id="splashScreen">
-        <div class="splash-logo">
-            <i class="fas fa-seedling"></i>
-            <h1>Food Share</h1>
-        </div>
-    </div>
-
     <!-- Onboarding Slides -->
     <div class="onboarding-container" id="onboardingContainer">
         <div class="onboarding-slides" id="onboardingSlides">
@@ -1257,13 +1217,6 @@
                 <button type="button" class="btn btn-primary" onclick="login()" id="loginBtn">
                     <span>Login</span>
                 </button>
-
-                <div class="auth-divider">OR</div>
-
-                <button type="button" class="google-btn" onclick="signInWithGoogle()" id="googleLoginBtn">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="Google">
-                    <span>Continue with Google</span>
-                </button>
             </form>
 
             <!-- Signup Form -->
@@ -1313,13 +1266,6 @@
 
                 <button type="button" class="btn btn-primary" onclick="signup()" id="signupBtn">
                     <span>Create Account</span>
-                </button>
-
-                <div class="auth-divider">OR</div>
-
-                <button type="button" class="google-btn" onclick="signInWithGoogle()" id="googleSignupBtn">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="Google">
-                    <span>Continue with Google</span>
                 </button>
             </form>
         </div>
@@ -1421,7 +1367,7 @@
                 <a href="#" class="nav-item" onclick="navigateTo('messages', 'receiver')">
                     <i class="fas fa-message"></i>
                     <span>Messages</span>
-                    <span class="nav-badge" id="messagesBadge" style="display: none;">3</span>
+                    <span class="nav-badge" id="messagesBadgeReceiver" style="display: none;">3</span>
                 </a>
                 <a href="#" class="nav-item" onclick="navigateTo('profile', 'receiver')">
                     <i class="fas fa-user"></i>
@@ -1541,7 +1487,7 @@
                 <a href="#" class="nav-item" onclick="navigateTo('messages')">
                     <i class="fas fa-message"></i>
                     <span>Messages</span>
-                    <span class="nav-badge" id="messagesBadge" style="display: none;">3</span>
+                    <span class="nav-badge" id="messagesBadgeProfile" style="display: none;">3</span>
                 </a>
                 <a href="#" class="nav-item active" onclick="navigateTo('profile')">
                     <i class="fas fa-user"></i>
@@ -1570,7 +1516,7 @@
         <div class="chat-list-container">
             <div class="chat-search">
                 <i class="fas fa-search"></i>
-                <input type="text" placeholder="Search conversations...">
+                <input type="text" placeholder="Search conversations..." id="chatSearchInput">
             </div>
             
             <div class="chat-list" id="chatList">
@@ -1591,7 +1537,7 @@
                 <a href="#" class="nav-item active" onclick="navigateTo('messages')">
                     <i class="fas fa-message"></i>
                     <span>Messages</span>
-                    <span class="nav-badge" id="messagesBadge" style="display: none;">3</span>
+                    <span class="nav-badge" id="messagesBadgeChat" style="display: none;">3</span>
                 </a>
                 <a href="#" class="nav-item" onclick="navigateTo('profile')">
                     <i class="fas fa-user"></i>
@@ -1707,69 +1653,71 @@
             appId: "1:460631614669:web:8e1379b952c757ea7a7584",
             measurementId: "G-E6Z0RDYK70"
         };
-
+        
         // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
+        const app = firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
-        const storage = firebase.storage();
-        
-        // Default listing data
-        const DEFAULT_LISTING = {
-          id: "default-listing",
-          title: "Sample Food Donation",
-          description: "This is a sample listing to show the format",
-          imageUrl: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60",
-          category: "produce",
-          expiryDate: firebase.firestore.Timestamp.fromDate(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)), // 7 days from now
-          pickupAddress: "123 Sample Street",
-          distance: "1.2 miles",
-          donorId: "default-donor",
-          donorName: "Sample Donor",
-          isAvailable: true
-        };
-        
+        const auth = firebase.auth();
 
         // App state
         let currentUser = null;
         let selectedRole = "donor";
-        let currentScreen = "splash";
+        let currentScreen = "onboarding";
         let currentChatId = null;
         let currentSlide = 0;
         const totalSlides = 3;
+        let unsubscribeChats = null;
+        let unsubscribeMessages = null;
+        let recipientData = null;
 
         // Initialize the app
-       document.addEventListener("DOMContentLoaded", function() {
-    // Initialize onboarding slides
-    initOnboarding();
-    
-    // Show splash screen for 3 seconds
-    setTimeout(() => {
-        document.getElementById("splashScreen").style.display = "none";
-        
-        // Check auth state first
-        auth.onAuthStateChanged(user => {
-            if (user) {
-                // User is signed in - skip onboarding/auth
-                currentUser = user;
-                getUserData(user.uid);
+        document.addEventListener("DOMContentLoaded", function() {
+            // Initialize onboarding slides
+            initOnboarding();
+            
+            // Check if user has completed onboarding
+            const onboardingCompleted = localStorage.getItem("onboardingCompleted");
+            
+            if (!onboardingCompleted) {
+                // Show onboarding slides
+                document.getElementById("onboardingContainer").style.display = "block";
+                currentScreen = "onboarding";
             } else {
-                // No user signed in - check onboarding status
-                const onboardingCompleted = localStorage.getItem("onboardingCompleted");
-                
-                if (!onboardingCompleted) {
-                    // Show onboarding slides
-                    document.getElementById("onboardingContainer").style.display = "block";
-                    currentScreen = "onboarding";
-                } else {
-                    // Show auth screen
-                    document.getElementById("authScreen").style.display = "block";
-                    currentScreen = "auth";
-                }
+                // Check Firebase auth state
+                auth.onAuthStateChanged(user => {
+                    if (user) {
+                        // User is signed in
+                        loadUserData(user.uid);
+                    } else {
+                        // No user is signed in
+                        document.getElementById("authScreen").style.display = "block";
+                        currentScreen = "auth";
+                    }
+                });
             }
         });
-    }, 3000);
-});
+
+        // Load user data from Firestore
+        async function loadUserData(userId) {
+            try {
+                const userDoc = await db.collection("users").doc(userId).get();
+                if (userDoc.exists) {
+                    currentUser = {
+                        id: userId,
+                        ...userDoc.data()
+                    };
+                    localStorage.setItem("currentUser", JSON.stringify(currentUser));
+                    showAppScreen();
+                } else {
+                    // User document doesn't exist - should not happen
+                    console.error("User document not found");
+                    logout();
+                }
+            } catch (error) {
+                console.error("Error loading user data:", error);
+                logout();
+            }
+        }
 
         // Onboarding functions
         function initOnboarding() {
@@ -1805,10 +1753,10 @@
         }
 
         function skipOnboarding() {
-          localStorage.setItem("onboardingCompleted", "true");
-          document.getElementById("onboardingContainer").style.display = "none";
-          document.getElementById("authScreen").style.display = "block";
-          currentScreen = "auth";
+            localStorage.setItem("onboardingCompleted", "true");
+            document.getElementById("onboardingContainer").style.display = "none";
+            document.getElementById("authScreen").style.display = "block";
+            currentScreen = "auth";
         }
 
         // Authentication functions
@@ -1869,6 +1817,7 @@
             errorElement.style.display = "none";
         }
 
+        // Login function with Firebase
         function login() {
             const loginBtn = document.getElementById("loginBtn");
             const email = document.getElementById("loginEmail").value;
@@ -1903,19 +1852,17 @@
             loginBtn.innerHTML = '<div class="loading-spinner"></div>';
             loginBtn.disabled = true;
             
-            // Sign in with Firebase
+            // Firebase sign in
             auth.signInWithEmailAndPassword(email, password)
                 .then((userCredential) => {
                     // Signed in
-                    currentUser = userCredential.user;
-                    getUserData(currentUser.uid);
+                    loadUserData(userCredential.user.uid);
                 })
                 .catch((error) => {
-                    // Reset button state
+                    // Handle errors
                     loginBtn.innerHTML = '<span>Login</span>';
                     loginBtn.disabled = false;
                     
-                    // Show error message
                     const errorCode = error.code;
                     const errorMessage = error.message;
                     
@@ -1927,7 +1874,8 @@
                     }
                 });
         }
-
+        
+        // Signup function with Firebase
         function signup() {
             const signupBtn = document.getElementById("signupBtn");
             const name = document.getElementById("signupName").value;
@@ -1970,14 +1918,14 @@
             signupBtn.innerHTML = '<div class="loading-spinner"></div>';
             signupBtn.disabled = true;
             
-            // Create user with Firebase
+            // Firebase create user
             auth.createUserWithEmailAndPassword(email, password)
                 .then((userCredential) => {
-                    // Signed in
-                    currentUser = userCredential.user;
+                    // User created
+                    const user = userCredential.user;
                     
                     // Create user document in Firestore
-                    return db.collection("users").doc(currentUser.uid).set({
+                    return db.collection("users").doc(user.uid).set({
                         name: name,
                         email: email,
                         role: selectedRole,
@@ -1988,15 +1936,28 @@
                     });
                 })
                 .then(() => {
-                    // Show app screen
-                    showAppScreen();
+                    // Get the newly created user data
+                    return db.collection("users").doc(auth.currentUser.uid).get();
+                })
+                .then((doc) => {
+                    if (doc.exists) {
+                        currentUser = {
+                            id: doc.id,
+                            ...doc.data()
+                        };
+                        
+                        // Save to localStorage
+                        localStorage.setItem("currentUser", JSON.stringify(currentUser));
+                        
+                        // Show app screen
+                        showAppScreen();
+                    }
                 })
                 .catch((error) => {
-                    // Reset button state
+                    // Handle errors
                     signupBtn.innerHTML = '<span>Create Account</span>';
                     signupBtn.disabled = false;
                     
-                    // Show error message
                     const errorCode = error.code;
                     const errorMessage = error.message;
                     
@@ -2007,143 +1968,68 @@
                     }
                 });
         }
-
-        function signInWithGoogle() {
-            const provider = new firebase.auth.GoogleAuthProvider();
-            
-            // Set button loading state
-            const loginBtn = document.getElementById("googleLoginBtn");
-            const signupBtn = document.getElementById("googleSignupBtn");
-            
-            if (currentScreen === "login") {
-                loginBtn.innerHTML = '<div class="loading-spinner"></div>';
-                loginBtn.disabled = true;
-            } else {
-                signupBtn.innerHTML = '<div class="loading-spinner"></div>';
-                signupBtn.disabled = true;
-            }
-            
-            auth.signInWithPopup(provider)
-                .then((result) => {
-                    // This gives you a Google Access Token
-                    const credential = result.credential;
-                    const token = credential.accessToken;
-                    
-                    // The signed-in user info
-                    currentUser = result.user;
-                    
-                    // Check if user exists in Firestore
-                    return db.collection("users").doc(currentUser.uid).get();
-                })
-                .then((doc) => {
-                    if (!doc.exists) {
-                        // User doesn't exist, create new document
-                        return db.collection("users").doc(currentUser.uid).set({
-                            name: currentUser.displayName || "User",
-                            email: currentUser.email,
-                            role: selectedRole,
-                            totalDonations: 0,
-                            peopleHelped: 0,
-                            rating: 5.0,
-                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                        });
-                    }
-                })
-                .then(() => {
-                    // Show app screen
-                    showAppScreen();
-                })
-                .catch((error) => {
-                    // Reset button state
-                    if (currentScreen === "login") {
-                        loginBtn.innerHTML = '<img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="Google"><span>Continue with Google</span>';
-                        loginBtn.disabled = false;
-                    } else {
-                        signupBtn.innerHTML = '<img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="Google"><span>Continue with Google</span>';
-                        signupBtn.disabled = false;
-                    }
-                    
-                    // Handle error
-                    const errorCode = error.code;
-                    const errorMessage = error.message;
-                    alert(errorMessage);
-                });
-        }
-
-        function getUserData(userId) {
-            db.collection("users").doc(userId).get()
-                .then((doc) => {
-                    if (doc.exists) {
-                        // Merge auth user data with Firestore data
-                        currentUser = {
-                            ...currentUser,
-                            ...doc.data(),
-                            uid: userId
-                        };
-                        
-                        // Show app screen
-                        showAppScreen();
-                        
-                        // Load user-specific data
-                        loadUserData();
-                    } else {
-                        // User document doesn't exist (shouldn't happen)
-                        console.error("No user data found");
-                        logout();
-                    }
-                })
-                .catch((error) => {
-                    console.error("Error getting user data:", error);
-                    logout();
-                });
-        }
-
+        
+        // Logout function
         function logout() {
-    auth.signOut()
-        .then(() => {
-            // Sign-out successful
-            currentUser = null;
+            // Unsubscribe from listeners
+            if (unsubscribeChats) unsubscribeChats();
+            if (unsubscribeMessages) unsubscribeMessages();
             
-            // Hide all screens
-            document.querySelectorAll(".app-screen").forEach(screen => {
-                screen.style.display = "none";
+            auth.signOut().then(() => {
+                // Sign-out successful
+                localStorage.removeItem("currentUser");
+                currentUser = null;
+                
+                // Hide all screens
+                document.querySelectorAll(".app-screen").forEach(screen => {
+                    screen.style.display = "none";
+                });
+                document.getElementById("chatPage").style.display = "none";
+                document.getElementById("chatConversation").style.display = "none";
+                document.getElementById("donationFormContainer").style.display = "none";
+                
+                // Reset forms
+                document.getElementById("loginForm").reset();
+                document.getElementById("signupForm").reset();
+                
+                // Show auth screen
+                document.getElementById("authScreen").style.display = "block";
+                currentScreen = "auth";
+            }).catch((error) => {
+                alert("Error signing out: " + error.message);
             });
-            document.getElementById("chatPage").style.display = "none";
-            document.getElementById("chatConversation").style.display = "none";
-            document.getElementById("donationFormContainer").style.display = "none";
-            
-            // Reset forms
-            document.getElementById("loginForm").reset();
-            document.getElementById("signupForm").reset();
-            
-            // Show auth screen (but don't show onboarding again)
-            document.getElementById("authScreen").style.display = "block";
-            currentScreen = "auth";
-            
-            // Optional: If you want to show onboarding again after logout
-            // localStorage.removeItem("onboardingCompleted");
-        })
-        .catch((error) => {
-            console.error("Logout error:", error);
-        });
-}
-
+        }
+        
+        // Delete account function
         function confirmDeleteAccount() {
             const confirmed = confirm("Are you sure you want to delete your account? This action cannot be undone.");
             if (confirmed) {
                 // Delete user from Firebase Auth
-                currentUser.delete()
+                const user = auth.currentUser;
+                
+                // First delete user data from Firestore
+                db.collection("users").doc(user.uid).delete()
                     .then(() => {
-                        // Delete user data from Firestore
-                        return db.collection("users").doc(currentUser.uid).delete();
+                        // Then delete the user account
+                        return user.delete();
                     })
                     .then(() => {
-                        // Account deleted
+                        // Remove user's listings from Firestore
+                        return db.collection("listings").where("donorId", "==", user.uid).get()
+                            .then((querySnapshot) => {
+                                const batch = db.batch();
+                                querySnapshot.forEach((doc) => {
+                                    batch.delete(doc.ref);
+                                });
+                                return batch.commit();
+                            });
+                    })
+                    .then(() => {
+                        // Logout
                         logout();
                     })
                     .catch((error) => {
-                        console.error("Error deleting account:", error);
-                        alert("Error deleting account. Please try again.");
+                        alert("Error deleting account: " + error.message);
                     });
             }
         }
@@ -2222,141 +2108,93 @@
 
         function backToChatList() {
             document.getElementById("chatConversation").style.display = "none";
-            document.getElementById("chatList").style.display = "block";
+            document.getElementById("chatPage").style.display = "block";
             currentChatId = null;
+            recipientData = null;
         }
 
         // Listings functions
-          // Modified loadListings function
-function loadListings() {
-    if (currentUser.role === "donor") {
-        // Donor view - show their own listings
-        db.collection("listings")
-            .where("donorId", "==", currentUser.uid)
-            .orderBy("createdAt", "desc")
-            .get()
-            .then((querySnapshot) => {
-                const listings = [];
-                querySnapshot.forEach((doc) => {
-                    if (doc.exists) {
-                        listings.push({ id: doc.id, ...doc.data() });
-                    }
-                });
+        async function loadListings() {
+            try {
+                const snapshot = await db.collection("listings").get();
+                const listings = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 
-                // Only show default if no listings exist
-                if (listings.length === 0) {
-                    listings.push(DEFAULT_LISTING);
+                if (currentUser.role === "donor") {
+                    // Show donor's listings
+                    const donorListings = listings.filter(l => l.donorId === currentUser.id);
+                    populateDonorListings(donorListings);
+                } else {
+                    // Show available listings for receivers
+                    const availableListings = listings.filter(l => l.isAvailable);
+                    populateAvailableListings(availableListings);
                 }
-                
-                populateDonorListings(listings);
-            })
-            .catch((error) => {
+            } catch (error) {
                 console.error("Error loading listings:", error);
-                // Show just default listing on error
-                populateDonorListings([DEFAULT_LISTING]);
-            });
-    } else {
-        // Receiver view - show available listings
-        db.collection("listings")
-            .where("isAvailable", "==", true)
-            .orderBy("createdAt", "desc")
-            .get()
-            .then((querySnapshot) => {
-                const listings = [];
-                querySnapshot.forEach((doc) => {
-                    if (doc.exists) {
-                        listings.push({ id: doc.id, ...doc.data() });
-                    }
-                });
-                
-                // Only show default if no listings exist
-                if (listings.length === 0) {
-                    listings.push(DEFAULT_LISTING);
-                }
-                
-                populateAvailableListings(listings);
-            })
-            .catch((error) => {
-                console.error("Error loading listings:", error);
-                // Show just default listing on error
-                populateAvailableListings([DEFAULT_LISTING]);
-            });
-    }
-}
+            }
+        }
 
-// Simplified populate functions
-function populateDonorListings(listings) {
-    const donorListings = document.getElementById("donorListings");
-    donorListings.innerHTML = '';
-    
-    if (listings.length === 0) {
-        donorListings.innerHTML = `
-            <div style="grid-column: 1/-1; text-align: center; padding: 2rem;">
-                <i class="fas fa-utensils" style="font-size: 3rem; color: var(--gray-300); margin-bottom: 1rem;"></i>
-                <h3>No listings yet</h3>
-                <p>Create your first food listing to get started</p>
-            </div>
-        `;
-    } else {
-        listings.forEach(listing => {
-            const listingElement = createListingElement(listing, true);
-            donorListings.appendChild(listingElement);
-        });
-    }
-}
+        function populateDonorListings(listings) {
+            const donorListings = document.getElementById("donorListings");
+            donorListings.innerHTML = '';
+            
+            if (listings.length === 0) {
+                donorListings.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 2rem;">
+                        <i class="fas fa-box-open" style="font-size: 3rem; color: var(--gray-300); margin-bottom: 1rem;"></i>
+                        <h3>No listings yet</h3>
+                        <p>Create your first food listing to get started</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            listings.forEach(listing => {
+                const listingElement = createListingElement(listing, true);
+                donorListings.appendChild(listingElement);
+            });
+        }
 
-function populateAvailableListings(listings) {
-    const availableListings = document.getElementById("availableListings");
-    availableListings.innerHTML = '';
-    
-    if (listings.length === 0) {
-        availableListings.innerHTML = `
-            <div style="grid-column: 1/-1; text-align: center; padding: 2rem;">
-                <i class="fas fa-search" style="font-size: 3rem; color: var(--gray-300); margin-bottom: 1rem;"></i>
-                <h3>No listings available</h3>
-                <p>Check back later for new food donations</p>
-            </div>
-        `;
-    } else {
-        listings.forEach(listing => {
-            const listingElement = createListingElement(listing, false);
-            availableListings.appendChild(listingElement);
-        });
-    }
-}
+        function populateAvailableListings(listings) {
+            const availableListings = document.getElementById("availableListings");
+            availableListings.innerHTML = '';
+            
+            if (listings.length === 0) {
+                availableListings.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 2rem;">
+                        <i class="fas fa-search" style="font-size: 3rem; color: var(--gray-300); margin-bottom: 1rem;"></i>
+                        <h3>No listings available</h3>
+                        <p>Check back later for new food listings</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            listings.forEach(listing => {
+                const listingElement = createListingElement(listing, false);
+                availableListings.appendChild(listingElement);
+            });
+        }
 
         function createListingElement(listing, isOwner) {
             const foodCard = document.createElement("div");
             foodCard.className = "food-card";
             
-            // Safely handle expiry date (could be Timestamp or string)
+            // Calculate days until expiry
             let daysUntilExpiry = "N/A";
             if (listing.expiryDate) {
-                try {
-                    const expiryDate = listing.expiryDate.toDate 
-                        ? listing.expiryDate.toDate() 
-                        : new Date(listing.expiryDate);
-                    const today = new Date();
-                    const timeDiff = expiryDate.getTime() - today.getTime();
-                    daysUntilExpiry = Math.ceil(timeDiff / (1000 * 3600 * 24));
-                } catch (e) {
-                    console.error("Error processing expiry date:", e);
-                }
+                const expiryDate = new Date(listing.expiryDate);
+                const today = new Date();
+                const timeDiff = expiryDate.getTime() - today.getTime();
+                daysUntilExpiry = Math.ceil(timeDiff / (1000 * 3600 * 24));
             }
         
-            // Safely handle image URL
-            const imageUrl = listing.imageUrl || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60';
-            
-            // Safely handle category
+            // Format category
             const category = listing.category 
                 ? listing.category.charAt(0).toUpperCase() + listing.category.slice(1)
                 : 'Other';
         
-            // Safely handle distance
-            const distance = listing.distance || '0.5 miles';
-        
             foodCard.innerHTML = `
-                <img src="${imageUrl}" alt="${listing.title}" class="food-image">
+                <img src="${listing.imageUrl || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60'}" alt="${listing.title}" class="food-image">
                 <div class="food-content">
                     <div class="food-title">
                         <h3>${listing.title || 'Unnamed Listing'}</h3>
@@ -2369,7 +2207,7 @@ function populateAvailableListings(listings) {
                         </div>
                         <div class="meta-item">
                             <i class="fas fa-map-marker-alt"></i>
-                            <span>${distance}</span>
+                            <span>${listing.distance || '0.5 miles'}</span>
                         </div>
                     </div>
                     <p class="food-description">${listing.description || 'No description provided'}</p>
@@ -2400,30 +2238,8 @@ function populateAvailableListings(listings) {
         }
 
         function searchListings(query) {
-            if (!query) {
-                loadListings();
-                return;
-            }
-            
-            db.collection("listings")
-                .where("isAvailable", "==", true)
-                .orderBy("title")
-                .startAt(query)
-                .endAt(query + "\uf8ff")
-                .get()
-                .then((querySnapshot) => {
-                    const listings = [];
-                    querySnapshot.forEach((doc) => {
-                        listings.push({
-                            id: doc.id,
-                            ...doc.data()
-                        });
-                    });
-                    populateAvailableListings(listings);
-                })
-                .catch((error) => {
-                    console.error("Error searching listings:", error);
-                });
+            // Implement search functionality here
+            console.log("Searching for:", query);
         }
 
         // Profile functions
@@ -2441,10 +2257,6 @@ function populateAvailableListings(listings) {
             }
         }
 
-        function loadUserData() {
-            // Additional user data can be loaded here
-        }
-
         function openSettings(type) {
             alert(`Settings page for ${type} would open here`);
         }
@@ -2455,22 +2267,62 @@ function populateAvailableListings(listings) {
 
         // Chat functions
         function loadChats() {
-            db.collection("chats")
-                .where("participants", "array-contains", currentUser.uid)
+            if (!currentUser) return;
+
+            // Unsubscribe previous listener if exists
+            if (unsubscribeChats) unsubscribeChats();
+
+            unsubscribeChats = db.collection("chats")
+                .where("participants", "array-contains", currentUser.id)
                 .orderBy("lastUpdated", "desc")
-                .onSnapshot((querySnapshot) => {
+                .onSnapshot(snapshot => {
                     const chats = [];
-                    querySnapshot.forEach((doc) => {
-                        chats.push({
+                    let unreadCount = 0;
+                    
+                    snapshot.forEach(doc => {
+                        const chat = {
                             id: doc.id,
                             ...doc.data()
-                        });
+                        };
+                        chats.push(chat);
+                        
+                        // Calculate unread messages
+                        if (chat.lastSenderId !== currentUser.id && chat.unreadFor === currentUser.id) {
+                            unreadCount += chat.unreadCount || 0;
+                        }
                     });
+                    
+                    // Update badge count on all screens
+                    updateMessageBadges(unreadCount);
+                    
+                    // Populate chat list
                     populateChatList(chats);
+                }, error => {
+                    console.error("Error loading chats:", error);
                 });
         }
 
-        function populateChatList(chats) {
+        function updateMessageBadges(count) {
+            const badges = [
+                document.getElementById("messagesBadge"),
+                document.getElementById("messagesBadgeReceiver"),
+                document.getElementById("messagesBadgeProfile"),
+                document.getElementById("messagesBadgeChat")
+            ];
+            
+            badges.forEach(badge => {
+                if (badge) {
+                    if (count > 0) {
+                        badge.textContent = count > 9 ? "9+" : count;
+                        badge.style.display = "flex";
+                    } else {
+                        badge.style.display = "none";
+                    }
+                }
+            });
+        }
+
+        async function populateChatList(chats) {
             const chatList = document.getElementById("chatList");
             chatList.innerHTML = '';
             
@@ -2485,31 +2337,34 @@ function populateAvailableListings(listings) {
                 return;
             }
             
-            // Update badge count
-            const unreadCount = chats.reduce((count, chat) => count + (chat.unreadCount || 0), 0);
-            const badge = document.getElementById("messagesBadge");
+            // Get all participant user IDs
+            const participantIds = chats.flatMap(chat => 
+                chat.participants.filter(id => id !== currentUser.id)
+            );
             
-            if (unreadCount > 0) {
-                badge.textContent = unreadCount;
-                badge.style.display = "flex";
-            } else {
-                badge.style.display = "none";
-            }
-            
-            // Populate chat list
-            chats.forEach(chat => {
-                const otherParticipantId = chat.participants.find(id => id !== currentUser.uid);
-                
-                // Get user data for other participant
-                db.collection("users").doc(otherParticipantId).get()
-                    .then((doc) => {
-                        if (doc.exists) {
-                            const userData = doc.data();
+            // Fetch user data for all participants
+            if (participantIds.length > 0) {
+                try {
+                    const userSnapshot = await db.collection("users").where(firebase.firestore.FieldPath.documentId(), "in", participantIds).get();
+                    const users = {};
+                    userSnapshot.forEach(doc => {
+                        users[doc.id] = doc.data();
+                    });
+                    
+                    // Now populate chats with user data
+                    chats.forEach(chat => {
+                        const otherParticipantId = chat.participants.find(id => id !== currentUser.id);
+                        const userData = users[otherParticipantId];
+                        
+                        if (userData) {
                             const chatItem = createChatItem(chat, userData);
                             chatList.appendChild(chatItem);
                         }
                     });
-            });
+                } catch (error) {
+                    console.error("Error fetching user data:", error);
+                }
+            }
         }
 
         function createChatItem(chat, userData) {
@@ -2519,6 +2374,7 @@ function populateAvailableListings(listings) {
             
             const lastMessage = chat.lastMessage || "No messages yet";
             const lastMessageTime = chat.lastUpdated ? formatTime(chat.lastUpdated.toDate()) : "";
+            const isUnread = chat.lastSenderId !== currentUser.id && chat.unreadFor === currentUser.id;
             
             chatItem.innerHTML = `
                 <div class="chat-item-avatar">
@@ -2531,56 +2387,74 @@ function populateAvailableListings(listings) {
                     </div>
                     <div class="chat-item-message">${lastMessage}</div>
                 </div>
-                ${chat.unreadCount > 0 ? `<div class="chat-item-unread">${chat.unreadCount}</div>` : ''}
+                ${isUnread ? `<div class="chat-item-unread">${chat.unreadCount > 9 ? '9+' : chat.unreadCount}</div>` : ''}
             `;
             
             return chatItem;
         }
 
-        function openChatConversation(chatId, recipientData) {
+        async function openChatConversation(chatId, userData) {
             currentChatId = chatId;
+            recipientData = userData;
             
             // Update UI
-            document.getElementById("chatList").style.display = "none";
+            document.getElementById("chatPage").style.display = "none";
             document.getElementById("chatConversation").style.display = "flex";
             
             // Set recipient info
-            document.getElementById("chatRecipientName").textContent = recipientData.name;
-            document.getElementById("chatRecipientAvatar").textContent = recipientData.name.charAt(0).toUpperCase();
+            document.getElementById("chatRecipientName").textContent = userData.name;
+            document.getElementById("chatRecipientAvatar").textContent = userData.name.charAt(0).toUpperCase();
             
             // Load messages
             loadMessages(chatId);
             
             // Mark messages as read
-            markMessagesAsRead(chatId);
+            await markMessagesAsRead(chatId);
         }
 
         function loadMessages(chatId) {
             const messagesContainer = document.getElementById("chatMessages");
             messagesContainer.innerHTML = '';
             
-            db.collection("chats").doc(chatId).collection("messages")
+            // Unsubscribe previous listener if exists
+            if (unsubscribeMessages) unsubscribeMessages();
+
+            unsubscribeMessages = db.collection("chats").doc(chatId)
+                .collection("messages")
                 .orderBy("timestamp", "asc")
-                .onSnapshot((querySnapshot) => {
-                    messagesContainer.innerHTML = '';
+                .onSnapshot(snapshot => {
+                    // Clear existing messages if this is a new snapshot
+                    if (snapshot.docChanges().length !== snapshot.size) {
+                        messagesContainer.innerHTML = '';
+                    }
                     
-                    querySnapshot.forEach((doc) => {
+                    snapshot.forEach(doc => {
                         const message = doc.data();
                         addMessageToUI(message);
                     });
                     
                     // Scroll to bottom
-                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                    setTimeout(() => {
+                        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                    }, 100);
+                }, error => {
+                    console.error("Error loading messages:", error);
                 });
         }
 
         function addMessageToUI(message) {
             const messagesContainer = document.getElementById("chatMessages");
             
-            const messageElement = document.createElement("div");
-            messageElement.className = `message ${message.senderId === currentUser.uid ? 'sent' : 'received'}`;
+            // Check if message already exists in UI
+            if (document.querySelector(`[data-message-id="${message.id}"]`)) {
+                return;
+            }
             
-            const messageTime = formatTime(message.timestamp.toDate());
+            const messageElement = document.createElement("div");
+            messageElement.className = `message ${message.senderId === currentUser.id ? 'sent' : 'received'}`;
+            messageElement.setAttribute("data-message-id", message.id || Date.now());
+            
+            const messageTime = message.timestamp ? formatTime(message.timestamp.toDate()) : "Just now";
             
             messageElement.innerHTML = `
                 <div>${message.text}</div>
@@ -2590,64 +2464,88 @@ function populateAvailableListings(listings) {
             messagesContainer.appendChild(messageElement);
         }
 
-        function markMessagesAsRead(chatId) {
-            db.collection("chats").doc(chatId).update({
-                unreadCount: 0
-            });
+        async function markMessagesAsRead(chatId) {
+            try {
+                await db.collection("chats").doc(chatId).update({
+                    unreadCount: 0,
+                    unreadFor: null
+                });
+                
+                // Update badges
+                updateMessageBadges(0);
+            } catch (error) {
+                console.error("Error marking messages as read:", error);
+            }
         }
 
-        function sendMessage() {
+        async function sendMessage() {
             const messageInput = document.getElementById("messageInput");
             const messageText = messageInput.value.trim();
             
-            if (!messageText || !currentChatId) return;
+            if (!messageText || !currentChatId || !currentUser) return;
             
             // Create message object
             const message = {
+                id: db.collection("messages").doc().id,
                 text: messageText,
-                senderId: currentUser.uid,
+                senderId: currentUser.id,
                 timestamp: firebase.firestore.FieldValue.serverTimestamp()
             };
             
-            // Add message to Firestore
-            db.collection("chats").doc(currentChatId).collection("messages").add(message)
-                .then(() => {
-                    // Update last message in chat
-                    db.collection("chats").doc(currentChatId).update({
-                        lastMessage: messageText,
-                        lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-                    
-                    // Clear input
-                    messageInput.value = "";
-                })
-                .catch((error) => {
-                    console.error("Error sending message:", error);
+            try {
+                // Add message to subcollection
+                await db.collection("chats").doc(currentChatId)
+                    .collection("messages").doc(message.id).set(message);
+                
+                // Update chat metadata
+                await db.collection("chats").doc(currentChatId).update({
+                    lastMessage: messageText,
+                    lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
+                    lastSenderId: currentUser.id,
+                    unreadCount: firebase.firestore.FieldValue.increment(1),
+                    unreadFor: recipientData.id
                 });
+                
+                // Clear input
+                messageInput.value = "";
+                
+            } catch (error) {
+                console.error("Error sending message:", error);
+                alert("Failed to send message. Please try again.");
+            }
         }
 
         function formatTime(date) {
-            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            if (!date) return "";
+            
+            const now = new Date();
+            const diffInHours = (now - date) / (1000 * 60 * 60);
+            
+            if (diffInHours < 24) {
+                return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            } else {
+                return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+            }
         }
 
         // Donation form functions
         function showDonationForm() {
-    // Hide current screen
-    if (currentUser.role === "donor") {
-        document.getElementById("donorScreen").style.display = "none";
-    } else {
-        document.getElementById("receiverScreen").style.display = "none";
-    }
-    
-    // Show donation form
-    document.getElementById("donationFormContainer").style.display = "block";
-    
-    // Reset form
-    document.getElementById("donationForm").reset();
-    document.getElementById("imagePreview").style.display = "none";
-}
+            // Hide current screen
+            if (currentUser.role === "donor") {
+                document.getElementById("donorScreen").style.display = "none";
+            } else {
+                document.getElementById("receiverScreen").style.display = "none";
+            }
+            
+            // Show donation form
+            document.getElementById("donationFormContainer").style.display = "block";
+            
+            // Reset form
+            document.getElementById("donationForm").reset();
+            document.getElementById("imagePreview").style.display = "none";
+        }
         
-        function submitDonation() {
+        async function submitDonation() {
             const submitBtn = document.getElementById("submitDonationBtn");
             const title = document.getElementById("foodTitle").value.trim();
             const description = document.getElementById("foodDescription").value.trim();
@@ -2666,63 +2564,51 @@ function populateAvailableListings(listings) {
             submitBtn.innerHTML = '<div class="loading-spinner"></div>';
             submitBtn.disabled = true;
         
-            // Create listing object with all required fields
-            const listing = {
-                title: title,
-                description: description,
-                expiryDate: firebase.firestore.Timestamp.fromDate(new Date(expiryDate)),
-                pickupAddress: pickupAddress,
-                category: category,
-                donorId: currentUser.uid,
-                donorName: currentUser.name,
-                distance: "0.5 miles", // You might want to calculate this
-                isAvailable: true,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            };
-        
-            // Process with or without image
-            const saveOperation = imageFile 
-                ? uploadImageAndCreateListing(imageFile, listing) 
-                : saveListing(listing);
-        
-            saveOperation
-                .then(() => {
-                    console.log("Listing created successfully");
-                    closeDonationForm();
-                    // No need to manually call loadListings() - the listener will update
-                })
-                .catch(error => {
-                    console.error("Error creating listing:", error);
-                    alert("Error creating listing: " + error.message);
-                })
-                .finally(() => {
-                    submitBtn.innerHTML = '<i class="fas fa-plus"></i><span>Add Listing</span>';
-                    submitBtn.disabled = false;
+            try {
+                // Create listing object
+                const listing = {
+                    title: title,
+                    description: description,
+                    expiryDate: expiryDate,
+                    pickupAddress: pickupAddress,
+                    category: category,
+                    donorId: currentUser.id,
+                    donorName: currentUser.name,
+                    distance: "0.5 miles",
+                    isAvailable: true,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                };
+                
+                // If image is uploaded, store it in Firebase Storage
+                if (imageFile) {
+                    const storageRef = firebase.storage().ref();
+                    const fileRef = storageRef.child(`listings/${currentUser.id}/${Date.now()}_${imageFile.name}`);
+                    await fileRef.put(imageFile);
+                    const imageUrl = await fileRef.getDownloadURL();
+                    listing.imageUrl = imageUrl;
+                }
+                
+                // Save listing to Firestore
+                await db.collection("listings").add(listing);
+                
+                // Update user stats
+                await db.collection("users").doc(currentUser.id).update({
+                    totalDonations: firebase.firestore.FieldValue.increment(1)
                 });
+                
+                // Close form and refresh listings
+                closeDonationForm();
+                loadListings();
+                
+            } catch (error) {
+                console.error("Error submitting donation:", error);
+                alert("Failed to create listing. Please try again.");
+            } finally {
+                // Reset button state
+                submitBtn.innerHTML = '<i class="fas fa-plus"></i><span>Add Listing</span>';
+                submitBtn.disabled = false;
+            }
         }
-
-      // Helper function for image upload
-      function uploadImageAndCreateListing(imageFile, listing) {
-          const storageRef = storage.ref(`listings/${currentUser.uid}/${Date.now()}_${imageFile.name}`);
-          return storageRef.put(imageFile)
-              .then(snapshot => snapshot.ref.getDownloadURL())
-              .then(downloadURL => {
-                  listing.imageUrl = downloadURL;
-                  return saveListing(listing);
-              });
-      }
-
-        // Helper function to save listing
-        function saveListing(listing) {
-            return db.collection("listings").add(listing);
-        }
-
-      // Helper function to update user stats
-      function updateUserStats() {
-          return db.collection("users").doc(currentUser.uid).update({
-              totalDonations: firebase.firestore.FieldValue.increment(1)
-          });
-      }
 
         function closeDonationForm() {
             document.getElementById("donationFormContainer").style.display = "none";
@@ -2767,83 +2653,66 @@ function populateAvailableListings(listings) {
             alert(`Details for listing ${id} would show here`);
         }
 
-        function requestFood(listingId, donorId) {
-            // Check if chat already exists between current user and donor
-            db.collection("chats")
-                .where("participants", "array-contains", currentUser.uid)
-                .get()
-                .then((querySnapshot) => {
-                    let existingChat = null;
-                    
-                    querySnapshot.forEach((doc) => {
-                        const chat = doc.data();
-                        if (chat.participants.includes(donorId)) {
-                            existingChat = {
-                                id: doc.id,
-                                ...chat
-                            };
-                        }
+        async function requestFood(listingId, donorId) {
+            try {
+                // Get listing details
+                const listingDoc = await db.collection("listings").doc(listingId).get();
+                if (!listingDoc.exists) {
+                    alert("Listing not found");
+                    return;
+                }
+                
+                const listing = listingDoc.data();
+                
+                // Check if chat already exists between these users
+                const chatQuery = await db.collection("chats")
+                    .where("participants", "array-contains", currentUser.id)
+                    .where("participants", "array-contains", donorId)
+                    .limit(1)
+                    .get();
+                
+                let chatId;
+                
+                if (!chatQuery.empty) {
+                    // Existing chat found
+                    chatId = chatQuery.docs[0].id;
+                } else {
+                    // Create new chat
+                    const chatRef = await db.collection("chats").add({
+                        participants: [currentUser.id, donorId],
+                        lastMessage: "",
+                        lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
+                        lastSenderId: "",
+                        unreadCount: 0,
+                        unreadFor: null,
+                        listingId: listingId
                     });
                     
-                    if (existingChat) {
-                        // Open existing chat
-                        db.collection("users").doc(donorId).get()
-                            .then((doc) => {
-                                if (doc.exists) {
-                                    const userData = doc.data();
-                                    navigateTo("messages");
-                                    setTimeout(() => {
-                                        openChatConversation(existingChat.id, userData);
-                                        
-                                        // Add template message about the listing
-                                        db.collection("listings").doc(listingId).get()
-                                            .then((listingDoc) => {
-                                                if (listingDoc.exists) {
-                                                    const listing = listingDoc.data();
-                                                    document.getElementById("messageInput").value = `Hi, I'm interested in your "${listing.title}" listing. Is it still available?`;
-                                                }
-                                            });
-                                    }, 100);
-                                }
-                            });
-                    } else {
-                        // Create new chat
-                        const chat = {
-                            participants: [currentUser.uid, donorId],
-                            lastMessage: "",
-                            lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
-                            unreadCount: 0
-                        };
-                        
-                        db.collection("chats").add(chat)
-                            .then((docRef) => {
-                                // Get donor info
-                                return db.collection("users").doc(donorId).get();
-                            })
-                            .then((doc) => {
-                                if (doc.exists) {
-                                    const userData = doc.data();
-                                    navigateTo("messages");
-                                    setTimeout(() => {
-                                        openChatConversation(docRef.id, userData);
-                                        
-                                        // Add template message about the listing
-                                        db.collection("listings").doc(listingId).get()
-                                            .then((listingDoc) => {
-                                                if (listingDoc.exists) {
-                                                    const listing = listingDoc.data();
-                                                    document.getElementById("messageInput").value = `Hi, I'm interested in your "${listing.title}" listing. Is it still available?`;
-                                                }
-                                            });
-                                    }, 100);
-                                }
-                            })
-                            .catch((error) => {
-                                console.error("Error creating chat:", error);
-                                alert("Error starting conversation. Please try again.");
-                            });
-                    }
-                });
+                    chatId = chatRef.id;
+                }
+                
+                // Get donor info
+                const donorDoc = await db.collection("users").doc(donorId).get();
+                if (!donorDoc.exists) {
+                    throw new Error("Donor not found");
+                }
+                
+                const donorData = donorDoc.data();
+                
+                // Navigate to messages and open chat
+                navigateTo("messages");
+                setTimeout(() => {
+                    openChatConversation(chatId, donorData);
+                    
+                    // Pre-fill message about the listing
+                    document.getElementById("messageInput").value = 
+                        `Hi, I'm interested in your "${listing.title}" listing. Is it still available?`;
+                }, 100);
+                
+            } catch (error) {
+                console.error("Error requesting food:", error);
+                alert("Failed to start conversation. Please try again.");
+            }
         }
     </script>
 </body>
