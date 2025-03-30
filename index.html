@@ -1786,6 +1786,16 @@
         const app = firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         const auth = firebase.auth();
+        
+            // Default category images mapping
+const categoryImages = {
+    bakery: "https://images.unsplash.com/photo-1608198093002-ad4e005484ec?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=500&q=80",
+    produce: "https://images.unsplash.com/photo-1610348725531-843dff563e2c?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=500&q=80",
+    dairy: "https://images.unsplash.com/photo-1628088062854-d1870b4553da?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=500&q=80",
+    pantry: "https://images.unsplash.com/photo-1584473457406-6240486418e9?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=500&q=80",
+    prepared: "https://images.unsplash.com/photo-1627662236849-a4b5ff081c83?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=500&q=80",
+    other: "https://images.unsplash.com/photo-1621275471769-e6aa344546d5?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=500&q=80"
+};
 
         // App state
         let currentUser = null;
@@ -1824,6 +1834,24 @@
                 });
             }
         });
+        
+            // Function to update category preview image
+          function updateCategoryPreview() {
+              const category = document.getElementById("foodCategory").value;
+              const preview = document.getElementById("categoryPreview");
+              preview.src = categoryImages[category];
+              preview.style.display = "block";
+          }
+      
+          // Initialize with default preview
+          document.addEventListener("DOMContentLoaded", function() {
+              updateCategoryPreview();
+              
+              // Check for expired listings periodically
+              checkExpiredListings();
+              setInterval(checkExpiredListings, 3600000); // Check every hour
+          });
+
 
         // Load user data from Firestore
         async function loadUserData(userId) {
@@ -2406,6 +2434,7 @@
             });
         }
 
+    // createListingElement function
         function createListingElement(listing, isOwner) {
             const foodCard = document.createElement("div");
             foodCard.className = "food-card";
@@ -2425,7 +2454,7 @@
                 : 'Other';
         
             foodCard.innerHTML = `
-                <img src="${listing.imageUrl || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60'}" alt="${listing.title}" class="food-image">
+                <img src="${listing.imageUrl || categoryImages.other}" alt="${listing.title}" class="food-image">
                 <div class="food-content">
                     <div class="food-title">
                         <h3>${listing.title || 'Unnamed Listing'}</h3>
@@ -2467,7 +2496,8 @@
             
             return foodCard;
         }
-
+    
+    
         function searchListings(query) {
             // Implement search functionality here
             console.log("Searching for:", query);
@@ -2933,70 +2963,104 @@
             document.getElementById("imagePreview").style.display = "none";
         }
         
-        async function submitDonation() {
-            const submitBtn = document.getElementById("submitDonationBtn");
-            const title = document.getElementById("foodTitle").value.trim();
-            const description = document.getElementById("foodDescription").value.trim();
-            const expiryDate = document.getElementById("expiryDate").value;
-            const pickupAddress = document.getElementById("pickupAddress").value.trim();
-            const category = document.getElementById("foodCategory").value;
-            const imageFile = document.getElementById("foodImage").files[0];
-        
-            // Validate inputs
-            if (!title || !description || !expiryDate || !pickupAddress) {
-                alert("Please fill in all required fields");
-                return;
-            }
-        
-            // Show loading state
-            submitBtn.innerHTML = '<div class="loading-spinner"></div>';
-            submitBtn.disabled = true;
-        
-            try {
-                // Create listing object
-                const listing = {
-                    title: title,
-                    description: description,
-                    expiryDate: expiryDate,
-                    pickupAddress: pickupAddress,
-                    category: category,
-                    donorId: currentUser.id,
-                    donorName: currentUser.name,
-                    distance: "0.5 miles",
-                    isAvailable: true,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                };
-                
-                // If image is uploaded, store it in Firebase Storage
-                if (imageFile) {
-                    const storageRef = firebase.storage().ref();
-                    const fileRef = storageRef.child(`listings/${currentUser.id}/${Date.now()}_${imageFile.name}`);
-                    await fileRef.put(imageFile);
-                    const imageUrl = await fileRef.getDownloadURL();
-                    listing.imageUrl = imageUrl;
-                }
-                
-                // Save listing to Firestore
-                await db.collection("listings").add(listing);
-                
-                // Update user stats
-                await db.collection("users").doc(currentUser.id).update({
-                    totalDonations: firebase.firestore.FieldValue.increment(1)
-                });
-                
-                // Close form and refresh listings
-                closeDonationForm();
+    // Function to check and delete expired listings
+    async function checkExpiredListings() {
+        try {
+            const now = new Date();
+            const expiredListings = await db.collection("listings")
+                .where("expiryDate", "<=", now.toISOString())
+                .get();
+
+            const batch = db.batch();
+            expiredListings.forEach(doc => {
+                batch.delete(doc.ref);
+            });
+
+            await batch.commit();
+            console.log(`Deleted ${expiredListings.size} expired listings`);
+            
+            // Also delete listings marked as requested more than 24 hours ago
+            const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+            const requestedListings = await db.collection("listings")
+                .where("isAvailable", "==", false)
+                .where("updatedAt", "<=", twentyFourHoursAgo.toISOString())
+                .get();
+
+            const requestedBatch = db.batch();
+            requestedListings.forEach(doc => {
+                requestedBatch.delete(doc.ref);
+            });
+
+            await requestedBatch.commit();
+            console.log(`Deleted ${requestedListings.size} requested listings`);
+
+            // Refresh listings if we're on a screen that shows them
+            if (currentScreen === "donor" || currentScreen === "receiver") {
                 loadListings();
-                
-            } catch (error) {
-                console.error("Error submitting donation:", error);
-                alert("Failed to create listing. Please try again.");
-            } finally {
-                // Reset button state
-                submitBtn.innerHTML = '<i class="fas fa-plus"></i><span>Add Listing</span>';
-                submitBtn.disabled = false;
             }
+        } catch (error) {
+            console.error("Error deleting expired listings:", error);
         }
+    }
+
+    // submitDonation function
+    async function submitDonation() {
+        const submitBtn = document.getElementById("submitDonationBtn");
+        const title = document.getElementById("foodTitle").value.trim();
+        const description = document.getElementById("foodDescription").value.trim();
+        const expiryDate = document.getElementById("expiryDate").value;
+        const pickupAddress = document.getElementById("pickupAddress").value.trim();
+        const category = document.getElementById("foodCategory").value;
+        
+        // Validate inputs
+        if (!title || !description || !expiryDate || !pickupAddress) {
+            alert("Please fill in all required fields");
+            return;
+        }
+
+        // Show loading state
+        submitBtn.innerHTML = '<div class="loading-spinner"></div>';
+        submitBtn.disabled = true;
+
+        try {
+            // Create listing object with category image
+            const listing = {
+                title: title,
+                description: description,
+                expiryDate: expiryDate,
+                pickupAddress: pickupAddress,
+                category: category,
+                imageUrl: categoryImages[category] || categoryImages.other,
+                donorId: currentUser.id,
+                donorName: currentUser.name,
+                distance: "0.5 miles",
+                isAvailable: true,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            
+            // Save listing to Firestore
+            await db.collection("listings").add(listing);
+            
+            // Update user stats
+            await db.collection("users").doc(currentUser.id).update({
+                totalDonations: firebase.firestore.FieldValue.increment(1)
+            });
+            
+            // Close form and refresh listings
+            closeDonationForm();
+            loadListings();
+            
+        } catch (error) {
+            console.error("Error submitting donation:", error);
+            alert("Failed to create listing. Please try again.");
+        } finally {
+            // Reset button state
+            submitBtn.innerHTML = '<i class="fas fa-plus"></i><span>Add Listing</span>';
+            submitBtn.disabled = false;
+        }
+    }
+
 
         function closeDonationForm() {
             document.getElementById("donationFormContainer").style.display = "none";
@@ -3042,78 +3106,137 @@
         }
 
         async function requestFood(listingId, donorId) {
-            try {
-                // Get listing details
-                const listingDoc = await db.collection("listings").doc(listingId).get();
-                if (!listingDoc.exists) {
-                    alert("Listing not found");
-                    return;
-                }
-                
-                const listing = listingDoc.data();
-                
-                // Check if chat already exists between these users for this listing
-                const chatQuery = await db.collection("chats")
-                    .where("participants", "array-contains", currentUser.id)
-                    .where("participants", "array-contains", donorId)
-                    .where("listingId", "==", listingId)
-                    .limit(1)
-                    .get();
-                
-                let chatId;
-                let isNewChat = false;
-                
-                if (!chatQuery.empty) {
-                    // Existing chat found
-                    chatId = chatQuery.docs[0].id;
-                } else {
-                    // Create new chat
-                    const chatRef = await db.collection("chats").add({
-                        participants: [currentUser.id, donorId],
-                        lastMessage: "",
-                        lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
-                        lastSenderId: "",
-                        unreadCount: 0,
-                        unreadFor: null,
-                        listingId: listingId,
-                        listingTitle: listing.title
-                    });
-                    
-                    chatId = chatRef.id;
-                    isNewChat = true;
-                }
-                
-                // Get donor info
-                const donorDoc = await db.collection("users").doc(donorId).get();
-                if (!donorDoc.exists) {
-                    throw new Error("Donor not found");
-                }
-                
-                const donorData = donorDoc.data();
-                
-                // If new chat, add welcome message
-                if (isNewChat) {
-                    await createWelcomeMessage(chatId, donorData, currentUser, listing.title);
-                }
-                
-                // Navigate to messages and open chat
-                navigateTo("messages");
-                setTimeout(() => {
-                    openChatConversation(chatId, donorData);
-                    
-                    // Pre-fill message about the listing if it's a new chat
-                    if (isNewChat) {
-                        const messageInput = document.getElementById("messageInput");
-                        messageInput.value = `Hi, I'm interested in your "${listing.title}" listing. Is it still available?`;
-                        messageInput.focus();
-                    }
-                }, 100);
-                
-            } catch (error) {
-                console.error("Error requesting food:", error);
-                alert("Failed to start conversation. Please try again.");
-            }
+    try {
+        // First get the listing details
+        const listingDoc = await db.collection("listings").doc(listingId).get();
+        if (!listingDoc.exists) {
+            alert("This listing is no longer available");
+            loadListings(); // Refresh the listings
+            return;
         }
+
+        const listing = listingDoc.data();
+        
+        // Check if listing is still available
+        if (!listing.isAvailable) {
+            alert("This listing has already been requested by someone else");
+            loadListings(); // Refresh the listings
+            return;
+        }
+
+        // Mark the listing as unavailable immediately
+        await db.collection("listings").doc(listingId).update({
+            isAvailable: false,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+            requestedBy: currentUser.id,
+            requesterName: currentUser.name
+        });
+
+        // Check if chat already exists between these users for this listing
+        const chatQuery = await db.collection("chats")
+            .where("participants", "array-contains", currentUser.id)
+            .where("participants", "array-contains", donorId)
+            .where("listingId", "==", listingId)
+            .limit(1)
+            .get();
+
+        let chatId;
+        let isNewChat = false;
+
+        if (!chatQuery.empty) {
+            // Existing chat found
+            chatId = chatQuery.docs[0].id;
+            
+            // Update the chat with listing info if not already set
+            await db.collection("chats").doc(chatId).update({
+                listingId: listingId,
+                listingTitle: listing.title,
+                lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        } else {
+            // Create new chat
+            const chatRef = await db.collection("chats").add({
+                participants: [currentUser.id, donorId],
+                lastMessage: "",
+                lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
+                lastSenderId: "",
+                unreadCount: 0,
+                unreadFor: donorId, // Mark as unread for donor
+                listingId: listingId,
+                listingTitle: listing.title,
+                listingImage: listing.imageUrl,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            
+            chatId = chatRef.id;
+            isNewChat = true;
+        }
+
+        // Get donor info
+        const donorDoc = await db.collection("users").doc(donorId).get();
+        if (!donorDoc.exists) {
+            throw new Error("Donor not found");
+        }
+        
+        const donorData = donorDoc.data();
+
+        // If new chat, add welcome message
+        if (isNewChat) {
+            const welcomeMessage = {
+                id: `welcome-${Date.now()}`,
+                text: `${currentUser.name} has requested your "${listing.title}" listing.`,
+                senderId: "system",
+                senderName: "FoodShare",
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                isSystemMessage: true,
+                listingId: listingId
+            };
+            
+            await db.collection("chats").doc(chatId)
+                .collection("messages").doc(welcomeMessage.id).set(welcomeMessage);
+            
+            // Update chat with last message
+            await db.collection("chats").doc(chatId).update({
+                lastMessage: welcomeMessage.text,
+                lastSenderId: "system"
+            });
+        }
+
+        // Show success message
+        alert(`You've successfully requested "${listing.title}". You can now chat with ${donorData.name} to arrange pickup.`);
+
+        // Refresh listings to show the updated status
+        loadListings();
+
+        // Navigate to messages and open chat
+        navigateTo("messages");
+        setTimeout(() => {
+            openChatConversation(chatId, donorData);
+            
+            // Pre-fill message about the listing if it's a new chat
+            if (isNewChat) {
+                const messageInput = document.getElementById("messageInput");
+                messageInput.value = `Hi ${donorData.name}, I'm interested in your "${listing.title}" listing. When can I pick it up?`;
+                messageInput.focus();
+            }
+        }, 100);
+
+    } catch (error) {
+        console.error("Error requesting food:", error);
+        
+        // If something went wrong, make the listing available again
+        try {
+            await db.collection("listings").doc(listingId).update({
+                isAvailable: true
+            });
+            loadListings(); // Refresh the listings
+        } catch (e) {
+            console.error("Failed to revert listing status:", e);
+        }
+        
+        alert("Failed to request food. Please try again.");
+    }
+}
     </script>
 </body>
 </html>
