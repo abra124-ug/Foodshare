@@ -1739,37 +1739,37 @@
         const totalSlides = 3;
 
         // Initialize the app
-        document.addEventListener("DOMContentLoaded", function() {
-            // Initialize onboarding slides
-            initOnboarding();
-            
-            // Show splash screen for 3 seconds
-            setTimeout(() => {
-                document.getElementById("splashScreen").style.display = "none";
-                
-                // Check if user has completed onboarding
-                const onboardingCompleted = sessionStorage.getItem("onboardingCompleted");
+       document.addEventListener("DOMContentLoaded", function() {
+    // Initialize onboarding slides
+    initOnboarding();
+    
+    // Show splash screen for 3 seconds
+    setTimeout(() => {
+        document.getElementById("splashScreen").style.display = "none";
+        
+        // Check auth state first
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                // User is signed in - skip onboarding/auth
+                currentUser = user;
+                getUserData(user.uid);
+            } else {
+                // No user signed in - check onboarding status
+                const onboardingCompleted = localStorage.getItem("onboardingCompleted");
                 
                 if (!onboardingCompleted) {
                     // Show onboarding slides
                     document.getElementById("onboardingContainer").style.display = "block";
                     currentScreen = "onboarding";
                 } else {
-                    // Check if user is logged in
-                    auth.onAuthStateChanged(user => {
-                        if (user) {
-                            // User is signed in
-                            currentUser = user;
-                            getUserData(user.uid);
-                        } else {
-                            // No user is signed in
-                            document.getElementById("authScreen").style.display = "block";
-                            currentScreen = "auth";
-                        }
-                    });
+                    // Show auth screen
+                    document.getElementById("authScreen").style.display = "block";
+                    currentScreen = "auth";
                 }
-            }, 3000);
+            }
         });
+    }, 3000);
+});
 
         // Onboarding functions
         function initOnboarding() {
@@ -1805,10 +1805,10 @@
         }
 
         function skipOnboarding() {
-            sessionStorage.setItem("onboardingCompleted", "true");
-            document.getElementById("onboardingContainer").style.display = "none";
-            document.getElementById("authScreen").style.display = "block";
-            currentScreen = "auth";
+          localStorage.setItem("onboardingCompleted", "true");
+          document.getElementById("onboardingContainer").style.display = "none";
+          document.getElementById("authScreen").style.display = "block";
+          currentScreen = "auth";
         }
 
         // Authentication functions
@@ -2099,31 +2099,34 @@
         }
 
         function logout() {
-            auth.signOut()
-                .then(() => {
-                    // Sign-out successful
-                    currentUser = null;
-                    
-                    // Hide all screens
-                    document.querySelectorAll(".app-screen").forEach(screen => {
-                        screen.style.display = "none";
-                    });
-                    document.getElementById("chatPage").style.display = "none";
-                    document.getElementById("chatConversation").style.display = "none";
-                    document.getElementById("donationFormContainer").style.display = "none";
-                    
-                    // Reset forms
-                    document.getElementById("loginForm").reset();
-                    document.getElementById("signupForm").reset();
-                    
-                    // Show auth screen
-                    document.getElementById("authScreen").style.display = "block";
-                    currentScreen = "auth";
-                })
-                .catch((error) => {
-                    console.error("Logout error:", error);
-                });
-        }
+    auth.signOut()
+        .then(() => {
+            // Sign-out successful
+            currentUser = null;
+            
+            // Hide all screens
+            document.querySelectorAll(".app-screen").forEach(screen => {
+                screen.style.display = "none";
+            });
+            document.getElementById("chatPage").style.display = "none";
+            document.getElementById("chatConversation").style.display = "none";
+            document.getElementById("donationFormContainer").style.display = "none";
+            
+            // Reset forms
+            document.getElementById("loginForm").reset();
+            document.getElementById("signupForm").reset();
+            
+            // Show auth screen (but don't show onboarding again)
+            document.getElementById("authScreen").style.display = "block";
+            currentScreen = "auth";
+            
+            // Optional: If you want to show onboarding again after logout
+            // localStorage.removeItem("onboardingCompleted");
+        })
+        .catch((error) => {
+            console.error("Logout error:", error);
+        });
+}
 
         function confirmDeleteAccount() {
             const confirmed = confirm("Are you sure you want to delete your account? This action cannot be undone.");
@@ -2224,121 +2227,103 @@
         }
 
         // Listings functions
-          function loadListings() {
-        try {
-        if (currentUser.role === "donor") {
-        // Your existing donor query
+          // Modified loadListings function
+function loadListings() {
+    if (currentUser.role === "donor") {
+        // Donor view - show their own listings
         db.collection("listings")
-          .where("donorId", "==", currentUser.uid)
-          .orderBy("createdAt", "desc")
-          .onSnapshot(
-            (querySnapshot) => {
-              const listings = [];
-              querySnapshot.forEach((doc) => {
-                if (doc.exists) {
-                  listings.push({ id: doc.id, ...doc.data() });
+            .where("donorId", "==", currentUser.uid)
+            .orderBy("createdAt", "desc")
+            .get()
+            .then((querySnapshot) => {
+                const listings = [];
+                querySnapshot.forEach((doc) => {
+                    if (doc.exists) {
+                        listings.push({ id: doc.id, ...doc.data() });
+                    }
+                });
+                
+                // Only show default if no listings exist
+                if (listings.length === 0) {
+                    listings.push(DEFAULT_LISTING);
                 }
-              });
-              console.log("Firestore listings:", listings);
-              populateDonorListings(listings);
-            },
-            (error) => {
-              console.error("Firestore error:", error);
-              // Fall back to just showing default listing
-              populateDonorListings([]);
-            }
-          );
-        } else {
-        // Your existing receiver query
+                
+                populateDonorListings(listings);
+            })
+            .catch((error) => {
+                console.error("Error loading listings:", error);
+                // Show just default listing on error
+                populateDonorListings([DEFAULT_LISTING]);
+            });
+    } else {
+        // Receiver view - show available listings
         db.collection("listings")
-          .where("isAvailable", "==", true)
-          .orderBy("createdAt", "desc")
-          .onSnapshot(
-            (querySnapshot) => {
-              const listings = [];
-              querySnapshot.forEach((doc) => {
-                if (doc.exists) {
-                  listings.push({ id: doc.id, ...doc.data() });
+            .where("isAvailable", "==", true)
+            .orderBy("createdAt", "desc")
+            .get()
+            .then((querySnapshot) => {
+                const listings = [];
+                querySnapshot.forEach((doc) => {
+                    if (doc.exists) {
+                        listings.push({ id: doc.id, ...doc.data() });
+                    }
+                });
+                
+                // Only show default if no listings exist
+                if (listings.length === 0) {
+                    listings.push(DEFAULT_LISTING);
                 }
-              });
-              console.log("Firestore listings:", listings);
-              populateAvailableListings(listings);
-            },
-            (error) => {
-              console.error("Firestore error:", error);
-              // Fall back to just showing default listing
-              populateAvailableListings([]);
-            }
-          );
-        }
-        } catch (error) {
-        console.error("Load listings error:", error);
-        // Fall back to just showing default listing
-        if (currentUser.role === "donor") {
-        populateDonorListings([]);
-        } else {
-        populateAvailableListings([]);
-        }
-        }
-        }
-
-        function populateDonorListings(listings) {
-          const donorListings = document.getElementById("donorListings");
-          donorListings.innerHTML = '';
-          
-          // Always include the default listing first
-          const allListings = [DEFAULT_LISTING, ...listings];
-          
-          if (allListings.length === 0) {
-            // Show empty state (keep your existing code)
-          } else {
-            allListings.forEach(listing => {
-              const listingElement = createListingElement(listing, true);
-              donorListings.appendChild(listingElement);
+                
+                populateAvailableListings(listings);
+            })
+            .catch((error) => {
+                console.error("Error loading listings:", error);
+                // Show just default listing on error
+                populateAvailableListings([DEFAULT_LISTING]);
             });
-          }
-        }
-        
-        function populateAvailableListings(listings) {
-          const availableListings = document.getElementById("availableListings");
-          availableListings.innerHTML = '';
-          
-          // Always include the default listing first
-          const allListings = [DEFAULT_LISTING, ...listings];
-          
-          if (allListings.length === 0) {
-            // Show empty state (keep your existing code)
-          } else {
-            allListings.forEach(listing => {
-              if (listing.isAvailable !== false) { // Show only available listings
-                const listingElement = createListingElement(listing, false);
-                availableListings.appendChild(listingElement);
-              }
-            });
-          }
-        }
-      
-      function populateAvailableListings(listings) {
-          const availableListings = document.getElementById("availableListings");
-          availableListings.innerHTML = '';
-          
-          if (listings.length === 0) {
-              availableListings.innerHTML = `
-                  <div style="grid-column: 1/-1; text-align: center; padding: 2rem;">
-                      <i class="fas fa-search" style="font-size: 3rem; color: var(--gray-300); margin-bottom: 1rem;"></i>
-                      <h3>No listings available</h3>
-                      <p>Check back later for new food listings</p>
-                  </div>
-              `;
-              return;
-          }
-          
-          listings.forEach(listing => {
-              const listingElement = createListingElement(listing, false);
-              availableListings.appendChild(listingElement);
-          });
-      }
+    }
+}
 
+// Simplified populate functions
+function populateDonorListings(listings) {
+    const donorListings = document.getElementById("donorListings");
+    donorListings.innerHTML = '';
+    
+    if (listings.length === 0) {
+        donorListings.innerHTML = `
+            <div style="grid-column: 1/-1; text-align: center; padding: 2rem;">
+                <i class="fas fa-utensils" style="font-size: 3rem; color: var(--gray-300); margin-bottom: 1rem;"></i>
+                <h3>No listings yet</h3>
+                <p>Create your first food listing to get started</p>
+            </div>
+        `;
+    } else {
+        listings.forEach(listing => {
+            const listingElement = createListingElement(listing, true);
+            donorListings.appendChild(listingElement);
+        });
+    }
+}
+
+function populateAvailableListings(listings) {
+    const availableListings = document.getElementById("availableListings");
+    availableListings.innerHTML = '';
+    
+    if (listings.length === 0) {
+        availableListings.innerHTML = `
+            <div style="grid-column: 1/-1; text-align: center; padding: 2rem;">
+                <i class="fas fa-search" style="font-size: 3rem; color: var(--gray-300); margin-bottom: 1rem;"></i>
+                <h3>No listings available</h3>
+                <p>Check back later for new food donations</p>
+            </div>
+        `;
+    } else {
+        listings.forEach(listing => {
+            const listingElement = createListingElement(listing, false);
+            availableListings.appendChild(listingElement);
+        });
+    }
+}
 
         function createListingElement(listing, isOwner) {
             const foodCard = document.createElement("div");
