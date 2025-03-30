@@ -902,6 +902,34 @@
             line-height: 1.4;
             font-size: 0.9375rem;
         }
+        
+        .message.system {
+            background-color: var(--gray-200);
+            color: var(--gray-600);
+            align-self: center;
+            max-width: 90%;
+            border-radius: 15px;
+            text-align: center;
+        }
+        
+        .system-message-label {
+            font-size: 0.75rem;
+            color: var(--gray-400);
+            margin-bottom: 0.25rem;
+            font-weight: 500;
+        }
+        
+        /* System chat avatar */
+        .system-avatar {
+            background-color: var(--primary-green-light);
+            color: var(--primary-green-dark);
+        }
+        
+        /* Disabled input for system chats */
+        .chat-input:disabled {
+            background-color: var(--gray-100);
+            cursor: not-allowed;
+        }
 
         .message.sent {
             background-color: var(--primary-green);
@@ -1876,7 +1904,7 @@
         }
         
         // Signup function with Firebase
-        function signup() {
+        async function signup() {
             const signupBtn = document.getElementById("signupBtn");
             const name = document.getElementById("signupName").value;
             const email = document.getElementById("signupEmail").value;
@@ -1918,56 +1946,101 @@
             signupBtn.innerHTML = '<div class="loading-spinner"></div>';
             signupBtn.disabled = true;
             
-            // Firebase create user
-            auth.createUserWithEmailAndPassword(email, password)
-                .then((userCredential) => {
-                    // User created
-                    const user = userCredential.user;
-                    
-                    // Create user document in Firestore
-                    return db.collection("users").doc(user.uid).set({
-                        name: name,
-                        email: email,
-                        role: selectedRole,
-                        totalDonations: 0,
-                        peopleHelped: 0,
-                        rating: 5.0,
-                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-                })
-                .then(() => {
-                    // Get the newly created user data
-                    return db.collection("users").doc(auth.currentUser.uid).get();
-                })
-                .then((doc) => {
-                    if (doc.exists) {
-                        currentUser = {
-                            id: doc.id,
-                            ...doc.data()
-                        };
-                        
-                        // Save to localStorage
-                        localStorage.setItem("currentUser", JSON.stringify(currentUser));
-                        
-                        // Show app screen
-                        showAppScreen();
-                    }
-                })
-                .catch((error) => {
-                    // Handle errors
-                    signupBtn.innerHTML = '<span>Create Account</span>';
-                    signupBtn.disabled = false;
-                    
-                    const errorCode = error.code;
-                    const errorMessage = error.message;
-                    
-                    if (errorCode === "auth/email-already-in-use") {
-                        showError("signupEmail", "Email already in use");
-                    } else {
-                        alert(errorMessage);
-                    }
+            try {
+                // Firebase create user
+                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                const user = userCredential.user;
+                
+                // Create user document in Firestore
+                await db.collection("users").doc(user.uid).set({
+                    name: name,
+                    email: email,
+                    role: selectedRole,
+                    totalDonations: 0,
+                    peopleHelped: 0,
+                    rating: 5.0,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    hasUnreadWelcome: true // Flag for new users
                 });
+                
+                // Send welcome message
+                await sendWelcomeMessage(user.uid, name, selectedRole);
+                
+                // Get the newly created user data
+                const userDoc = await db.collection("users").doc(user.uid).get();
+                
+                if (userDoc.exists) {
+                    currentUser = {
+                        id: userDoc.id,
+                        ...userDoc.data()
+                    };
+                    
+                    // Save to localStorage
+                    localStorage.setItem("currentUser", JSON.stringify(currentUser));
+                    
+                    // Show app screen
+                    showAppScreen();
+                }
+            } catch (error) {
+                // Handle errors
+                signupBtn.innerHTML = '<span>Create Account</span>';
+                signupBtn.disabled = false;
+                
+                const errorCode = error.code;
+                const errorMessage = error.message;
+                
+                if (errorCode === "auth/email-already-in-use") {
+                    showError("signupEmail", "Email already in use");
+                } else {
+                    alert(errorMessage);
+                }
+            }
         }
+
+        async function sendWelcomeMessage(userId, userName, userRole) {
+    try {
+        // Create welcome chat document
+        const welcomeChat = {
+            participants: [userId, "system"],
+            lastMessage: `Welcome to FoodShare, ${userName}!`,
+            lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
+            lastSenderId: "system",
+            isSystemChat: true,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            welcomeMessage: true // Flag for welcome chats
+        };
+        
+        const chatRef = await db.collection("chats").add(welcomeChat);
+        
+        // Create welcome message content
+        const welcomeContent = userRole === "donor" 
+            ? `Welcome to FoodShare, ${userName}! Thank you for joining our community of food donors. 
+               You can now start sharing your surplus food with those in need.`
+            : `Welcome to FoodShare, ${userName}! We're glad to have you as part of our community. 
+               You can now browse available food listings in your area.`;
+        
+        // Create welcome message
+        const welcomeMessage = {
+            id: "welcome-" + Date.now(),
+            text: welcomeContent,
+            senderId: "system",
+            senderName: "FoodShare Team",
+            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            isSystemMessage: true,
+            welcomeMessage: true
+        };
+        
+        await chatRef.collection("messages").doc(welcomeMessage.id).set(welcomeMessage);
+        
+        // Update user's unread status
+        await db.collection("users").doc(userId).update({
+            hasUnreadWelcome: true
+        });
+        
+    } catch (error) {
+        console.error("Error sending welcome message:", error);
+    }
+}
         
         // Logout function
         function logout() {
@@ -2328,8 +2401,8 @@
             
             if (chats.length === 0) {
                 chatList.innerHTML = `
-                    <div style="text-align: center; padding: 2rem;">
-                        <i class="fas fa-comment-dots" style="font-size: 3rem; color: var(--gray-300); margin-bottom: 1rem;"></i>
+                    <div class="empty-chat-state">
+                        <i class="fas fa-comment-dots"></i>
                         <h3>No messages yet</h3>
                         <p>Start a conversation by requesting food</p>
                     </div>
@@ -2337,33 +2410,128 @@
                 return;
             }
             
-            // Get all participant user IDs
-            const participantIds = chats.flatMap(chat => 
+            // Separate system welcome chats from regular chats
+            const systemChats = chats.filter(chat => chat.isSystemChat);
+            const regularChats = chats.filter(chat => !chat.isSystemChat);
+            
+            // Process system welcome chats first
+            for (const chat of systemChats) {
+                const chatItem = createSystemChatItem(chat);
+                chatList.appendChild(chatItem);
+            }
+            
+            // Get participant IDs for regular chats
+            const participantIds = regularChats.flatMap(chat => 
                 chat.participants.filter(id => id !== currentUser.id)
             );
             
             // Fetch user data for all participants
             if (participantIds.length > 0) {
                 try {
-                    const userSnapshot = await db.collection("users").where(firebase.firestore.FieldPath.documentId(), "in", participantIds).get();
+                    const userSnapshot = await db.collection("users")
+                        .where(firebase.firestore.FieldPath.documentId(), "in", participantIds)
+                        .get();
+                    
                     const users = {};
                     userSnapshot.forEach(doc => {
                         users[doc.id] = doc.data();
                     });
                     
-                    // Now populate chats with user data
-                    chats.forEach(chat => {
+                    // Process regular chats
+                    for (const chat of regularChats) {
                         const otherParticipantId = chat.participants.find(id => id !== currentUser.id);
                         const userData = users[otherParticipantId];
                         
                         if (userData) {
-                            const chatItem = createChatItem(chat, userData);
+                            const chatItem = createRegularChatItem(chat, userData);
                             chatList.appendChild(chatItem);
                         }
-                    });
+                    }
                 } catch (error) {
                     console.error("Error fetching user data:", error);
                 }
+            }
+        }
+        
+        function createSystemChatItem(chat) {
+            const chatItem = document.createElement("div");
+            chatItem.className = `chat-item ${chat.hasUnreadWelcome ? 'unread' : ''}`;
+            chatItem.onclick = () => openSystemWelcomeChat(chat.id);
+            
+            // Check if user has unread welcome message
+            const unreadBadge = currentUser.hasUnreadWelcome 
+                ? '<div class="chat-item-unread">!</div>' 
+                : '';
+            
+            chatItem.innerHTML = `
+                <div class="chat-item-avatar system-avatar">
+                    <i class="fas fa-seedling"></i>
+                </div>
+                <div class="chat-item-content">
+                    <div class="chat-item-header">
+                        <div class="chat-item-name">FoodShare Team</div>
+                        <div class="chat-item-time">${formatTime(chat.lastUpdated?.toDate())}</div>
+                    </div>
+                    <div class="chat-item-message">Welcome Message</div>
+                </div>
+                ${unreadBadge}
+            `;
+            
+            return chatItem;
+        }
+        
+        function createRegularChatItem(chat, userData) {
+            const chatItem = document.createElement("div");
+            chatItem.className = `chat-item ${chat.unreadFor === currentUser.id ? 'unread' : ''}`;
+            chatItem.onclick = () => openChatConversation(chat.id, userData);
+            
+            const lastMessage = chat.lastMessage || "No messages yet";
+            const lastMessageTime = chat.lastUpdated ? formatTime(chat.lastUpdated.toDate()) : "";
+            const isUnread = chat.lastSenderId !== currentUser.id && chat.unreadFor === currentUser.id;
+            
+            chatItem.innerHTML = `
+                <div class="chat-item-avatar">
+                    ${userData.name.charAt(0).toUpperCase()}
+                </div>
+                <div class="chat-item-content">
+                    <div class="chat-item-header">
+                        <div class="chat-item-name">${userData.name}</div>
+                        <div class="chat-item-time">${lastMessageTime}</div>
+                    </div>
+                    <div class="chat-item-message">${lastMessage}</div>
+                </div>
+                ${isUnread ? `<div class="chat-item-unread">${chat.unreadCount > 9 ? '9+' : chat.unreadCount}</div>` : ''}
+            `;
+            
+            return chatItem;
+        }
+        
+        function openSystemWelcomeChat(chatId) {
+            currentChatId = chatId;
+            recipientData = {
+                id: "system",
+                name: "FoodShare Team"
+            };
+            
+            // Update UI
+            document.getElementById("chatPage").style.display = "none";
+            document.getElementById("chatConversation").style.display = "flex";
+            document.getElementById("chatRecipientName").textContent = "FoodShare Team";
+            document.getElementById("chatRecipientAvatar").innerHTML = '<i class="fas fa-seedling"></i>';
+            
+            // Disable input for system chats
+            const messageInput = document.getElementById("messageInput");
+            messageInput.disabled = true;
+            messageInput.placeholder = "Cannot reply to system messages";
+            
+            // Load messages
+            loadMessages(chatId);
+            
+            // Mark welcome message as read
+            if (currentUser.hasUnreadWelcome) {
+                db.collection("users").doc(currentUser.id).update({
+                    hasUnreadWelcome: false
+                });
             }
         }
 
@@ -2411,58 +2579,114 @@
             // Mark messages as read
             await markMessagesAsRead(chatId);
         }
+        
+        function openSystemWelcomeChat(chatId) {
+    // Set recipient data for system messages
+    recipientData = {
+        id: "system",
+        name: "FoodShare Team"
+    };
+    
+    currentChatId = chatId;
+    
+    // Update UI
+    document.getElementById("chatPage").style.display = "none";
+    document.getElementById("chatConversation").style.display = "flex";
+    
+    // Set recipient info
+    document.getElementById("chatRecipientName").textContent = "FoodShare Team";
+    document.getElementById("chatRecipientAvatar").innerHTML = '<i class="fas fa-seedling"></i>';
+    
+    // Disable input for system chats
+    document.getElementById("messageInput").disabled = true;
+    document.getElementById("messageInput").placeholder = "Cannot reply to system messages";
+    
+    // Load messages
+    loadMessages(chatId);
+}
 
         function loadMessages(chatId) {
-            const messagesContainer = document.getElementById("chatMessages");
-            messagesContainer.innerHTML = '';
-            
-            // Unsubscribe previous listener if exists
-            if (unsubscribeMessages) unsubscribeMessages();
+    const messagesContainer = document.getElementById("chatMessages");
+    messagesContainer.innerHTML = '';
+    
+    // Unsubscribe previous listener if exists
+    if (unsubscribeMessages) unsubscribeMessages();
 
-            unsubscribeMessages = db.collection("chats").doc(chatId)
-                .collection("messages")
-                .orderBy("timestamp", "asc")
-                .onSnapshot(snapshot => {
-                    // Clear existing messages if this is a new snapshot
-                    if (snapshot.docChanges().length !== snapshot.size) {
-                        messagesContainer.innerHTML = '';
-                    }
-                    
-                    snapshot.forEach(doc => {
-                        const message = doc.data();
-                        addMessageToUI(message);
-                    });
-                    
-                    // Scroll to bottom
-                    setTimeout(() => {
-                        messagesContainer.scrollTop = messagesContainer.scrollHeight;
-                    }, 100);
-                }, error => {
-                    console.error("Error loading messages:", error);
-                });
+    unsubscribeMessages = db.collection("chats").doc(chatId)
+        .collection("messages")
+        .orderBy("timestamp", "asc")
+        .onSnapshot(snapshot => {
+            messagesContainer.innerHTML = ''; // Always clear and rebuild for simplicity
+            
+            snapshot.forEach(doc => {
+                const message = doc.data();
+                addMessageToUI(message);
+            });
+            
+            // Scroll to bottom
+            setTimeout(() => {
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }, 100);
+        }, error => {
+            console.error("Error loading messages:", error);
+        });
+}
+
+        async function sendWelcomeMessage(userId, userName) {
+            try {
+                // Create a special system chat
+                const welcomeChat = {
+                    participants: [userId, "system"],
+                    lastMessage: "Welcome to FoodShare!",
+                    lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
+                    lastSenderId: "system",
+                    isSystemChat: true,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                };
+                
+                // Create the chat document
+                const chatRef = await db.collection("chats").add(welcomeChat);
+                
+                // Create welcome message
+                const welcomeMessage = {
+                    id: "welcome-" + Date.now(),
+                    text: `Welcome ${userName} to FoodShare! We're excited to have you on board. 
+                          ${selectedRole === "donor" ? 
+                           "You can now start sharing your surplus food with those in need." : 
+                           "You can now browse available food listings in your area."}`,
+                    senderId: "system",
+                    senderName: "FoodShare Team",
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    isSystemMessage: true
+                };
+                
+                // Add message to the chat
+                await chatRef.collection("messages").doc(welcomeMessage.id).set(welcomeMessage);
+                
+            } catch (error) {
+                console.error("Error sending welcome message:", error);
+                // Don't block user flow if welcome message fails
+            }
         }
 
         function addMessageToUI(message) {
-            const messagesContainer = document.getElementById("chatMessages");
-            
-            // Check if message already exists in UI
-            if (document.querySelector(`[data-message-id="${message.id}"]`)) {
-                return;
-            }
-            
-            const messageElement = document.createElement("div");
-            messageElement.className = `message ${message.senderId === currentUser.id ? 'sent' : 'received'}`;
-            messageElement.setAttribute("data-message-id", message.id || Date.now());
-            
-            const messageTime = message.timestamp ? formatTime(message.timestamp.toDate()) : "Just now";
-            
-            messageElement.innerHTML = `
-                <div>${message.text}</div>
-                <div class="message-time">${messageTime}</div>
-            `;
-            
-            messagesContainer.appendChild(messageElement);
-        }
+    const messagesContainer = document.getElementById("chatMessages");
+    
+    const messageElement = document.createElement("div");
+    messageElement.className = `message ${message.senderId === currentUser.id ? 'sent' : 
+                              (message.senderId === "system" ? 'system' : 'received')}`;
+    messageElement.setAttribute("data-message-id", message.id);
+    
+    const messageTime = message.timestamp ? formatTime(message.timestamp.toDate()) : "Just now";
+    
+    messageElement.innerHTML = `
+        ${message.senderId !== "system" ? '' : '<div class="system-message-label">FoodShare Team</div>'}
+        <div>${message.text}</div>
+        <div class="message-time">${messageTime}</div>
+    `;
+    
+    messagesContainer.appendChild(messageElement);
+}
 
         async function markMessagesAsRead(chatId) {
             try {
@@ -2479,41 +2703,47 @@
         }
 
         async function sendMessage() {
-            const messageInput = document.getElementById("messageInput");
-            const messageText = messageInput.value.trim();
-            
-            if (!messageText || !currentChatId || !currentUser) return;
-            
-            // Create message object
-            const message = {
-                id: db.collection("messages").doc().id,
-                text: messageText,
-                senderId: currentUser.id,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
-            };
-            
-            try {
-                // Add message to subcollection
-                await db.collection("chats").doc(currentChatId)
-                    .collection("messages").doc(message.id).set(message);
-                
-                // Update chat metadata
-                await db.collection("chats").doc(currentChatId).update({
-                    lastMessage: messageText,
-                    lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
-                    lastSenderId: currentUser.id,
-                    unreadCount: firebase.firestore.FieldValue.increment(1),
-                    unreadFor: recipientData.id
-                });
-                
-                // Clear input
-                messageInput.value = "";
-                
-            } catch (error) {
-                console.error("Error sending message:", error);
-                alert("Failed to send message. Please try again.");
-            }
-        }
+    const messageInput = document.getElementById("messageInput");
+    const messageText = messageInput.value.trim();
+    
+    if (!messageText || !currentChatId || !currentUser || !recipientData) {
+        return;
+    }
+    
+    // Create a message ID manually since we're using .add()
+    const messageId = db.collection("chats").doc().id;
+    
+    // Create message object
+    const message = {
+        id: messageId,
+        text: messageText,
+        senderId: currentUser.id,
+        senderName: currentUser.name,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    
+    try {
+        // Add message to subcollection
+        await db.collection("chats").doc(currentChatId)
+            .collection("messages").doc(messageId).set(message);
+        
+        // Update chat metadata
+        await db.collection("chats").doc(currentChatId).update({
+            lastMessage: messageText,
+            lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
+            lastSenderId: currentUser.id,
+            unreadCount: firebase.firestore.FieldValue.increment(1),
+            unreadFor: recipientData.id
+        });
+        
+        // Clear input
+        messageInput.value = "";
+        
+    } catch (error) {
+        console.error("Error sending message:", error);
+        alert("Failed to send message. Please try again.");
+    }
+}
 
         function formatTime(date) {
             if (!date) return "";
@@ -2664,14 +2894,16 @@
                 
                 const listing = listingDoc.data();
                 
-                // Check if chat already exists between these users
+                // Check if chat already exists between these users for this listing
                 const chatQuery = await db.collection("chats")
                     .where("participants", "array-contains", currentUser.id)
                     .where("participants", "array-contains", donorId)
+                    .where("listingId", "==", listingId)
                     .limit(1)
                     .get();
                 
                 let chatId;
+                let isNewChat = false;
                 
                 if (!chatQuery.empty) {
                     // Existing chat found
@@ -2685,10 +2917,12 @@
                         lastSenderId: "",
                         unreadCount: 0,
                         unreadFor: null,
-                        listingId: listingId
+                        listingId: listingId,
+                        listingTitle: listing.title
                     });
                     
                     chatId = chatRef.id;
+                    isNewChat = true;
                 }
                 
                 // Get donor info
@@ -2699,14 +2933,22 @@
                 
                 const donorData = donorDoc.data();
                 
+                // If new chat, add welcome message
+                if (isNewChat) {
+                    await createWelcomeMessage(chatId, donorData, currentUser, listing.title);
+                }
+                
                 // Navigate to messages and open chat
                 navigateTo("messages");
                 setTimeout(() => {
                     openChatConversation(chatId, donorData);
                     
-                    // Pre-fill message about the listing
-                    document.getElementById("messageInput").value = 
-                        `Hi, I'm interested in your "${listing.title}" listing. Is it still available?`;
+                    // Pre-fill message about the listing if it's a new chat
+                    if (isNewChat) {
+                        const messageInput = document.getElementById("messageInput");
+                        messageInput.value = `Hi, I'm interested in your "${listing.title}" listing. Is it still available?`;
+                        messageInput.focus();
+                    }
                 }, 100);
                 
             } catch (error) {
