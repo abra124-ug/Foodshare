@@ -44,6 +44,7 @@
             max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
+            padding-bottom: 80px;
         }
 
         /* Onboarding Slides */
@@ -344,6 +345,7 @@
             padding: 1rem;
             box-shadow: var(--shadow-sm);
             position: sticky;
+            border-radius: 0 0 15px 15px ;
             top: 0;
             z-index: 100;
         }
@@ -1174,6 +1176,88 @@
         .mb-4 {
             margin-bottom: 1.5rem;
         }
+        
+        .add {
+        position: fixed;
+        right: 20px;
+        bottom: 80px;
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        z-index: 1000;
+        }
+        
+        .add:hover {
+            transform: scale(1.05);
+            transition: transform 0.2s ease;
+        }
+        
+        .add i{
+          font-size: 30px;
+        }
+        
+        /* Add to your existing CSS */
+      .success-alert {
+          position: fixed;
+          top: 20px;
+          left: 50%;
+          transform: translateX(-50%);
+          background-color: var(--primary-green);
+          color: white;
+          padding: 12px 24px;
+          border-radius: 8px;
+          box-shadow: var(--shadow-md);
+          z-index: 1100;
+          animation: fadeInOut 3s ease forwards;
+          display: none;
+      }
+      
+      @keyframes fadeInOut {
+          0% { opacity: 0; top: 10px; }
+          10% { opacity: 1; top: 20px; }
+          90% { opacity: 1; top: 20px; }
+          100% { opacity: 0; top: 10px; }
+      }
+      
+      .welcome-screen {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background-color: white;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          z-index: 9999;
+          display: none;
+      }
+      
+      .welcome-message {
+          text-align: center;
+          margin-bottom: 2rem;
+      }
+      
+      .welcome-message h2 {
+          color: var(--primary-green-dark);
+          margin-bottom: 1rem;
+      }
+      
+      .hourglass-spinner {
+          font-size: 3rem;
+          color: var(--primary-green);
+          animation: spin 2s linear infinite;
+      }
+      
+      @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+      }
     </style>
 </head>
 <body>
@@ -1318,11 +1402,11 @@
         <div class="container">
             <div class="section-title">
                 <h2>Your Donations</h2>
-                <button class="btn btn-primary" onclick="showDonationForm()">
-                    <i class="fas fa-plus"></i>
-                    <span>New Listing</span>
-                </button>
             </div>
+            
+                <button class="btn btn-primary add" onclick="showDonationForm()">
+                    <i class="fas fa-plus"></i>
+                </button>
             
             <div class="food-grid" id="donorListings">
                 <!-- Donor listings will be populated here -->
@@ -1669,6 +1753,22 @@
             </form>
         </div>
     </div>
+    
+    <!-- Success Alert -->
+      <div class="success-alert" id="successAlert">
+          Account created successfully!
+      </div>
+      
+      <!-- Welcome Screen -->
+      <div class="welcome-screen" id="welcomeScreen">
+          <div class="welcome-message">
+              <h2>Welcome <span id="welcomeUsername"></span>!</h2>
+              <p>Hold on as we set up your profile...</p>
+          </div>
+          <div class="hourglass-spinner">
+              <i class="fas fa-hourglass-half"></i>
+          </div>
+      </div>
 
     <script>
         // Firebase configuration
@@ -1947,12 +2047,12 @@
             signupBtn.disabled = true;
             
             try {
-                // Firebase create user
+                // 1. Create Firebase auth user
                 const userCredential = await auth.createUserWithEmailAndPassword(email, password);
                 const user = userCredential.user;
                 
-                // Create user document in Firestore
-                await db.collection("users").doc(user.uid).set({
+                // 2. Create user document in Firestore
+                const userData = {
                     name: name,
                     email: email,
                     role: selectedRole,
@@ -1960,13 +2060,30 @@
                     peopleHelped: 0,
                     rating: 5.0,
                     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    hasUnreadWelcome: true // Flag for new users
+                    hasUnreadWelcome: true,
+                    profileComplete: false
+                };
+                
+                await db.collection("users").doc(user.uid).set(userData);
+                
+                // 3. Show success feedback
+                showSuccessAlert("Account created successfully!");
+                
+                // 4. Show welcome screen
+                showWelcomeScreen(name, selectedRole);
+                
+                // 5. Send welcome message (don't await this to make signup faster)
+                sendWelcomeMessage(user.uid, name, selectedRole).catch(console.error);
+                
+                // 6. Simulate profile setup (3 seconds)
+                await new Promise(resolve => setTimeout(resolve, 3000));
+                
+                // 7. Mark profile as complete
+                await db.collection("users").doc(user.uid).update({
+                    profileComplete: true
                 });
                 
-                // Send welcome message
-                await sendWelcomeMessage(user.uid, name, selectedRole);
-                
-                // Get the newly created user data
+                // 8. Load user data and show app
                 const userDoc = await db.collection("users").doc(user.uid).get();
                 
                 if (userDoc.exists) {
@@ -1975,10 +2092,10 @@
                         ...userDoc.data()
                     };
                     
-                    // Save to localStorage
                     localStorage.setItem("currentUser", JSON.stringify(currentUser));
                     
-                    // Show app screen
+                    // Hide welcome screen and show app
+                    document.getElementById("welcomeScreen").style.display = "none";
                     showAppScreen();
                 }
             } catch (error) {
@@ -1991,10 +2108,51 @@
                 
                 if (errorCode === "auth/email-already-in-use") {
                     showError("signupEmail", "Email already in use");
+                } else if (errorCode === "auth/weak-password") {
+                    showError("signupPassword", "Password should be at least 6 characters");
                 } else {
                     alert(errorMessage);
                 }
             }
+        }
+        
+        // Helper functions for the new flow
+        function showSuccessAlert(message) {
+            const alert = document.getElementById("successAlert");
+            alert.textContent = message;
+            alert.style.display = "block";
+            
+            setTimeout(() => {
+                alert.style.opacity = 0;
+                setTimeout(() => {
+                    alert.style.display = "none";
+                    alert.style.opacity = 1;
+                }, 300);
+            }, 3000);
+        }
+        
+        function showWelcomeScreen(username, role) {
+            // Hide auth screen
+            document.getElementById("authScreen").style.display = "none";
+            
+            // Update welcome message based on role
+            const welcomeScreen = document.getElementById("welcomeScreen");
+            const welcomeText = document.getElementById("welcomeUsername");
+            const loadingText = document.querySelector(".welcome-message p");
+            
+            welcomeText.textContent = username;
+            
+            if (role === "donor") {
+                loadingText.textContent = "Setting up your donor dashboard...";
+            } else {
+                loadingText.textContent = "Preparing food listings near you...";
+            }
+            
+            // Show welcome screen
+            welcomeScreen.style.display = "flex";
+            
+            // Add animation class
+            document.querySelector(".hourglass-spinner i").classList.add("fa-spin");
         }
 
         async function sendWelcomeMessage(userId, userName, userRole) {
