@@ -24,6 +24,7 @@
             --gray-600: #4b5563;
             --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
             --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
             --font-main: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
         }
 
@@ -339,58 +340,190 @@
             background-color: var(--gray-200);
         }
 
-        /* App Header */
+        /* App Header - Updated */
         .app-header {
             background-color: white;
-            padding: 1rem;
+            padding: 1rem 1.5rem;
             box-shadow: var(--shadow-sm);
             position: sticky;
-            border-radius: 0 0 15px 15px ;
             top: 0;
             z-index: 100;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            border-radius: 0 0 15px 15px;
         }
 
         .header-content {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            width: 100%;
             max-width: 1200px;
             margin: 0 auto;
-            padding: 0 1rem;
         }
 
-        .logo {
-            color: var(--primary-green-dark);
-            font-size: 1.5rem;
-            font-weight: bold;
+        .header-user {
             display: flex;
-            align-items: center;
-            gap: 0.5rem;
+            flex-direction: column;
+        }
+
+        .header-greeting {
+            font-size: 0.875rem;
+            color: var(--gray-600);
+            margin-bottom: 0.25rem;
+        }
+
+        .header-username {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--gray-600);
         }
 
         .header-actions {
             display: flex;
+            gap: 1.5rem;
+            align-items: center;
+        }
+
+        .header-notification {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: var(--primary-green);
+            color: white;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            font-size: 0.6rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Home Screen - Updated */
+        .home-stats {
+            background-color: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
             gap: 1rem;
         }
 
-        /* Food Listings */
+        .stat-card {
+            background-color: var(--bg-green-light);
+            border-radius: 12px;
+            padding: 1rem;
+            text-align: center;
+            transition: transform 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .stat-icon {
+            font-size: 1.5rem;
+            color: var(--primary-green);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-green-dark);
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--gray-600);
+        }
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .action-card {
+            background-color: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: var(--shadow-sm);
+            transition: transform 0.2s;
+            cursor: pointer;
+        }
+
+        .action-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .action-icon {
+            font-size: 2rem;
+            color: var(--primary-green);
+            margin-bottom: 1rem;
+        }
+
+        .action-title {
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--gray-600);
+            margin-bottom: 0.5rem;
+        }
+
+        .action-description {
+            font-size: 0.875rem;
+            color: var(--gray-400);
+        }
+
+        .recent-listings {
+            margin-top: 2rem;
+        }
+
         .section-title {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 1.5rem;
-            padding: 0 1rem;
+            padding: 0 0.5rem;
         }
 
         .section-title h2 {
             color: var(--gray-600);
-            font-size: 1.5rem;
+            font-size: 1.25rem;
+        }
+
+        .view-all {
+            color: var(--primary-green);
+            font-size: 0.875rem;
+            font-weight: 500;
+            text-decoration: none;
+        }
+
+        /* Listings Page */
+        .listings-container {
+            padding: 1rem 0;
         }
 
         .search-box {
             position: relative;
-            flex: 1;
-            max-width: 300px;
+            width: 100%;
+            margin-bottom: 1.5rem;
         }
 
         .search-box i {
@@ -407,10 +540,38 @@
             border: 1px solid var(--gray-300);
             border-radius: 12px;
             font-size: 1rem;
+            background-color: white;
         }
 
         .search-box input:focus {
             outline: none;
+            border-color: var(--primary-green);
+            box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            overflow-x: auto;
+            padding-bottom: 0.5rem;
+        }
+
+        .filter-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--gray-200);
+            border-radius: 20px;
+            background-color: white;
+            color: var(--gray-600);
+            font-size: 0.875rem;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .filter-btn.active {
+            background-color: var(--primary-green);
+            color: white;
             border-color: var(--primary-green);
         }
 
@@ -418,7 +579,6 @@
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
             gap: 20px;
-            padding: 1rem;
         }
 
         .food-card {
@@ -484,6 +644,12 @@
             color: var(--gray-600);
             margin-bottom: 1rem;
             line-height: 1.5;
+            font-size: 0.9375rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .food-actions {
@@ -553,7 +719,7 @@
             justify-content: center;
         }
 
-        /* Profile Page */
+        /* Profile Page - Updated */
         .profile-header {
             background-color: var(--primary-green);
             padding: 2rem 1.5rem;
@@ -564,8 +730,8 @@
         }
 
         .profile-pic {
-            width: 100px;
-            height: 100px;
+            width: 80px;
+            height: 80px;
             border-radius: 50%;
             background-color: white;
             display: flex;
@@ -574,10 +740,8 @@
             margin-bottom: 1rem;
             border: 3px solid white;
             box-shadow: var(--shadow-md);
-        }
-
-        .profile-pic i {
-            font-size: 3rem;
+            font-size: 2rem;
+            font-weight: bold;
             color: var(--primary-green);
         }
 
@@ -1178,17 +1342,19 @@
         }
         
         .add {
-        position: fixed;
-        right: 20px;
-        bottom: 80px;
-        width: 56px;
-        height: 56px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        z-index: 1000;
+            position: fixed;
+            right: 20px;
+            bottom: 80px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            background-color: var(--primary-green);
+            color: white;
         }
         
         .add:hover {
@@ -1196,68 +1362,129 @@
             transition: transform 0.2s ease;
         }
         
-        .add i{
-          font-size: 30px;
+        .add i {
+            font-size: 30px;
         }
         
-        /* Add to your existing CSS */
-      .success-alert {
-          position: fixed;
-          top: 20px;
-          left: 50%;
-          transform: translateX(-50%);
-          background-color: var(--primary-green);
-          color: white;
-          padding: 12px 24px;
-          border-radius: 8px;
-          box-shadow: var(--shadow-md);
-          z-index: 1100;
-          animation: fadeInOut 3s ease forwards;
-          display: none;
-      }
-      
-      @keyframes fadeInOut {
-          0% { opacity: 0; top: 10px; }
-          10% { opacity: 1; top: 20px; }
-          90% { opacity: 1; top: 20px; }
-          100% { opacity: 0; top: 10px; }
-      }
-      
-      .welcome-screen {
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          background-color: white;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          z-index: 9999;
-          display: none;
-      }
-      
-      .welcome-message {
-          text-align: center;
-          margin-bottom: 2rem;
-      }
-      
-      .welcome-message h2 {
-          color: var(--primary-green-dark);
-          margin-bottom: 1rem;
-      }
-      
-      .hourglass-spinner {
-          font-size: 3rem;
-          color: var(--primary-green);
-          animation: spin 2s linear infinite;
-      }
-      
-      @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-      }
+        /* Success Alert */
+        .success-alert {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--primary-green);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            box-shadow: var(--shadow-md);
+            z-index: 1100;
+            animation: fadeInOut 3s ease forwards;
+            display: none;
+        }
+        
+        @keyframes fadeInOut {
+            0% { opacity: 0; top: 10px; }
+            10% { opacity: 1; top: 20px; }
+            90% { opacity: 1; top: 20px; }
+            100% { opacity: 0; top: 10px; }
+        }
+        
+        /* Welcome Screen */
+        .welcome-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            display: none;
+        }
+        
+        .welcome-message {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .welcome-message h2 {
+            color: var(--primary-green-dark);
+            margin-bottom: 1rem;
+        }
+        
+        .hourglass-spinner {
+            font-size: 3rem;
+            color: var(--primary-green);
+            animation: spin 2s linear infinite;
+        }
+        
+        /* Alerts Page */
+        .alerts-page {
+            display: none;
+            flex-direction: column;
+            height: calc(100vh - 80px);
+            background-color: var(--gray-100);
+            padding: 1rem;
+        }
+        
+        .alert-item {
+            background-color: white;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+        
+        .alert-icon {
+            font-size: 1.25rem;
+            color: var(--primary-green);
+            margin-top: 0.25rem;
+        }
+        
+        .alert-content {
+            flex: 1;
+        }
+        
+        .alert-title {
+            font-weight: 500;
+            color: var(--gray-600);
+            margin-bottom: 0.25rem;
+        }
+        
+        .alert-message {
+            color: var(--gray-400);
+            font-size: 0.875rem;
+        }
+        
+        .alert-time {
+            color: var(--gray-400);
+            font-size: 0.75rem;
+            margin-top: 0.5rem;
+        }
+        
+        /* Empty States */
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--gray-400);
+        }
+        
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: var(--gray-300);
+        }
+        
+        /* Time of day greeting */
+        .greeting {
+            text-transform: capitalize;
+        }
     </style>
 </head>
 <body>
@@ -1383,33 +1610,85 @@
         </div>
     </div>
 
-    <!-- Donor Screen -->
+    <!-- Donor Home Screen -->
     <div class="app-screen" id="donorScreen" style="display: none;">
         <header class="app-header">
             <div class="header-content">
-                <div class="logo">
-                    <i class="fas fa-seedling"></i>
-                    <span>Food Share</span>
+                <div class="header-user">
+                    <div class="header-greeting" id="donorGreeting">Good morning</div>
+                    <div class="header-username" id="donorUsername">Jane</div>
                 </div>
                 <div class="header-actions">
-                    <button class="btn btn-icon" onclick="navigateTo('profile')">
-                        <i class="fas fa-user"></i>
-                    </button>
+                    <div class="header-notification" onclick="navigateTo('alerts')">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-badge" id="donorNotificationBadge" style="display: none;">3</span>
+                    </div>
+                    <div class="profile-avatar" onclick="navigateTo('profile')">
+                        <div class="profile-avatar-initial" id="donorAvatar">J</div>
+                    </div>
                 </div>
             </div>
         </header>
 
         <div class="container">
-            <div class="section-title">
-                <h2>Your Donations</h2>
+            <div class="home-stats">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-box-open"></i>
+                        </div>
+                        <div class="stat-value" id="donorTotalDonations">12</div>
+                        <div class="stat-label">Total Donations</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-value" id="donorPeopleHelped">58</div>
+                        <div class="stat-label">People Helped</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <div class="stat-value" id="donorRating">4.8</div>
+                        <div class="stat-label">Rating</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-value" id="donorActiveListings">3</div>
+                        <div class="stat-label">Active Listings</div>
+                    </div>
+                </div>
+                
+                <div class="quick-actions">
+                    <div class="action-card" onclick="showDonationForm()">
+                        <div class="action-icon">
+                            <i class="fas fa-plus"></i>
+                        </div>
+                        <div class="action-title">Add New Listing</div>
+                        <div class="action-description">Share your surplus food</div>
+                    </div>
+                    <div class="action-card" onclick="navigateTo('listings', 'donor')">
+                        <div class="action-icon">
+                            <i class="fas fa-list"></i>
+                        </div>
+                        <div class="action-title">View Your Listings</div>
+                        <div class="action-description">Manage your donations</div>
+                    </div>
+                </div>
             </div>
             
-                <button class="btn btn-primary add" onclick="showDonationForm()">
-                    <i class="fas fa-plus"></i>
-                </button>
-            
-            <div class="food-grid" id="donorListings">
-                <!-- Donor listings will be populated here -->
+            <div class="recent-listings">
+                <div class="section-title">
+                    <h2>Recent Requests</h2>
+                    <a href="#" class="view-all" onclick="navigateTo('messages')">View All</a>
+                </div>
+                <div class="food-grid" id="donorRecentRequests">
+                    <!-- Recent requests will be populated here -->
+                </div>
             </div>
         </div>
 
@@ -1436,33 +1715,140 @@
         </nav>
     </div>
 
-    <!-- Receiver Screen -->
-    <div class="app-screen" id="receiverScreen" style="display: none;">
+    <!-- Donor Listings Screen -->
+    <div class="app-screen" id="donorListingsScreen" style="display: none;">
         <header class="app-header">
             <div class="header-content">
-                <div class="logo">
-                    <i class="fas fa-seedling"></i>
-                    <span>Food Share</span>
+                <div class="header-user">
+                    <div class="header-greeting">Your Listings</div>
+                    <div class="header-username" id="donorListingsUsername">Jane</div>
                 </div>
                 <div class="header-actions">
-                    <button class="btn btn-icon" onclick="navigateTo('profile')">
-                        <i class="fas fa-user"></i>
-                    </button>
+                    <div class="header-notification" onclick="navigateTo('alerts')">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-badge" id="donorListingsNotificationBadge" style="display: none;">3</span>
+                    </div>
+                    <div class="profile-avatar" onclick="navigateTo('profile')">
+                        <div class="profile-avatar-initial" id="donorListingsAvatar">J</div>
+                    </div>
                 </div>
             </div>
         </header>
 
         <div class="container">
-            <div class="section-title">
-                <h2>Available Food</h2>
-                <div class="search-box">
-                    <i class="fas fa-search"></i>
-                    <input type="text" placeholder="Search food items..." onkeyup="searchListings(this.value)">
+            <div class="listings-container">
+                <div class="food-grid" id="donorListings">
+                    <!-- Donor listings will be populated here -->
+                </div>
+            </div>
+        </div>
+
+        <button class="btn btn-primary add" onclick="showDonationForm()">
+            <i class="fas fa-plus"></i>
+        </button>
+
+        <nav class="bottom-nav">
+            <div class="nav-content">
+                <a href="#" class="nav-item" onclick="navigateTo('home', 'donor')">
+                    <i class="fas fa-home"></i>
+                    <span>Home</span>
+                </a>
+                <a href="#" class="nav-item active" onclick="navigateTo('listings', 'donor')">
+                    <i class="fas fa-list"></i>
+                    <span>Listings</span>
+                </a>
+                <a href="#" class="nav-item" onclick="navigateTo('messages', 'donor')">
+                    <i class="fas fa-message"></i>
+                    <span>Messages</span>
+                    <span class="nav-badge" id="messagesBadgeListings" style="display: none;">3</span>
+                </a>
+                <a href="#" class="nav-item" onclick="navigateTo('profile', 'donor')">
+                    <i class="fas fa-user"></i>
+                    <span>Profile</span>
+                </a>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Receiver Home Screen -->
+    <div class="app-screen" id="receiverScreen" style="display: none;">
+        <header class="app-header">
+            <div class="header-content">
+                <div class="header-user">
+                    <div class="header-greeting" id="receiverGreeting">Good morning</div>
+                    <div class="header-username" id="receiverUsername">John</div>
+                </div>
+                <div class="header-actions">
+                    <div class="header-notification" onclick="navigateTo('alerts')">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-badge" id="receiverNotificationBadge" style="display: none;">3</span>
+                    </div>
+                    <div class="profile-avatar" onclick="navigateTo('profile')">
+                        <div class="profile-avatar-initial" id="receiverAvatar">J</div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="container">
+            <div class="home-stats">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-utensils"></i>
+                        </div>
+                        <div class="stat-value" id="receiverTotalRequests">8</div>
+                        <div class="stat-label">Total Requests</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="stat-value" id="receiverSuccessfulRequests">5</div>
+                        <div class="stat-label">Successful</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <div class="stat-value" id="receiverRating">4.5</div>
+                        <div class="stat-label">Rating</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </div>
+                        <div class="stat-value" id="receiverNearbyListings">12</div>
+                        <div class="stat-label">Nearby</div>
+                    </div>
+                </div>
+                
+                <div class="quick-actions">
+                    <div class="action-card" onclick="navigateTo('listings', 'receiver')">
+                        <div class="action-icon">
+                            <i class="fas fa-search"></i>
+                        </div>
+                        <div class="action-title">Browse Listings</div>
+                        <div class="action-description">Find available food</div>
+                    </div>
+                    <div class="action-card" onclick="navigateTo('messages', 'receiver')">
+                        <div class="action-icon">
+                            <i class="fas fa-message"></i>
+                        </div>
+                        <div class="action-title">Your Messages</div>
+                        <div class="action-description">View conversations</div>
+                    </div>
                 </div>
             </div>
             
-            <div class="food-grid" id="availableListings">
-                <!-- Available food listings will be populated here -->
+            <div class="recent-listings">
+                <div class="section-title">
+                    <h2>Recently Added</h2>
+                    <a href="#" class="view-all" onclick="navigateTo('listings', 'receiver')">View All</a>
+                </div>
+                <div class="food-grid" id="recentListings">
+                    <!-- Recent listings will be populated here -->
+                </div>
             </div>
         </div>
 
@@ -1472,7 +1858,7 @@
                     <i class="fas fa-home"></i>
                     <span>Home</span>
                 </a>
-                <a href="#" class="nav-item" onclick="navigateTo('search', 'receiver')">
+                <a href="#" class="nav-item" onclick="navigateTo('listings', 'receiver')">
                     <i class="fas fa-search"></i>
                     <span>Search</span>
                 </a>
@@ -1489,11 +1875,77 @@
         </nav>
     </div>
 
+    <!-- Receiver Listings Screen -->
+    <div class="app-screen" id="receiverListingsScreen" style="display: none;">
+        <header class="app-header">
+            <div class="header-content">
+                <div class="header-user">
+                    <div class="header-greeting">Available Food</div>
+                    <div class="header-username" id="receiverListingsUsername">John</div>
+                </div>
+                <div class="header-actions">
+                    <div class="header-notification" onclick="navigateTo('alerts')">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-badge" id="receiverListingsNotificationBadge" style="display: none;">3</span>
+                    </div>
+                    <div class="profile-avatar" onclick="navigateTo('profile')">
+                        <div class="profile-avatar-initial" id="receiverListingsAvatar">J</div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="container">
+            <div class="listings-container">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Search food items..." oninput="searchListings(this.value)">
+                </div>
+                
+                <div class="filter-buttons">
+                    <button class="filter-btn active" onclick="filterListings('all')">All</button>
+                    <button class="filter-btn" onclick="filterListings('bakery')">Bakery</button>
+                    <button class="filter-btn" onclick="filterListings('produce')">Produce</button>
+                    <button class="filter-btn" onclick="filterListings('dairy')">Dairy</button>
+                    <button class="filter-btn" onclick="filterListings('pantry')">Pantry</button>
+                    <button class="filter-btn" onclick="filterListings('prepared')">Prepared</button>
+                    <button class="filter-btn" onclick="filterListings('other')">Other</button>
+                </div>
+                
+                <div class="food-grid" id="availableListings">
+                    <!-- Available food listings will be populated here -->
+                </div>
+            </div>
+        </div>
+
+        <nav class="bottom-nav">
+            <div class="nav-content">
+                <a href="#" class="nav-item" onclick="navigateTo('home', 'receiver')">
+                    <i class="fas fa-home"></i>
+                    <span>Home</span>
+                </a>
+                <a href="#" class="nav-item active" onclick="navigateTo('listings', 'receiver')">
+                    <i class="fas fa-search"></i>
+                    <span>Search</span>
+                </a>
+                <a href="#" class="nav-item" onclick="navigateTo('messages', 'receiver')">
+                    <i class="fas fa-message"></i>
+                    <span>Messages</span>
+                    <span class="nav-badge" id="messagesBadgeListingsReceiver" style="display: none;">3</span>
+                </a>
+                <a href="#" class="nav-item" onclick="navigateTo('profile', 'receiver')">
+                    <i class="fas fa-user"></i>
+                    <span>Profile</span>
+                </a>
+            </div>
+        </nav>
+    </div>
+
     <!-- Profile Screen -->
     <div class="app-screen" id="profileScreen" style="display: none;">
         <div class="profile-header">
-            <div class="profile-pic">
-                <i class="fas fa-user" id="profileAvatar"></i>
+            <div class="profile-pic" id="profileAvatar">
+                <!-- Initials will be inserted here -->
             </div>
             <h2 class="profile-name" id="profileName">Jane Smith</h2>
             <p class="profile-role" id="profileRole">Food Donor</p>
@@ -1613,14 +2065,18 @@
     <div class="chat-page" id="chatPage">
         <header class="app-header">
             <div class="header-content">
-                <div class="logo">
-                    <i class="fas fa-seedling"></i>
-                    <span>Messages</span>
+                <div class="header-user">
+                    <div class="header-greeting">Messages</div>
+                    <div class="header-username" id="chatPageUsername">John</div>
                 </div>
                 <div class="header-actions">
-                    <button class="btn btn-icon" onclick="navigateTo('home')">
-                        <i class="fas fa-times"></i>
-                    </button>
+                    <div class="header-notification" onclick="navigateTo('alerts')">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-badge" id="chatPageNotificationBadge" style="display: none;">3</span>
+                    </div>
+                    <div class="profile-avatar" onclick="navigateTo('profile')">
+                        <div class="profile-avatar-initial" id="chatPageAvatar">J</div>
+                    </div>
                 </div>
             </div>
         </header>
@@ -1683,13 +2139,63 @@
         </div>
     </div>
 
+    <!-- Alerts Page -->
+    <div class="app-screen" id="alertsPage" style="display: none;">
+        <header class="app-header">
+            <div class="header-content">
+                <div class="header-user">
+                    <div class="header-greeting">Your Alerts</div>
+                    <div class="header-username" id="alertsPageUsername">John</div>
+                </div>
+                <div class="header-actions">
+                    <div class="profile-avatar" onclick="navigateTo('profile')">
+                        <div class="profile-avatar-initial" id="alertsPageAvatar">J</div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="alerts-page">
+            <div class="alerts-list" id="alertsList">
+                <!-- Alerts will be populated here -->
+                <div class="empty-state">
+                    <i class="fas fa-bell-slash"></i>
+                    <h3>No alerts yet</h3>
+                    <p>You'll see important notifications here</p>
+                </div>
+            </div>
+        </div>
+
+        <nav class="bottom-nav">
+            <div class="nav-content">
+                <a href="#" class="nav-item" onclick="navigateTo('home')">
+                    <i class="fas fa-home"></i>
+                    <span>Home</span>
+                </a>
+                <a href="#" class="nav-item" onclick="navigateTo('listings')">
+                    <i class="fas fa-list"></i>
+                    <span>Listings</span>
+                </a>
+                <a href="#" class="nav-item" onclick="navigateTo('messages')">
+                    <i class="fas fa-message"></i>
+                    <span>Messages</span>
+                    <span class="nav-badge" id="messagesBadgeAlerts" style="display: none;">3</span>
+                </a>
+                <a href="#" class="nav-item active" onclick="navigateTo('alerts')">
+                    <i class="fas fa-bell"></i>
+                    <span>Alerts</span>
+                </a>
+            </div>
+        </nav>
+    </div>
+
     <!-- Donation Form -->
     <div class="donation-form-container" id="donationFormContainer">
         <header class="app-header">
             <div class="header-content">
-                <div class="logo">
-                    <i class="fas fa-seedling"></i>
-                    <span>New Listing</span>
+                <div class="header-user">
+                    <div class="header-greeting">New Listing</div>
+                    <div class="header-username" id="donationFormUsername">Jane</div>
                 </div>
                 <div class="header-actions">
                     <button class="btn btn-icon" onclick="closeDonationForm()">
@@ -1755,47 +2261,47 @@
     </div>
     
     <!-- Success Alert -->
-      <div class="success-alert" id="successAlert">
-          Account created successfully!
-      </div>
-      
-      <!-- Welcome Screen -->
-      <div class="welcome-screen" id="welcomeScreen">
-          <div class="welcome-message">
-              <h2>Welcome <span id="welcomeUsername"></span>!</h2>
-              <p>Hold on as we set up your profile...</p>
-          </div>
-          <div class="hourglass-spinner">
-              <i class="fas fa-hourglass-half"></i>
-          </div>
-      </div>
+    <div class="success-alert" id="successAlert">
+        Account created successfully!
+    </div>
+    
+    <!-- Welcome Screen -->
+    <div class="welcome-screen" id="welcomeScreen">
+        <div class="welcome-message">
+            <h2>Welcome <span id="welcomeUsername"></span>!</h2>
+            <p>Hold on as we set up your profile...</p>
+        </div>
+        <div class="hourglass-spinner">
+            <i class="fas fa-hourglass-half"></i>
+        </div>
+    </div>
 
     <script>
         // Firebase configuration
         const firebaseConfig = {
-  apiKey: "AIzaSyC1_OWdmTDfF0yQiJK_wQCzFuMf7BpILKU",
-  authDomain: "foodshare-5a023.firebaseapp.com",
-  projectId: "foodshare-5a023",
-  storageBucket: "foodshare-5a023.firebasestorage.app",
-  messagingSenderId: "72146855829",
-  appId: "1:72146855829:web:aea545b3aa814f5f46389c",
-  measurementId: "G-92VP9RF6LR"
-};
+            apiKey: "AIzaSyC1_OWdmTDfF0yQiJK_wQCzFuMf7BpILKU",
+            authDomain: "foodshare-5a023.firebaseapp.com",
+            projectId: "foodshare-5a023",
+            storageBucket: "foodshare-5a023.firebasestorage.app",
+            messagingSenderId: "72146855829",
+            appId: "1:72146855829:web:aea545b3aa814f5f46389c",
+            measurementId: "G-92VP9RF6LR"
+        };
         
         // Initialize Firebase
         const app = firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         const auth = firebase.auth();
         
-            // Default category images mapping
-const categoryImages = {
-    bakery: "https://images.unsplash.com/photo-1608198093002-ad4e005484ec?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=500&q=80",
-    produce: "https://images.unsplash.com/photo-1610348725531-843dff563e2c?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=500&q=80",
-    dairy: "https://images.unsplash.com/photo-1628088062854-d1870b4553da?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=500&q=80",
-    pantry: "https://images.unsplash.com/photo-1584473457406-6240486418e9?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=500&q=80",
-    prepared: "https://images.unsplash.com/photo-1627662236849-a4b5ff081c83?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=500&q=80",
-    other: "https://images.unsplash.com/photo-1621275471769-e6aa344546d5?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=500&q=80"
-};
+        // Default category images mapping
+        const categoryImages = {
+            bakery: "https://images.unsplash.com/photo-1608198093002-ad4e005484ec?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=500&q=80",
+            produce: "https://images.unsplash.com/photo-1610348725531-843dff563e2c?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=500&q=80",
+            dairy: "https://images.unsplash.com/photo-1628088062854-d1870b4553da?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=500&q=80",
+            pantry: "https://images.unsplash.com/photo-1584473457406-6240486418e9?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=500&q=80",
+            prepared: "https://images.unsplash.com/photo-1627662236849-a4b5ff081c83?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=500&q=80",
+            other: "https://images.unsplash.com/photo-1621275471769-e6aa344546d5?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=500&q=80"
+        };
 
         // App state
         let currentUser = null;
@@ -1806,7 +2312,11 @@ const categoryImages = {
         const totalSlides = 3;
         let unsubscribeChats = null;
         let unsubscribeMessages = null;
+        let unsubscribeListings = null;
         let recipientData = null;
+        let allListings = [];
+        let activeFilter = 'all';
+        let activeSearchQuery = '';
 
         // Initialize the app
         document.addEventListener("DOMContentLoaded", function() {
@@ -1834,24 +2344,6 @@ const categoryImages = {
                 });
             }
         });
-        
-            // Function to update category preview image
-          function updateCategoryPreview() {
-              const category = document.getElementById("foodCategory").value;
-              const preview = document.getElementById("categoryPreview");
-              preview.src = categoryImages[category];
-              preview.style.display = "block";
-          }
-      
-          // Initialize with default preview
-          document.addEventListener("DOMContentLoaded", function() {
-              updateCategoryPreview();
-              
-              // Check for expired listings periodically
-              checkExpiredListings();
-              setInterval(checkExpiredListings, 3600000); // Check every hour
-          });
-
 
         // Load user data from Firestore
         async function loadUserData(userId) {
@@ -1864,6 +2356,7 @@ const categoryImages = {
                     };
                     localStorage.setItem("currentUser", JSON.stringify(currentUser));
                     showAppScreen();
+                    updateGreeting();
                 } else {
                     // User document doesn't exist - should not happen
                     console.error("User document not found");
@@ -1873,6 +2366,33 @@ const categoryImages = {
                 console.error("Error loading user data:", error);
                 logout();
             }
+        }
+
+        // Update greeting based on time of day
+        function updateGreeting() {
+            const hour = new Date().getHours();
+            let greeting = "Hello";
+            
+            if (hour < 12) greeting = "Good morning";
+            else if (hour < 18) greeting = "Good afternoon";
+            else greeting = "Good evening";
+            
+            // Update all greeting elements
+            document.querySelectorAll('.header-greeting').forEach(el => {
+                el.textContent = greeting;
+            });
+            
+            // Update all username elements
+            const firstName = currentUser.name.split(' ')[0];
+            document.querySelectorAll('.header-username, .profile-avatar-initial').forEach(el => {
+                if (el.id !== 'profileAvatar') {
+                    el.textContent = firstName;
+                }
+            });
+            
+            // Update profile avatar initial
+            const firstLetter = currentUser.name.charAt(0).toUpperCase();
+            document.getElementById("profileAvatar").textContent = firstLetter;
         }
 
         // Onboarding functions
@@ -2184,55 +2704,56 @@ const categoryImages = {
         }
 
         async function sendWelcomeMessage(userId, userName, userRole) {
-    try {
-        // Create welcome chat document
-        const welcomeChat = {
-            participants: [userId, "system"],
-            lastMessage: `Welcome to FoodShare, ${userName}!`,
-            lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
-            lastSenderId: "system",
-            isSystemChat: true,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-            welcomeMessage: true // Flag for welcome chats
-        };
-        
-        const chatRef = await db.collection("chats").add(welcomeChat);
-        
-        // Create welcome message content
-        const welcomeContent = userRole === "donor" 
-            ? `Welcome to FoodShare, ${userName}! Thank you for joining our community of food donors. 
-               You can now start sharing your surplus food with those in need.`
-            : `Welcome to FoodShare, ${userName}! We're glad to have you as part of our community. 
-               You can now browse available food listings in your area.`;
-        
-        // Create welcome message
-        const welcomeMessage = {
-            id: "welcome-" + Date.now(),
-            text: welcomeContent,
-            senderId: "system",
-            senderName: "FoodShare Team",
-            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-            isSystemMessage: true,
-            welcomeMessage: true
-        };
-        
-        await chatRef.collection("messages").doc(welcomeMessage.id).set(welcomeMessage);
-        
-        // Update user's unread status
-        await db.collection("users").doc(userId).update({
-            hasUnreadWelcome: true
-        });
-        
-    } catch (error) {
-        console.error("Error sending welcome message:", error);
-    }
-}
+            try {
+                // Create welcome chat document
+                const welcomeChat = {
+                    participants: [userId, "system"],
+                    lastMessage: `Welcome to FoodShare, ${userName}!`,
+                    lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
+                    lastSenderId: "system",
+                    isSystemChat: true,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    welcomeMessage: true // Flag for welcome chats
+                };
+                
+                const chatRef = await db.collection("chats").add(welcomeChat);
+                
+                // Create welcome message content
+                const welcomeContent = userRole === "donor" 
+                    ? `Welcome to FoodShare, ${userName}! Thank you for joining our community of food donors. 
+                       You can now start sharing your surplus food with those in need.`
+                    : `Welcome to FoodShare, ${userName}! We're glad to have you as part of our community. 
+                       You can now browse available food listings in your area.`;
+                
+                // Create welcome message
+                const welcomeMessage = {
+                    id: "welcome-" + Date.now(),
+                    text: welcomeContent,
+                    senderId: "system",
+                    senderName: "FoodShare Team",
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    isSystemMessage: true,
+                    welcomeMessage: true
+                };
+                
+                await chatRef.collection("messages").doc(welcomeMessage.id).set(welcomeMessage);
+                
+                // Update user's unread status
+                await db.collection("users").doc(userId).update({
+                    hasUnreadWelcome: true
+                });
+                
+            } catch (error) {
+                console.error("Error sending welcome message:", error);
+            }
+        }
         
         // Logout function
         function logout() {
             // Unsubscribe from listeners
             if (unsubscribeChats) unsubscribeChats();
             if (unsubscribeMessages) unsubscribeMessages();
+            if (unsubscribeListings) unsubscribeListings();
             
             auth.signOut().then(() => {
                 // Sign-out successful
@@ -2246,6 +2767,7 @@ const categoryImages = {
                 document.getElementById("chatPage").style.display = "none";
                 document.getElementById("chatConversation").style.display = "none";
                 document.getElementById("donationFormContainer").style.display = "none";
+                document.getElementById("alertsPage").style.display = "none";
                 
                 // Reset forms
                 document.getElementById("loginForm").reset();
@@ -2300,6 +2822,7 @@ const categoryImages = {
             document.getElementById("chatPage").style.display = "none";
             document.getElementById("chatConversation").style.display = "none";
             document.getElementById("donationFormContainer").style.display = "none";
+            document.getElementById("alertsPage").style.display = "none";
             
             // Show appropriate screen based on user role
             if (currentUser.role === "donor") {
@@ -2316,6 +2839,7 @@ const categoryImages = {
             // Load initial data
             loadListings();
             loadChats();
+            loadAlerts();
         }
 
         function navigateTo(screen, userRole = currentUser.role) {
@@ -2326,20 +2850,29 @@ const categoryImages = {
             document.getElementById("chatPage").style.display = "none";
             document.getElementById("chatConversation").style.display = "none";
             document.getElementById("donationFormContainer").style.display = "none";
+            document.getElementById("alertsPage").style.display = "none";
             
             // Update active nav item
             const navItems = document.querySelectorAll(".nav-item");
             navItems.forEach(item => item.classList.remove("active"));
             
             // Find clicked nav item and make active
-            const clickedNav = event.currentTarget;
-            clickedNav.classList.add("active");
+            const clickedNav = event?.currentTarget;
+            if (clickedNav) {
+                clickedNav.classList.add("active");
+            }
             
             // Handle navigation based on screen and role
             if (screen === "profile") {
                 document.getElementById("profileScreen").style.display = "block";
                 currentScreen = "profile";
+                updateProfileData();
             } 
+            else if (screen === "alerts") {
+                document.getElementById("alertsPage").style.display = "block";
+                currentScreen = "alerts";
+                loadAlerts();
+            }
             else if (screen === "home") {
                 if (userRole === "donor") {
                     document.getElementById("donorScreen").style.display = "block";
@@ -2349,19 +2882,20 @@ const categoryImages = {
                     currentScreen = "receiver";
                 }
             } 
+            else if (screen === "listings") {
+                if (userRole === "donor") {
+                    document.getElementById("donorListingsScreen").style.display = "block";
+                    currentScreen = "donorListings";
+                } else {
+                    document.getElementById("receiverListingsScreen").style.display = "block";
+                    currentScreen = "receiverListings";
+                }
+                loadListings();
+            }
             else if (screen === "messages") {
                 document.getElementById("chatPage").style.display = "block";
                 document.getElementById("chatConversation").style.display = "none";
                 currentScreen = "messages";
-            }
-            else if (screen === "listings" || screen === "search") {
-                if (userRole === "donor") {
-                    document.getElementById("donorScreen").style.display = "block";
-                    currentScreen = "donor";
-                } else {
-                    document.getElementById("receiverScreen").style.display = "block";
-                    currentScreen = "receiver";
-                }
             }
         }
 
@@ -2375,18 +2909,49 @@ const categoryImages = {
         // Listings functions
         async function loadListings() {
             try {
-                const snapshot = await db.collection("listings").get();
-                const listings = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                // Unsubscribe previous listener if exists
+                if (unsubscribeListings) unsubscribeListings();
                 
-                if (currentUser.role === "donor") {
-                    // Show donor's listings
-                    const donorListings = listings.filter(l => l.donorId === currentUser.id);
-                    populateDonorListings(donorListings);
-                } else {
-                    // Show available listings for receivers
-                    const availableListings = listings.filter(l => l.isAvailable);
-                    populateAvailableListings(availableListings);
-                }
+                unsubscribeListings = db.collection("listings")
+                    .onSnapshot(snapshot => {
+                        allListings = [];
+                        snapshot.forEach(doc => {
+                            allListings.push({ id: doc.id, ...doc.data() });
+                        });
+                        
+                        // Filter listings based on current user role
+                        if (currentUser.role === "donor") {
+                            // Show donor's listings
+                            const donorListings = allListings.filter(l => l.donorId === currentUser.id);
+                            populateDonorListings(donorListings);
+                            
+                            // Update stats
+                            document.getElementById("donorActiveListings").textContent = 
+                                donorListings.filter(l => l.isAvailable).length;
+                            
+                            // Show recent requests (non-active listings)
+                            const recentRequests = donorListings
+                                .filter(l => !l.isAvailable)
+                                .slice(0, 3);
+                            populateRecentRequests(recentRequests);
+                        } else {
+                            // Show available listings for receivers
+                            const availableListings = allListings.filter(l => l.isAvailable);
+                            populateAvailableListings(availableListings);
+                            
+                            // Update stats
+                            document.getElementById("receiverNearbyListings").textContent = 
+                                availableListings.length;
+                            
+                            // Show recently added listings
+                            const recentListings = availableListings
+                                .sort((a, b) => b.createdAt?.seconds - a.createdAt?.seconds)
+                                .slice(0, 3);
+                            populateRecentListings(recentListings);
+                        }
+                    }, error => {
+                        console.error("Error loading listings:", error);
+                    });
             } catch (error) {
                 console.error("Error loading listings:", error);
             }
@@ -2398,8 +2963,8 @@ const categoryImages = {
             
             if (listings.length === 0) {
                 donorListings.innerHTML = `
-                    <div style="grid-column: 1/-1; text-align: center; padding: 2rem;">
-                        <i class="fas fa-box-open" style="font-size: 3rem; color: var(--gray-300); margin-bottom: 1rem;"></i>
+                    <div class="empty-state" style="grid-column: 1/-1;">
+                        <i class="fas fa-box-open"></i>
                         <h3>No listings yet</h3>
                         <p>Create your first food listing to get started</p>
                     </div>
@@ -2413,14 +2978,35 @@ const categoryImages = {
             });
         }
 
-        function populateAvailableListings(listings) {
-            const availableListings = document.getElementById("availableListings");
-            availableListings.innerHTML = '';
+        function populateRecentRequests(listings) {
+            const recentRequests = document.getElementById("donorRecentRequests");
+            recentRequests.innerHTML = '';
             
             if (listings.length === 0) {
-                availableListings.innerHTML = `
-                    <div style="grid-column: 1/-1; text-align: center; padding: 2rem;">
-                        <i class="fas fa-search" style="font-size: 3rem; color: var(--gray-300); margin-bottom: 1rem;"></i>
+                recentRequests.innerHTML = `
+                    <div class="empty-state" style="grid-column: 1/-1;">
+                        <i class="fas fa-users"></i>
+                        <h3>No recent requests</h3>
+                        <p>When someone requests your food, it will appear here</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            listings.forEach(listing => {
+                const listingElement = createListingElement(listing, true);
+                recentRequests.appendChild(listingElement);
+            });
+        }
+
+        function populateRecentListings(listings) {
+            const recentListings = document.getElementById("recentListings");
+            recentListings.innerHTML = '';
+            
+            if (listings.length === 0) {
+                recentListings.innerHTML = `
+                    <div class="empty-state" style="grid-column: 1/-1;">
+                        <i class="fas fa-search"></i>
                         <h3>No listings available</h3>
                         <p>Check back later for new food listings</p>
                     </div>
@@ -2430,11 +3016,47 @@ const categoryImages = {
             
             listings.forEach(listing => {
                 const listingElement = createListingElement(listing, false);
+                recentListings.appendChild(listingElement);
+            });
+        }
+
+        function populateAvailableListings(listings) {
+            const availableListings = document.getElementById("availableListings");
+            availableListings.innerHTML = '';
+            
+            // Apply search filter if any
+            let filteredListings = listings;
+            if (activeSearchQuery) {
+                const query = activeSearchQuery.toLowerCase();
+                filteredListings = listings.filter(l => 
+                    l.title.toLowerCase().includes(query) || 
+                    l.description.toLowerCase().includes(query) ||
+                    l.category.toLowerCase().includes(query)
+                );
+            }
+            
+            // Apply category filter if not 'all'
+            if (activeFilter !== 'all') {
+                filteredListings = filteredListings.filter(l => l.category === activeFilter);
+            }
+            
+            if (filteredListings.length === 0) {
+                availableListings.innerHTML = `
+                    <div class="empty-state" style="grid-column: 1/-1;">
+                        <i class="fas fa-search"></i>
+                        <h3>No listings found</h3>
+                        <p>Try adjusting your search or filters</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            filteredListings.forEach(listing => {
+                const listingElement = createListingElement(listing, false);
                 availableListings.appendChild(listingElement);
             });
         }
 
-    // createListingElement function
         function createListingElement(listing, isOwner) {
             const foodCard = document.createElement("div");
             foodCard.className = "food-card";
@@ -2454,7 +3076,7 @@ const categoryImages = {
                 : 'Other';
         
             foodCard.innerHTML = `
-                <img src="${listing.imageUrl || categoryImages.other}" alt="${listing.title}" class="food-image">
+                <img src="${listing.imageUrl || categoryImages[listing.category] || categoryImages.other}" alt="${listing.title}" class="food-image">
                 <div class="food-content">
                     <div class="food-title">
                         <h3>${listing.title || 'Unnamed Listing'}</h3>
@@ -2497,10 +3119,25 @@ const categoryImages = {
             return foodCard;
         }
     
-    
         function searchListings(query) {
-            // Implement search functionality here
-            console.log("Searching for:", query);
+            activeSearchQuery = query;
+            populateAvailableListings(allListings.filter(l => l.isAvailable));
+        }
+
+        function filterListings(category) {
+            // Update active filter
+            activeFilter = category;
+            
+            // Update button states
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.textContent.toLowerCase() === category) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            // Refresh listings
+            populateAvailableListings(allListings.filter(l => l.isAvailable));
         }
 
         // Profile functions
@@ -2511,6 +3148,18 @@ const categoryImages = {
                 document.getElementById("totalDonations").textContent = currentUser.totalDonations || 0;
                 document.getElementById("totalHelped").textContent = currentUser.peopleHelped || 0;
                 document.getElementById("rating").textContent = currentUser.rating || 5.0;
+                
+                // Update donor stats on home screen
+                if (currentUser.role === "donor") {
+                    document.getElementById("donorTotalDonations").textContent = currentUser.totalDonations || 0;
+                    document.getElementById("donorPeopleHelped").textContent = currentUser.peopleHelped || 0;
+                    document.getElementById("donorRating").textContent = currentUser.rating || 5.0;
+                } else {
+                    // Update receiver stats (these would come from additional fields in the user document)
+                    document.getElementById("receiverTotalRequests").textContent = currentUser.totalRequests || 0;
+                    document.getElementById("receiverSuccessfulRequests").textContent = currentUser.successfulRequests || 0;
+                    document.getElementById("receiverRating").textContent = currentUser.rating || 5.0;
+                }
                 
                 // Set profile avatar initial
                 const firstLetter = currentUser.name.charAt(0).toUpperCase();
@@ -2568,7 +3217,10 @@ const categoryImages = {
                 document.getElementById("messagesBadge"),
                 document.getElementById("messagesBadgeReceiver"),
                 document.getElementById("messagesBadgeProfile"),
-                document.getElementById("messagesBadgeChat")
+                document.getElementById("messagesBadgeChat"),
+                document.getElementById("messagesBadgeListings"),
+                document.getElementById("messagesBadgeListingsReceiver"),
+                document.getElementById("messagesBadgeAlerts")
             ];
             
             badges.forEach(badge => {
@@ -2589,7 +3241,7 @@ const categoryImages = {
             
             if (chats.length === 0) {
                 chatList.innerHTML = `
-                    <div class="empty-chat-state">
+                    <div class="empty-state">
                         <i class="fas fa-comment-dots"></i>
                         <h3>No messages yet</h3>
                         <p>Start a conversation by requesting food</p>
@@ -2723,32 +3375,6 @@ const categoryImages = {
             }
         }
 
-        function createChatItem(chat, userData) {
-            const chatItem = document.createElement("div");
-            chatItem.className = "chat-item";
-            chatItem.onclick = () => openChatConversation(chat.id, userData);
-            
-            const lastMessage = chat.lastMessage || "No messages yet";
-            const lastMessageTime = chat.lastUpdated ? formatTime(chat.lastUpdated.toDate()) : "";
-            const isUnread = chat.lastSenderId !== currentUser.id && chat.unreadFor === currentUser.id;
-            
-            chatItem.innerHTML = `
-                <div class="chat-item-avatar">
-                    ${userData.name.charAt(0).toUpperCase()}
-                </div>
-                <div class="chat-item-content">
-                    <div class="chat-item-header">
-                        <div class="chat-item-name">${userData.name}</div>
-                        <div class="chat-item-time">${lastMessageTime}</div>
-                    </div>
-                    <div class="chat-item-message">${lastMessage}</div>
-                </div>
-                ${isUnread ? `<div class="chat-item-unread">${chat.unreadCount > 9 ? '9+' : chat.unreadCount}</div>` : ''}
-            `;
-            
-            return chatItem;
-        }
-
         async function openChatConversation(chatId, userData) {
             currentChatId = chatId;
             recipientData = userData;
@@ -2767,114 +3393,52 @@ const categoryImages = {
             // Mark messages as read
             await markMessagesAsRead(chatId);
         }
-        
-        function openSystemWelcomeChat(chatId) {
-    // Set recipient data for system messages
-    recipientData = {
-        id: "system",
-        name: "FoodShare Team"
-    };
-    
-    currentChatId = chatId;
-    
-    // Update UI
-    document.getElementById("chatPage").style.display = "none";
-    document.getElementById("chatConversation").style.display = "flex";
-    
-    // Set recipient info
-    document.getElementById("chatRecipientName").textContent = "FoodShare Team";
-    document.getElementById("chatRecipientAvatar").innerHTML = '<i class="fas fa-seedling"></i>';
-    
-    // Disable input for system chats
-    document.getElementById("messageInput").disabled = true;
-    document.getElementById("messageInput").placeholder = "Cannot reply to system messages";
-    
-    // Load messages
-    loadMessages(chatId);
-}
 
         function loadMessages(chatId) {
-    const messagesContainer = document.getElementById("chatMessages");
-    messagesContainer.innerHTML = '';
-    
-    // Unsubscribe previous listener if exists
-    if (unsubscribeMessages) unsubscribeMessages();
-
-    unsubscribeMessages = db.collection("chats").doc(chatId)
-        .collection("messages")
-        .orderBy("timestamp", "asc")
-        .onSnapshot(snapshot => {
-            messagesContainer.innerHTML = ''; // Always clear and rebuild for simplicity
+            const messagesContainer = document.getElementById("chatMessages");
+            messagesContainer.innerHTML = '';
             
-            snapshot.forEach(doc => {
-                const message = doc.data();
-                addMessageToUI(message);
-            });
-            
-            // Scroll to bottom
-            setTimeout(() => {
-                messagesContainer.scrollTop = messagesContainer.scrollHeight;
-            }, 100);
-        }, error => {
-            console.error("Error loading messages:", error);
-        });
-}
+            // Unsubscribe previous listener if exists
+            if (unsubscribeMessages) unsubscribeMessages();
 
-        async function sendWelcomeMessage(userId, userName) {
-            try {
-                // Create a special system chat
-                const welcomeChat = {
-                    participants: [userId, "system"],
-                    lastMessage: "Welcome to FoodShare!",
-                    lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
-                    lastSenderId: "system",
-                    isSystemChat: true,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                };
-                
-                // Create the chat document
-                const chatRef = await db.collection("chats").add(welcomeChat);
-                
-                // Create welcome message
-                const welcomeMessage = {
-                    id: "welcome-" + Date.now(),
-                    text: `Welcome ${userName} to FoodShare! We're excited to have you on board. 
-                          ${selectedRole === "donor" ? 
-                           "You can now start sharing your surplus food with those in need." : 
-                           "You can now browse available food listings in your area."}`,
-                    senderId: "system",
-                    senderName: "FoodShare Team",
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                    isSystemMessage: true
-                };
-                
-                // Add message to the chat
-                await chatRef.collection("messages").doc(welcomeMessage.id).set(welcomeMessage);
-                
-            } catch (error) {
-                console.error("Error sending welcome message:", error);
-                // Don't block user flow if welcome message fails
-            }
+            unsubscribeMessages = db.collection("chats").doc(chatId)
+                .collection("messages")
+                .orderBy("timestamp", "asc")
+                .onSnapshot(snapshot => {
+                    messagesContainer.innerHTML = ''; // Always clear and rebuild for simplicity
+                    
+                    snapshot.forEach(doc => {
+                        const message = doc.data();
+                        addMessageToUI(message);
+                    });
+                    
+                    // Scroll to bottom
+                    setTimeout(() => {
+                        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                    }, 100);
+                }, error => {
+                    console.error("Error loading messages:", error);
+                });
         }
 
         function addMessageToUI(message) {
-    const messagesContainer = document.getElementById("chatMessages");
-    
-    const messageElement = document.createElement("div");
-    messageElement.className = `message ${message.senderId === currentUser.id ? 'sent' : 
-                              (message.senderId === "system" ? 'system' : 'received')}`;
-    messageElement.setAttribute("data-message-id", message.id);
-    
-    const messageTime = message.timestamp ? formatTime(message.timestamp.toDate()) : "Just now";
-    
-    messageElement.innerHTML = `
-        ${message.senderId !== "system" ? '' : '<div class="system-message-label">FoodShare Team</div>'}
-        <div>${message.text}</div>
-        <div class="message-time">${messageTime}</div>
-    `;
-    
-    messagesContainer.appendChild(messageElement);
-}
+            const messagesContainer = document.getElementById("chatMessages");
+            
+            const messageElement = document.createElement("div");
+            messageElement.className = `message ${message.senderId === currentUser.id ? 'sent' : 
+                                      (message.senderId === "system" ? 'system' : 'received')}`;
+            messageElement.setAttribute("data-message-id", message.id);
+            
+            const messageTime = message.timestamp ? formatTime(message.timestamp.toDate()) : "Just now";
+            
+            messageElement.innerHTML = `
+                ${message.senderId !== "system" ? '' : '<div class="system-message-label">FoodShare Team</div>'}
+                <div>${message.text}</div>
+                <div class="message-time">${messageTime}</div>
+            `;
+            
+            messagesContainer.appendChild(messageElement);
+        }
 
         async function markMessagesAsRead(chatId) {
             try {
@@ -2891,47 +3455,47 @@ const categoryImages = {
         }
 
         async function sendMessage() {
-    const messageInput = document.getElementById("messageInput");
-    const messageText = messageInput.value.trim();
-    
-    if (!messageText || !currentChatId || !currentUser || !recipientData) {
-        return;
-    }
-    
-    // Create a message ID manually since we're using .add()
-    const messageId = db.collection("chats").doc().id;
-    
-    // Create message object
-    const message = {
-        id: messageId,
-        text: messageText,
-        senderId: currentUser.id,
-        senderName: currentUser.name,
-        timestamp: firebase.firestore.FieldValue.serverTimestamp()
-    };
-    
-    try {
-        // Add message to subcollection
-        await db.collection("chats").doc(currentChatId)
-            .collection("messages").doc(messageId).set(message);
-        
-        // Update chat metadata
-        await db.collection("chats").doc(currentChatId).update({
-            lastMessage: messageText,
-            lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
-            lastSenderId: currentUser.id,
-            unreadCount: firebase.firestore.FieldValue.increment(1),
-            unreadFor: recipientData.id
-        });
-        
-        // Clear input
-        messageInput.value = "";
-        
-    } catch (error) {
-        console.error("Error sending message:", error);
-        alert("Failed to send message. Please try again.");
-    }
-}
+            const messageInput = document.getElementById("messageInput");
+            const messageText = messageInput.value.trim();
+            
+            if (!messageText || !currentChatId || !currentUser || !recipientData) {
+                return;
+            }
+            
+            // Create a message ID manually since we're using .add()
+            const messageId = db.collection("chats").doc().id;
+            
+            // Create message object
+            const message = {
+                id: messageId,
+                text: messageText,
+                senderId: currentUser.id,
+                senderName: currentUser.name,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            
+            try {
+                // Add message to subcollection
+                await db.collection("chats").doc(currentChatId)
+                    .collection("messages").doc(messageId).set(message);
+                
+                // Update chat metadata
+                await db.collection("chats").doc(currentChatId).update({
+                    lastMessage: messageText,
+                    lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
+                    lastSenderId: currentUser.id,
+                    unreadCount: firebase.firestore.FieldValue.increment(1),
+                    unreadFor: recipientData.id
+                });
+                
+                // Clear input
+                messageInput.value = "";
+                
+            } catch (error) {
+                console.error("Error sending message:", error);
+                alert("Failed to send message. Please try again.");
+            }
+        }
 
         function formatTime(date) {
             if (!date) return "";
@@ -2946,13 +3510,71 @@ const categoryImages = {
             }
         }
 
+        // Alerts functions
+        function loadAlerts() {
+            // In a real app, this would fetch alerts from Firestore
+            // For now, we'll simulate some alerts
+            const alerts = [
+                {
+                    id: "1",
+                    title: "New feature available",
+                    message: "You can now rate your food sharing experiences",
+                    icon: "fas fa-star",
+                    time: "2 hours ago"
+                },
+                {
+                    id: "2",
+                    title: "Request accepted",
+                    message: "John has accepted your request for bread",
+                    icon: "fas fa-check-circle",
+                    time: "1 day ago"
+                }
+            ];
+            
+            populateAlerts(alerts);
+        }
+        
+        function populateAlerts(alerts) {
+            const alertsList = document.getElementById("alertsList");
+            alertsList.innerHTML = '';
+            
+            if (alerts.length === 0) {
+                alertsList.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-bell-slash"></i>
+                        <h3>No alerts yet</h3>
+                        <p>You'll see important notifications here</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            alerts.forEach(alert => {
+                const alertElement = document.createElement("div");
+                alertElement.className = "alert-item";
+                alertElement.innerHTML = `
+                    <div class="alert-icon">
+                        <i class="${alert.icon}"></i>
+                    </div>
+                    <div class="alert-content">
+                        <div class="alert-title">${alert.title}</div>
+                        <div class="alert-message">${alert.message}</div>
+                        <div class="alert-time">${alert.time}</div>
+                    </div>
+                `;
+                alertsList.appendChild(alertElement);
+            });
+        }
+
         // Donation form functions
         function showDonationForm() {
             // Hide current screen
             if (currentUser.role === "donor") {
                 document.getElementById("donorScreen").style.display = "none";
+                document.getElementById("donorListingsScreen").style.display = "none";
             } else {
                 document.getElementById("receiverScreen").style.display = "none";
+                document.getElementById("receiverListingsScreen").style.display = "none";
             }
             
             // Show donation form
@@ -2963,104 +3585,104 @@ const categoryImages = {
             document.getElementById("imagePreview").style.display = "none";
         }
         
-    // Function to check and delete expired listings
-    async function checkExpiredListings() {
-        try {
-            const now = new Date();
-            const expiredListings = await db.collection("listings")
-                .where("expiryDate", "<=", now.toISOString())
-                .get();
+        // Function to check and delete expired listings
+        async function checkExpiredListings() {
+            try {
+                const now = new Date();
+                const expiredListings = await db.collection("listings")
+                    .where("expiryDate", "<=", now.toISOString())
+                    .get();
 
-            const batch = db.batch();
-            expiredListings.forEach(doc => {
-                batch.delete(doc.ref);
-            });
+                const batch = db.batch();
+                expiredListings.forEach(doc => {
+                    batch.delete(doc.ref);
+                });
 
-            await batch.commit();
-            console.log(`Deleted ${expiredListings.size} expired listings`);
-            
-            // Also delete listings marked as requested more than 24 hours ago
-            const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-            const requestedListings = await db.collection("listings")
-                .where("isAvailable", "==", false)
-                .where("updatedAt", "<=", twentyFourHoursAgo.toISOString())
-                .get();
+                await batch.commit();
+                console.log(`Deleted ${expiredListings.size} expired listings`);
+                
+                // Also delete listings marked as requested more than 24 hours ago
+                const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+                const requestedListings = await db.collection("listings")
+                    .where("isAvailable", "==", false)
+                    .where("updatedAt", "<=", twentyFourHoursAgo.toISOString())
+                    .get();
 
-            const requestedBatch = db.batch();
-            requestedListings.forEach(doc => {
-                requestedBatch.delete(doc.ref);
-            });
+                const requestedBatch = db.batch();
+                requestedListings.forEach(doc => {
+                    requestedBatch.delete(doc.ref);
+                });
 
-            await requestedBatch.commit();
-            console.log(`Deleted ${requestedListings.size} requested listings`);
+                await requestedBatch.commit();
+                console.log(`Deleted ${requestedListings.size} requested listings`);
 
-            // Refresh listings if we're on a screen that shows them
-            if (currentScreen === "donor" || currentScreen === "receiver") {
-                loadListings();
+                // Refresh listings if we're on a screen that shows them
+                if (currentScreen === "donor" || currentScreen === "receiver" || 
+                    currentScreen === "donorListings" || currentScreen === "receiverListings") {
+                    loadListings();
+                }
+            } catch (error) {
+                console.error("Error deleting expired listings:", error);
             }
-        } catch (error) {
-            console.error("Error deleting expired listings:", error);
-        }
-    }
-
-    // submitDonation function
-    async function submitDonation() {
-        const submitBtn = document.getElementById("submitDonationBtn");
-        const title = document.getElementById("foodTitle").value.trim();
-        const description = document.getElementById("foodDescription").value.trim();
-        const expiryDate = document.getElementById("expiryDate").value;
-        const pickupAddress = document.getElementById("pickupAddress").value.trim();
-        const category = document.getElementById("foodCategory").value;
-        
-        // Validate inputs
-        if (!title || !description || !expiryDate || !pickupAddress) {
-            alert("Please fill in all required fields");
-            return;
         }
 
-        // Show loading state
-        submitBtn.innerHTML = '<div class="loading-spinner"></div>';
-        submitBtn.disabled = true;
+        // submitDonation function
+        async function submitDonation() {
+            const submitBtn = document.getElementById("submitDonationBtn");
+            const title = document.getElementById("foodTitle").value.trim();
+            const description = document.getElementById("foodDescription").value.trim();
+            const expiryDate = document.getElementById("expiryDate").value;
+            const pickupAddress = document.getElementById("pickupAddress").value.trim();
+            const category = document.getElementById("foodCategory").value;
+            
+            // Validate inputs
+            if (!title || !description || !expiryDate || !pickupAddress) {
+                alert("Please fill in all required fields");
+                return;
+            }
 
-        try {
-            // Create listing object with category image
-            const listing = {
-                title: title,
-                description: description,
-                expiryDate: expiryDate,
-                pickupAddress: pickupAddress,
-                category: category,
-                imageUrl: categoryImages[category] || categoryImages.other,
-                donorId: currentUser.id,
-                donorName: currentUser.name,
-                distance: "0.5 miles",
-                isAvailable: true,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            };
-            
-            // Save listing to Firestore
-            await db.collection("listings").add(listing);
-            
-            // Update user stats
-            await db.collection("users").doc(currentUser.id).update({
-                totalDonations: firebase.firestore.FieldValue.increment(1)
-            });
-            
-            // Close form and refresh listings
-            closeDonationForm();
-            loadListings();
-            
-        } catch (error) {
-            console.error("Error submitting donation:", error);
-            alert("Failed to create listing. Please try again.");
-        } finally {
-            // Reset button state
-            submitBtn.innerHTML = '<i class="fas fa-plus"></i><span>Add Listing</span>';
-            submitBtn.disabled = false;
+            // Show loading state
+            submitBtn.innerHTML = '<div class="loading-spinner"></div>';
+            submitBtn.disabled = true;
+
+            try {
+                // Create listing object with category image
+                const listing = {
+                    title: title,
+                    description: description,
+                    expiryDate: expiryDate,
+                    pickupAddress: pickupAddress,
+                    category: category,
+                    imageUrl: categoryImages[category] || categoryImages.other,
+                    donorId: currentUser.id,
+                    donorName: currentUser.name,
+                    distance: "0.5 miles",
+                    isAvailable: true,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                };
+                
+                // Save listing to Firestore
+                await db.collection("listings").add(listing);
+                
+                // Update user stats
+                await db.collection("users").doc(currentUser.id).update({
+                    totalDonations: firebase.firestore.FieldValue.increment(1)
+                });
+                
+                // Close form and refresh listings
+                closeDonationForm();
+                loadListings();
+                
+            } catch (error) {
+                console.error("Error submitting donation:", error);
+                alert("Failed to create listing. Please try again.");
+            } finally {
+                // Reset button state
+                submitBtn.innerHTML = '<i class="fas fa-plus"></i><span>Add Listing</span>';
+                submitBtn.disabled = false;
+            }
         }
-    }
-
 
         function closeDonationForm() {
             document.getElementById("donationFormContainer").style.display = "none";
@@ -3071,9 +3693,17 @@ const categoryImages = {
             
             // Show previous screen
             if (currentUser.role === "donor") {
-                document.getElementById("donorScreen").style.display = "block";
+                if (currentScreen === "donorListings") {
+                    document.getElementById("donorListingsScreen").style.display = "block";
+                } else {
+                    document.getElementById("donorScreen").style.display = "block";
+                }
             } else {
-                document.getElementById("receiverScreen").style.display = "block";
+                if (currentScreen === "receiverListings") {
+                    document.getElementById("receiverListingsScreen").style.display = "block";
+                } else {
+                    document.getElementById("receiverScreen").style.display = "block";
+                }
             }
         }
 
@@ -3106,137 +3736,143 @@ const categoryImages = {
         }
 
         async function requestFood(listingId, donorId) {
-    try {
-        // First get the listing details
-        const listingDoc = await db.collection("listings").doc(listingId).get();
-        if (!listingDoc.exists) {
-            alert("This listing is no longer available");
-            loadListings(); // Refresh the listings
-            return;
-        }
+            try {
+                // First get the listing details
+                const listingDoc = await db.collection("listings").doc(listingId).get();
+                if (!listingDoc.exists) {
+                    alert("This listing is no longer available");
+                    loadListings(); // Refresh the listings
+                    return;
+                }
 
-        const listing = listingDoc.data();
-        
-        // Check if listing is still available
-        if (!listing.isAvailable) {
-            alert("This listing has already been requested by someone else");
-            loadListings(); // Refresh the listings
-            return;
-        }
+                const listing = listingDoc.data();
+                
+                // Check if listing is still available
+                if (!listing.isAvailable) {
+                    alert("This listing has already been requested by someone else");
+                    loadListings(); // Refresh the listings
+                    return;
+                }
 
-        // Mark the listing as unavailable immediately
-        await db.collection("listings").doc(listingId).update({
-            isAvailable: false,
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-            requestedBy: currentUser.id,
-            requesterName: currentUser.name
-        });
+                // Mark the listing as unavailable immediately
+                await db.collection("listings").doc(listingId).update({
+                    isAvailable: false,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    requestedBy: currentUser.id,
+                    requesterName: currentUser.name
+                });
 
-        // Check if chat already exists between these users for this listing
-        const chatQuery = await db.collection("chats")
-            .where("participants", "array-contains", currentUser.id)
-            .where("participants", "array-contains", donorId)
-            .where("listingId", "==", listingId)
-            .limit(1)
-            .get();
+                // Check if chat already exists between these users for this listing
+                const chatQuery = await db.collection("chats")
+                    .where("participants", "array-contains", currentUser.id)
+                    .where("participants", "array-contains", donorId)
+                    .where("listingId", "==", listingId)
+                    .limit(1)
+                    .get();
 
-        let chatId;
-        let isNewChat = false;
+                let chatId;
+                let isNewChat = false;
 
-        if (!chatQuery.empty) {
-            // Existing chat found
-            chatId = chatQuery.docs[0].id;
-            
-            // Update the chat with listing info if not already set
-            await db.collection("chats").doc(chatId).update({
-                listingId: listingId,
-                listingTitle: listing.title,
-                lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-            });
-        } else {
-            // Create new chat
-            const chatRef = await db.collection("chats").add({
-                participants: [currentUser.id, donorId],
-                lastMessage: "",
-                lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
-                lastSenderId: "",
-                unreadCount: 0,
-                unreadFor: donorId, // Mark as unread for donor
-                listingId: listingId,
-                listingTitle: listing.title,
-                listingImage: listing.imageUrl,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-            
-            chatId = chatRef.id;
-            isNewChat = true;
-        }
+                if (!chatQuery.empty) {
+                    // Existing chat found
+                    chatId = chatQuery.docs[0].id;
+                    
+                    // Update the chat with listing info if not already set
+                    await db.collection("chats").doc(chatId).update({
+                        listingId: listingId,
+                        listingTitle: listing.title,
+                        lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                } else {
+                    // Create new chat
+                    const chatRef = await db.collection("chats").add({
+                        participants: [currentUser.id, donorId],
+                        lastMessage: "",
+                        lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
+                        lastSenderId: "",
+                        unreadCount: 0,
+                        unreadFor: donorId, // Mark as unread for donor
+                        listingId: listingId,
+                        listingTitle: listing.title,
+                        listingImage: listing.imageUrl,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    
+                    chatId = chatRef.id;
+                    isNewChat = true;
+                }
 
-        // Get donor info
-        const donorDoc = await db.collection("users").doc(donorId).get();
-        if (!donorDoc.exists) {
-            throw new Error("Donor not found");
-        }
-        
-        const donorData = donorDoc.data();
+                // Get donor info
+                const donorDoc = await db.collection("users").doc(donorId).get();
+                if (!donorDoc.exists) {
+                    throw new Error("Donor not found");
+                }
+                
+                const donorData = donorDoc.data();
 
-        // If new chat, add welcome message
-        if (isNewChat) {
-            const welcomeMessage = {
-                id: `welcome-${Date.now()}`,
-                text: `${currentUser.name} has requested your "${listing.title}" listing.`,
-                senderId: "system",
-                senderName: "FoodShare",
-                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                isSystemMessage: true,
-                listingId: listingId
-            };
-            
-            await db.collection("chats").doc(chatId)
-                .collection("messages").doc(welcomeMessage.id).set(welcomeMessage);
-            
-            // Update chat with last message
-            await db.collection("chats").doc(chatId).update({
-                lastMessage: welcomeMessage.text,
-                lastSenderId: "system"
-            });
-        }
+                // If new chat, add welcome message
+                if (isNewChat) {
+                    const welcomeMessage = {
+                        id: `welcome-${Date.now()}`,
+                        text: `${currentUser.name} has requested your "${listing.title}" listing.`,
+                        senderId: "system",
+                        senderName: "FoodShare",
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                        isSystemMessage: true,
+                        listingId: listingId
+                    };
+                    
+                    await db.collection("chats").doc(chatId)
+                        .collection("messages").doc(welcomeMessage.id).set(welcomeMessage);
+                    
+                    // Update chat with last message
+                    await db.collection("chats").doc(chatId).update({
+                        lastMessage: welcomeMessage.text,
+                        lastSenderId: "system"
+                    });
+                }
 
-        // Show success message
-        alert(`You've successfully requested "${listing.title}". You can now chat with ${donorData.name} to arrange pickup.`);
+                // Show success message
+                alert(`You've successfully requested "${listing.title}". You can now chat with ${donorData.name} to arrange pickup.`);
 
-        // Refresh listings to show the updated status
-        loadListings();
+                // Refresh listings to show the updated status
+                loadListings();
 
-        // Navigate to messages and open chat
-        navigateTo("messages");
-        setTimeout(() => {
-            openChatConversation(chatId, donorData);
-            
-            // Pre-fill message about the listing if it's a new chat
-            if (isNewChat) {
-                const messageInput = document.getElementById("messageInput");
-                messageInput.value = `Hi ${donorData.name}, I'm interested in your "${listing.title}" listing. When can I pick it up?`;
-                messageInput.focus();
+                // Navigate to messages and open chat
+                navigateTo("messages");
+                setTimeout(() => {
+                    openChatConversation(chatId, donorData);
+                    
+                    // Pre-fill message about the listing if it's a new chat
+                    if (isNewChat) {
+                        const messageInput = document.getElementById("messageInput");
+                        messageInput.value = `Hi ${donorData.name}, I'm interested in your "${listing.title}" listing. When can I pick it up?`;
+                        messageInput.focus();
+                    }
+                }, 100);
+
+            } catch (error) {
+                console.error("Error requesting food:", error);
+                
+                // If something went wrong, make the listing available again
+                try {
+                    await db.collection("listings").doc(listingId).update({
+                        isAvailable: true
+                    });
+                    loadListings(); // Refresh the listings
+                } catch (e) {
+                    console.error("Failed to revert listing status:", e);
+                }
+                
+                alert("Failed to request food. Please try again.");
             }
-        }, 100);
-
-    } catch (error) {
-        console.error("Error requesting food:", error);
-        
-        // If something went wrong, make the listing available again
-        try {
-            await db.collection("listings").doc(listingId).update({
-                isAvailable: true
-            });
-            loadListings(); // Refresh the listings
-        } catch (e) {
-            console.error("Failed to revert listing status:", e);
         }
         
-        alert("Failed to request food. Please try again.");
-    }
-}
+        // Initialize with checking expired listings
+        document.addEventListener("DOMContentLoaded", function() {
+            checkExpiredListings();
+            setInterval(checkExpiredListings, 3600000); // Check every hour
+        });
     </script>
 </body>
 </html>
