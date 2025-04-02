@@ -50,58 +50,117 @@
 
         /* Onboarding Slides */
         .onboarding-container {
-            position: fixed;
-            top: 0;
-            left: 0;
+            position: relative;
             width: 100%;
-            height: 100%;
+            height: 100vh;
+            max-width: 390px;
             background-color: white;
-            z-index: 9998;
             overflow: hidden;
+            padding: 64px 0 40px;
+            display: flex;
+            flex-direction: column;
         }
 
         .onboarding-slides {
             display: flex;
-            height: 100%;
-            padding-bottom: 100px;
-            transition: transform 0.3s ease;
+            transition: transform 0.5s cubic-bezier(0.4, 0.0, 0.2, 1);
+            flex: 1;
         }
 
         .onboarding-slide {
             min-width: 100%;
-            height: 100%;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            padding: 2rem;
+            padding: 20px;
             text-align: center;
+            position: relative;
+            z-index: 2;
         }
 
-        .slide-image {
-            width: 250px;
-            height: 250px;
-            margin-bottom: 2rem;
+        .slide-illustration {
+            width: 240px;
+            height: 240px;
+            margin-bottom: 24px;
+            margin-top: 20px;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .slide-image-container {
+            width: 180px;
+            height: 180px;
+            background-color: var(--bg-green-light);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            box-shadow: var(--shadow-sm);
+            animation: pulse 3s infinite ease-in-out;
+        }
+        
+         @keyframes pulse {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.2);
+            }
+            70% {
+                transform: scale(1.05);
+                box-shadow: 0 0 0 15px rgba(34, 197, 94, 0);
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+            }
+        }
+        
+       .slide-image {
+            width: 90px;
+            height: 90px;
             object-fit: contain;
         }
 
+        .slide-content {
+            max-width: 300px;
+            animation: fade-in 0.5s ease-out;
+        }
+
+        @keyframes fade-in {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
         .slide-title {
-            font-size: 1.75rem;
-            color: var(--primary-green-dark);
-            margin-bottom: 1rem;
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: var(--gray-600);
         }
 
         .slide-description {
-            color: var(--gray-600);
-            margin-bottom: 2rem;
-            line-height: 1.5;
-            max-width: 400px;
+            font-size: 16px;
+            line-height: 1.6;
+            color: var(--gray-400);
+            margin-bottom: 32px;
         }
 
         .slide-indicators {
             display: flex;
-            gap: 0.5rem;
-            margin-bottom: 2rem;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 5rem;
+            padding: 24px 0;
+            position: relative;
+            z-index: 2;
         }
 
         .slide-indicator {
@@ -109,9 +168,12 @@
             height: 8px;
             border-radius: 50%;
             background-color: var(--gray-300);
+            transition: all 0.3s ease;
         }
 
         .slide-indicator.active {
+            width: 28px;
+            border-radius: 12px;
             background-color: var(--primary-green);
         }
 
@@ -133,6 +195,49 @@
             color: var(--gray-400);
             font-weight: 500;
             cursor: pointer;
+        }
+        
+       /* Custom animations for each slide's icon */
+        #slide1 .slide-image {
+            animation: share-animation 5s infinite ease-in-out;
+        }
+
+        @keyframes share-animation {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        #slide2 .slide-image {
+            animation: find-animation 5s infinite ease-in-out;
+        }
+
+        @keyframes find-animation {
+            0%, 100% {
+                transform: rotate(0deg);
+            }
+            25% {
+                transform: rotate(5deg);
+            }
+            75% {
+                transform: rotate(-5deg);
+            }
+        }
+
+        #slide3 .slide-image {
+            animation: smile-animation 5s infinite ease-in-out;
+        }
+
+        @keyframes smile-animation {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
         }
 
         /* Auth Screens */
@@ -299,31 +404,6 @@
             text-align: center;
         }
 
-        .google-btn {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 0.75rem;
-            width: 100%;
-            padding: 0.85rem 0;
-            border: 1px solid var(--gray-300);
-            border-radius: 12px;
-            background-color: white;
-            color: var(--gray-600);
-            font-weight: 500;
-            cursor: pointer;
-            transition: background-color 0.2s, box-shadow 0.2s;
-        }
-
-        .google-btn:hover {
-            background-color: var(--gray-100);
-        }
-
-        .google-btn img {
-            width: 20px;
-            height: 20px;
-        }
-
         .auth-divider {
             display: flex;
             align-items: center;
@@ -384,6 +464,13 @@
             display: flex;
             gap: 1.5rem;
             align-items: center;
+        }
+        
+        .header-actions i {
+          font-size: 20px;
+          background:var(--gray-300) ;
+          border-radius: 50%;
+          padding: 10px;
         }
 
         .header-notification {
@@ -727,6 +814,10 @@
             flex-direction: column;
             align-items: center;
             color: white;
+            top: 0;
+            position: sticky;
+            margin-bottom: 23px;
+            border-radius: 0 0 15px 15px ;
         }
 
         .profile-pic {
@@ -787,6 +878,7 @@
 
         .profile-sections {
             padding: 1.5rem;
+            margin-bottom: 80px;
         }
 
         .profile-section {
@@ -1485,26 +1577,133 @@
         .greeting {
             text-transform: capitalize;
         }
+        
+    </style>
+    <style>
+            :root {
+            --primary-green: #22c55e;
+            --primary-green-dark: #16a34a;
+            --primary-green-light: #86efac;
+            --secondary-green: #4ade80;
+            --bg-green-light: #f0fdf4;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-600: #4b5563;
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+            --font-main: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        }
+    
+              .shape {
+            position: absolute;
+            opacity: 0.15;
+            z-index: 1;
+        }
+
+        .shape-circle {
+            border-radius: 50%;
+            background-color: var(--primary-green);
+            filter: blur(30px);
+        }
+
+        .shape-1 {
+            width: 230px;
+            height: 230px;
+            top: 10%;
+            left: -20%;
+            animation: float-slow 20s infinite alternate ease-in-out;
+        }
+
+        .shape-2 {
+            width: 180px;
+            height: 180px;
+            bottom: 15%;
+            right: -10%;
+            background-color: var(--primary-green-light);
+            animation: float-slow 15s infinite alternate-reverse ease-in-out;
+        }
+
+        .shape-3 {
+            width: 120px;
+            height: 120px;
+            bottom: 25%;
+            left: 10%;
+            background-color: var(--secondary-green);
+            animation: float-slow 18s infinite alternate ease-in-out;
+        }
+
+        @keyframes float-slow {
+            0% {
+                transform: translate(0, 0);
+            }
+            100% {
+                transform: translate(10px, 15px);
+            }
+        }
     </style>
 </head>
 <body>
     <!-- Onboarding Slides -->
     <div class="onboarding-container" id="onboardingContainer">
+      
+        <div class="shape shape-circle shape-1"></div>
+        <div class="shape shape-circle shape-2"></div>
+        <div class="shape shape-circle shape-3"></div>
+      
         <div class="onboarding-slides" id="onboardingSlides">
-            <div class="onboarding-slide">
-                <img src="https://cdn-icons-png.flaticon.com/512/869/869636.png" alt="Share Food" class="slide-image">
-                <h2 class="slide-title">Share Surplus Food</h2>
-                <p class="slide-description">Connect with your community to share excess food and reduce waste.</p>
+          
+             <div class="onboarding-slide">
+                <div class="slide-illustration">
+                    <div class="slide-image-container">
+                        <svg class="slide-image" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M19 10H5C3.89543 10 3 10.8954 3 12V19C3 20.1046 3.89543 21 5 21H19C20.1046 21 21 20.1046 21 19V12C21 10.8954 20.1046 10 19 10Z" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M12 15C13.1046 15 14 14.1046 14 13C14 11.8954 13.1046 11 12 11C10.8954 11 10 11.8954 10 13C10 14.1046 10.8954 15 12 15Z" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M17 3L12 7L7 3" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M7 7H17" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="slide-content">
+                    <h2 class="slide-title">Share Surplus Food</h2>
+                    <p class="slide-description">Connect with your community to share excess food and reduce waste through our simple sharing platform.</p>
+                </div>
             </div>
+            
             <div class="onboarding-slide">
-                <img src="https://cdn-icons-png.flaticon.com/512/3174/3174825.png" alt="Find Food" class="slide-image">
-                <h2 class="slide-title">Find Available Food</h2>
-                <p class="slide-description">Discover fresh food shared by others in your neighborhood.</p>
+                <div class="slide-illustration">
+                    <div class="slide-image-container">
+                        <svg class="slide-image" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M17.5 21H6.5C5.11929 21 4 19.8807 4 18.5V5.5C4 4.11929 5.11929 3 6.5 3H17.5C18.8807 3 20 4.11929 20 5.5V18.5C20 19.8807 18.8807 21 17.5 21Z" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M9 7H15" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M9 11H15" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M9 15H13" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="slide-content">
+                    <h2 class="slide-title">Find Available Food</h2>
+                    <p class="slide-description">Discover fresh food shared by neighbors in your community with real-time updates and easy pick-up options.</p>
+                </div>
             </div>
+            
             <div class="onboarding-slide">
-                <img src="https://cdn-icons-png.flaticon.com/512/2491/2491909.png" alt="Make a Difference" class="slide-image">
-                <h2 class="slide-title">Make a Difference</h2>
-                <p class="slide-description">Join the movement to fight food waste and help those in need.</p>
+                <div class="slide-illustration">
+                    <div class="slide-image-container">
+                        <svg class="slide-image" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M8 14C8 14 9.5 16 12 16C14.5 16 16 14 16 14" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M9 9H9.01" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M15 9H15.01" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="slide-content">
+                    <h2 class="slide-title">Make a Difference</h2>
+                    <p class="slide-description">Join thousands fighting food waste while building stronger communities and helping those in need around you.</p>
+                </div>
             </div>
         </div>
         
@@ -1624,7 +1823,7 @@
                         <span class="notification-badge" id="donorNotificationBadge" style="display: none;">3</span>
                     </div>
                     <div class="profile-avatar" onclick="navigateTo('profile')">
-                        <div class="profile-avatar-initial" id="donorAvatar">J</div>
+                    <i class="fas fa-user"></i>
                     </div>
                 </div>
             </div>
@@ -1729,7 +1928,7 @@
                         <span class="notification-badge" id="donorListingsNotificationBadge" style="display: none;">3</span>
                     </div>
                     <div class="profile-avatar" onclick="navigateTo('profile')">
-                        <div class="profile-avatar-initial" id="donorListingsAvatar">J</div>
+                    <i class="fas fa-user"></i>
                     </div>
                 </div>
             </div>
@@ -1784,7 +1983,7 @@
                         <span class="notification-badge" id="receiverNotificationBadge" style="display: none;">3</span>
                     </div>
                     <div class="profile-avatar" onclick="navigateTo('profile')">
-                        <div class="profile-avatar-initial" id="receiverAvatar">J</div>
+                    <i class="fas fa-user"></i>
                     </div>
                 </div>
             </div>
