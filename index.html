@@ -1823,6 +1823,20 @@
             color: var(--primary-green-dark);
             margin-top: 1.5rem;
         }
+        
+.donor-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.8rem;
+    color: var(--gray-600);
+    font-size: 0.9rem;
+}
+
+.donor-info i {
+    color: var(--primary-green);
+    font-size: 1.1rem;
+}
     </style>
 </head>
 <body>
@@ -3502,66 +3516,79 @@
         }
 
         function createListingElement(listing, isOwner) {
-            const foodCard = document.createElement("div");
-            foodCard.className = "food-card";
+    const foodCard = document.createElement("div");
+    foodCard.className = "food-card";
+    
+    // Calculate days until expiry
+    let daysUntilExpiry = "N/A";
+    if (listing.expiryDate) {
+        const expiryDate = new Date(listing.expiryDate);
+        const today = new Date();
+        const timeDiff = expiryDate.getTime() - today.getTime();
+        daysUntilExpiry = Math.ceil(timeDiff / (1000 * 3600 * 24));
+    }
+
+    // Format category
+    const category = listing.category 
+        ? listing.category.charAt(0).toUpperCase() + listing.category.slice(1)
+        : 'Other';
+
+    // Add donor information if not the owner (for receivers)
+    const donorInfo = !isOwner && listing.donorName 
+        ? `<div class="donor-info">
+              <i class="fas fa-user-circle"></i>
+              <span>Donated by ${listing.donorName}</span>
+           </div>`
+        : '';
+
+    foodCard.innerHTML = `
+        <img src="${listing.imageUrl || categoryImages[listing.category] || categoryImages.other}" 
+             alt="${listing.title}" 
+             class="food-image">
+        <div class="food-content">
+            <div class="food-title">
+                <h3>${listing.title || 'Unnamed Listing'}</h3>
+                <span class="food-badge">${category}</span>
+            </div>
             
-            // Calculate days until expiry
-            let daysUntilExpiry = "N/A";
-            if (listing.expiryDate) {
-                const expiryDate = new Date(listing.expiryDate);
-                const today = new Date();
-                const timeDiff = expiryDate.getTime() - today.getTime();
-                daysUntilExpiry = Math.ceil(timeDiff / (1000 * 3600 * 24));
-            }
-        
-            // Format category
-            const category = listing.category 
-                ? listing.category.charAt(0).toUpperCase() + listing.category.slice(1)
-                : 'Other';
-        
-            foodCard.innerHTML = `
-                <img src="${listing.imageUrl || categoryImages[listing.category] || categoryImages.other}" alt="${listing.title}" class="food-image">
-                <div class="food-content">
-                    <div class="food-title">
-                        <h3>${listing.title || 'Unnamed Listing'}</h3>
-                        <span class="food-badge">${category}</span>
-                    </div>
-                    <div class="food-meta">
-                        <div class="meta-item">
-                            <i class="fas fa-clock"></i>
-                            <span>Expires in ${daysUntilExpiry} days</span>
-                        </div>
-                        <div class="meta-item">
-                            <i class="fas fa-map-marker-alt"></i>
-                            <span>${listing.distance || '0.5 miles'}</span>
-                        </div>
-                    </div>
-                    <p class="food-description">${listing.description || 'No description provided'}</p>
-                    <div class="food-actions">
-                        ${isOwner ? 
-                            `<button class="btn btn-secondary" onclick="editListing('${listing.id}')">
-                                <i class="fas fa-edit"></i>
-                                <span>Edit</span>
-                            </button>
-                            <button class="btn btn-primary" onclick="viewRequests('${listing.id}')">
-                                <i class="fas fa-users"></i>
-                                <span>Requests</span>
-                            </button>` :
-                            `<button class="btn btn-secondary" onclick="viewDetails('${listing.id}')">
-                                <i class="fas fa-info-circle"></i>
-                                <span>Details</span>
-                            </button>
-                            <button class="btn btn-primary" onclick="requestFood('${listing.id}', '${listing.donorId}')">
-                                <i class="fas fa-hand-holding-heart"></i>
-                                <span>Request</span>
-                            </button>`
-                        }
-                    </div>
+            ${donorInfo}
+            
+            <div class="food-meta">
+                <div class="meta-item">
+                    <i class="fas fa-clock"></i>
+                    <span>Expires in ${daysUntilExpiry} days</span>
                 </div>
-            `;
-            
-            return foodCard;
-        }
+                <div class="meta-item">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>${listing.distance || '0.5 miles'}</span>
+                </div>
+            </div>
+            <p class="food-description">${listing.description || 'No description provided'}</p>
+            <div class="food-actions">
+                ${isOwner ? 
+                    `<button class="btn btn-secondary" onclick="editListing('${listing.id}')">
+                        <i class="fas fa-edit"></i>
+                        <span>Edit</span>
+                    </button>
+                    <button class="btn btn-primary" onclick="viewRequests('${listing.id}')">
+                        <i class="fas fa-users"></i>
+                        <span>Requests</span>
+                    </button>` :
+                    `<button class="btn btn-secondary" onclick="viewDetails('${listing.id}')">
+                        <i class="fas fa-info-circle"></i>
+                        <span>Details</span>
+                    </button>
+                    <button class="btn btn-primary" onclick="requestFood('${listing.id}', '${listing.donorId}')">
+                        <i class="fas fa-hand-holding-heart"></i>
+                        <span>Request</span>
+                    </button>`
+                }
+            </div>
+        </div>
+    `;
+    
+    return foodCard;
+}
     
         function searchListings(query) {
             activeSearchQuery = query;
