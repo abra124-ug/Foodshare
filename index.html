@@ -62,6 +62,15 @@
             display: flex;
             flex-direction: column;
         }
+        
+  .onboarding-container {
+    overflow: hidden;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
 
         .onboarding-slides {
             display: flex;
@@ -1793,12 +1802,46 @@
                 transform: translate(10px, 15px);
             }
         }
+        
+        /* Loading Screen */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+        
+        .loading-content {
+            text-align: center;
+        }
+        
+        .loading-screen h2 {
+            color: var(--primary-green-dark);
+            margin-top: 1.5rem;
+        }
     </style>
 </head>
 <body>
+    <!-- Initial Loading Screen -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-content">
+            <div class="hourglass-spinner">
+                <i class="fas fa-hourglass-half"></i>
+            </div>
+            <h2>Loading FoodShare</h2>
+        </div>
+    </div>
+  
     <!-- Onboarding Slides -->
-    <div class="onboarding-container" id="onboardingContainer">
-      
+      <div class="onboarding-container" id="onboardingContainer" style="display: none;">
+       
         <div class="shape shape-circle shape-1"></div>
         <div class="shape shape-circle shape-2"></div>
         <div class="shape shape-circle shape-3"></div>
@@ -1870,7 +1913,7 @@
     </div>
 
     <!-- Auth Screen -->
-    <div class="auth-screen" id="authScreen">
+    <div class="auth-screen" id="authScreen" style="display: none;">
         <div class="auth-logo">
             <i class="fas fa-seedling"></i>
             <h1>Food Share</h1>
@@ -2670,31 +2713,69 @@
 
         // Initialize the app
         document.addEventListener("DOMContentLoaded", function() {
-            // Initialize onboarding slides
+            // Show loading screen immediately
+            document.getElementById("loadingScreen").style.display = "flex";
+            document.querySelector("#loadingScreen .hourglass-spinner i").classList.add("fa-spin");
+            
+            // Initialize onboarding event listeners
             initOnboarding();
             
             // Check if user has completed onboarding
             const onboardingCompleted = localStorage.getItem("onboardingCompleted");
             
-            if (!onboardingCompleted) {
-                // Show onboarding slides
-                document.getElementById("onboardingContainer").style.display = "block";
-                currentScreen = "onboarding";
-            } else {
-                // Check Firebase auth state
+            // Check Firebase auth state after a brief delay
+            setTimeout(() => {
                 auth.onAuthStateChanged(user => {
                     if (user) {
-                        // User is signed in
+                        // User is signed in - load their data
                         loadUserData(user.uid);
                     } else {
                         // No user is signed in
-                        document.getElementById("authScreen").style.display = "block";
-                        currentScreen = "auth";
+                        setTimeout(() => {
+                            document.getElementById("loadingScreen").style.display = "none";
+                            
+                            if (!onboardingCompleted) {
+                                // New user - show onboarding
+                                document.getElementById("onboardingContainer").style.display = "block";
+                                currentScreen = "onboarding";
+                            } else {
+                                // Returning user who needs to sign in
+                                document.getElementById("authScreen").style.display = "block";
+                                currentScreen = "auth";
+                            }
+                        }, 500);
                     }
                 });
-            }
+            }, 500);
+        
+            // Initialize periodic checks for expired listings
+            checkExpiredListings();
+            setInterval(checkExpiredListings, 3600000); // Check every hour
         });
-
+        
+        // Initialize onboarding functionality
+        function initOnboarding() {
+            document.getElementById("nextBtn").addEventListener("click", nextSlide);
+            document.getElementById("skipBtn").addEventListener("click", skipOnboarding);
+            
+            // Reset slide position when initializing
+            currentSlide = 0;
+            document.getElementById("onboardingSlides").style.transform = "translateX(0)";
+            
+            // Reset indicators
+            const indicators = document.querySelectorAll(".slide-indicator");
+            indicators.forEach((indicator, index) => {
+                if (index === 0) {
+                    indicator.classList.add("active");
+                } else {
+                    indicator.classList.remove("active");
+                }
+            });
+            
+            // Reset button text
+            document.getElementById("nextBtn").textContent = "Next";
+        }
+       
         // Load user data from Firestore
         async function loadUserData(userId) {
             try {
@@ -2705,10 +2786,15 @@
                         ...userDoc.data()
                     };
                     localStorage.setItem("currentUser", JSON.stringify(currentUser));
-                    showAppScreen();
-                    updateGreeting();
+                    
+                    // Hide loading screen and show app
+                    setTimeout(() => {
+                        document.getElementById("loadingScreen").style.display = "none";
+                        showAppScreen();
+                        updateGreeting();
+                    }, 500);
                 } else {
-                    // User document doesn't exist - should not happen
+                    // User document doesn't exist - log them out
                     console.error("User document not found");
                     logout();
                 }
@@ -2779,11 +2865,20 @@
         }
 
         function skipOnboarding() {
-            localStorage.setItem("onboardingCompleted", "true");
-            document.getElementById("onboardingContainer").style.display = "none";
-            document.getElementById("authScreen").style.display = "block";
-            currentScreen = "auth";
-        }
+    localStorage.setItem("onboardingCompleted", "true");
+    document.getElementById("onboardingContainer").style.display = "none";
+    document.getElementById("authScreen").style.display = "block";
+    currentScreen = "auth";
+    
+    // Reset onboarding state if they want to go back
+    currentSlide = 0;
+    document.getElementById("onboardingSlides").style.transform = "translateX(0)";
+    const indicators = document.querySelectorAll(".slide-indicator");
+    indicators[0].classList.add("active");
+    indicators[1].classList.remove("active");
+    indicators[2].classList.remove("active");
+    document.getElementById("nextBtn").textContent = "Next";
+}
 
         // Authentication functions
         function switchTab(tab) {
@@ -3100,36 +3195,38 @@
         
         // Logout function
         function logout() {
-            // Unsubscribe from listeners
-            if (unsubscribeChats) unsubscribeChats();
-            if (unsubscribeMessages) unsubscribeMessages();
-            if (unsubscribeListings) unsubscribeListings();
-            
-            auth.signOut().then(() => {
-                // Sign-out successful
-                localStorage.removeItem("currentUser");
-                currentUser = null;
-                
-                // Hide all screens
-                document.querySelectorAll(".app-screen").forEach(screen => {
-                    screen.style.display = "none";
-                });
-                document.getElementById("chatPage").style.display = "none";
-                document.getElementById("chatConversation").style.display = "none";
-                document.getElementById("donationFormContainer").style.display = "none";
-                document.getElementById("alertsPage").style.display = "none";
-                
-                // Reset forms
-                document.getElementById("loginForm").reset();
-                document.getElementById("signupForm").reset();
-                
-                // Show auth screen
-                document.getElementById("authScreen").style.display = "block";
-                currentScreen = "auth";
-            }).catch((error) => {
-                alert("Error signing out: " + error.message);
-            });
-        }
+    // Unsubscribe from listeners
+    if (unsubscribeChats) unsubscribeChats();
+    if (unsubscribeMessages) unsubscribeMessages();
+    if (unsubscribeListings) unsubscribeListings();
+    
+    auth.signOut().then(() => {
+        // Sign-out successful
+        localStorage.removeItem("currentUser");
+        currentUser = null;
+        
+        // Hide all screens including loading screen
+        document.getElementById("loadingScreen").style.display = "none";
+        document.querySelectorAll(".app-screen").forEach(screen => {
+            screen.style.display = "none";
+        });
+        document.getElementById("chatPage").style.display = "none";
+        document.getElementById("chatConversation").style.display = "none";
+        document.getElementById("donationFormContainer").style.display = "none";
+        document.getElementById("alertsPage").style.display = "none";
+        document.getElementById("welcomeScreen").style.display = "none";
+        
+        // Reset forms
+        document.getElementById("loginForm").reset();
+        document.getElementById("signupForm").reset();
+        
+        // Show auth screen
+        document.getElementById("authScreen").style.display = "block";
+        currentScreen = "auth";
+    }).catch((error) => {
+        alert("Error signing out: " + error.message);
+    });
+}
         
         // Delete account function
         function confirmDeleteAccount() {
@@ -4220,8 +4317,9 @@
         
         // Initialize with checking expired listings
         document.addEventListener("DOMContentLoaded", function() {
+            initOnboarding(); // Add this line
             checkExpiredListings();
-            setInterval(checkExpiredListings, 3600000); // Check every hour
+            setInterval(checkExpiredListings, 3600000);
         });
     </script>
     
