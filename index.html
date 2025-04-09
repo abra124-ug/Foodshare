@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Food Share App</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
@@ -32,8 +34,7 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: var(--font-main);
-            -webkit-tap-highlight-color: transparent;
+            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
         }
 
         body {
@@ -3415,105 +3416,117 @@
             }
         }
 
-        function populateDonorListings(listings) {
-            const donorListings = document.getElementById("donorListings");
-            donorListings.innerHTML = '';
-            
-            if (listings.length === 0) {
-                donorListings.innerHTML = `
-                    <div class="empty-state" style="grid-column: 1/-1;">
-                        <i class="fas fa-box-open"></i>
-                        <h3>No listings yet</h3>
-                        <p>Create your first food listing to get started</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            listings.forEach(listing => {
-                const listingElement = createListingElement(listing, true);
-                donorListings.appendChild(listingElement);
-            });
-        }
+function populateDonorListings(listings) {
+    const donorListings = document.getElementById("donorListings");
+    donorListings.innerHTML = '';
+    
+    // Filter out expired listings first
+    const validListings = filterExpiredListings(listings);
+    
+    if (validListings.length === 0) {
+        donorListings.innerHTML = `
+            <div class="empty-state" style="grid-column: 1/-1;">
+                <i class="fas fa-box-open"></i>
+                <h3>No listings yet</h3>
+                <p>Create your first food listing to get started</p>
+            </div>
+        `;
+        return;
+    }
+    
+    validListings.forEach(listing => {
+        const listingElement = createListingElement(listing, true);
+        donorListings.appendChild(listingElement);
+    });
+}
 
-        function populateRecentRequests(listings) {
-            const recentRequests = document.getElementById("donorRecentRequests");
-            recentRequests.innerHTML = '';
-            
-            if (listings.length === 0) {
-                recentRequests.innerHTML = `
-                    <div class="empty-state" style="grid-column: 1/-1;">
-                        <i class="fas fa-users"></i>
-                        <h3>No recent requests</h3>
-                        <p>When someone requests your food, it will appear here</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            listings.forEach(listing => {
-                const listingElement = createListingElement(listing, true);
-                recentRequests.appendChild(listingElement);
-            });
-        }
+function populateRecentRequests(listings) {
+    const recentRequests = document.getElementById("donorRecentRequests");
+    recentRequests.innerHTML = '';
+    
+    // Filter out expired listings first
+    const validListings = filterExpiredListings(listings);
+    
+    if (validListings.length === 0) {
+        recentRequests.innerHTML = `
+            <div class="empty-state" style="grid-column: 1/-1;">
+                <i class="fas fa-users"></i>
+                <h3>No recent requests</h3>
+                <p>When someone requests your food, it will appear here</p>
+            </div>
+        `;
+        return;
+    }
+    
+    validListings.forEach(listing => {
+        const listingElement = createListingElement(listing, true);
+        recentRequests.appendChild(listingElement);
+    });
+}
 
-        function populateRecentListings(listings) {
-            const recentListings = document.getElementById("recentListings");
-            recentListings.innerHTML = '';
-            
-            if (listings.length === 0) {
-                recentListings.innerHTML = `
-                    <div class="empty-state" style="grid-column: 1/-1;">
-                        <i class="fas fa-search"></i>
-                        <h3>No listings available</h3>
-                        <p>Check back later for new food listings</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            listings.forEach(listing => {
-                const listingElement = createListingElement(listing, false);
-                recentListings.appendChild(listingElement);
-            });
-        }
+function populateRecentListings(listings) {
+    const recentListings = document.getElementById("recentListings");
+    recentListings.innerHTML = '';
+    
+    // Filter out expired listings first
+    const validListings = filterExpiredListings(listings);
+    
+    if (validListings.length === 0) {
+        recentListings.innerHTML = `
+            <div class="empty-state" style="grid-column: 1/-1;">
+                <i class="fas fa-search"></i>
+                <h3>No listings available</h3>
+                <p>Check back later for new food listings</p>
+            </div>
+        `;
+        return;
+    }
+    
+    validListings.forEach(listing => {
+        const listingElement = createListingElement(listing, false);
+        recentListings.appendChild(listingElement);
+    });
+}
 
-        function populateAvailableListings(listings) {
-            const availableListings = document.getElementById("availableListings");
-            availableListings.innerHTML = '';
-            
-            // Apply search filter if any
-            let filteredListings = listings;
-            if (activeSearchQuery) {
-                const query = activeSearchQuery.toLowerCase();
-                filteredListings = listings.filter(l => 
-                    l.title.toLowerCase().includes(query) || 
-                    l.description.toLowerCase().includes(query) ||
-                    l.category.toLowerCase().includes(query)
-                );
-            }
-            
-            // Apply category filter if not 'all'
-            if (activeFilter !== 'all') {
-                filteredListings = filteredListings.filter(l => l.category === activeFilter);
-            }
-            
-            if (filteredListings.length === 0) {
-                availableListings.innerHTML = `
-                    <div class="empty-state" style="grid-column: 1/-1;">
-                        <i class="fas fa-search"></i>
-                        <h3>No listings found</h3>
-                        <p>Try adjusting your search or filters</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            filteredListings.forEach(listing => {
-                const listingElement = createListingElement(listing, false);
-                availableListings.appendChild(listingElement);
-            });
-        }
+function populateAvailableListings(listings) {
+    const availableListings = document.getElementById("availableListings");
+    availableListings.innerHTML = '';
+    
+    // Filter out expired listings first
+    const validListings = filterExpiredListings(listings);
+    
+    // Apply search filter if any
+    let filteredListings = validListings;
+    if (activeSearchQuery) {
+        const query = activeSearchQuery.toLowerCase();
+        filteredListings = validListings.filter(l => 
+            l.title.toLowerCase().includes(query) || 
+            l.description.toLowerCase().includes(query) ||
+            l.category.toLowerCase().includes(query)
+        );
+    }
+    
+    // Apply category filter if not 'all'
+    if (activeFilter !== 'all') {
+        filteredListings = filteredListings.filter(l => l.category === activeFilter);
+    }
+    
+    if (filteredListings.length === 0) {
+        availableListings.innerHTML = `
+            <div class="empty-state" style="grid-column: 1/-1;">
+                <i class="fas fa-search"></i>
+                <h3>No listings found</h3>
+                <p>Try adjusting your search or filters</p>
+            </div>
+        `;
+        return;
+    }
+    
+    filteredListings.forEach(listing => {
+        const listingElement = createListingElement(listing, false);
+        availableListings.appendChild(listingElement);
+    });
+}
 
         function createListingElement(listing, isOwner) {
     const foodCard = document.createElement("div");
@@ -4057,45 +4070,81 @@
         }
         
         // Function to check and delete expired listings
-        async function checkExpiredListings() {
-            try {
-                const now = new Date();
-                const expiredListings = await db.collection("listings")
-                    .where("expiryDate", "<=", now.toISOString())
-                    .get();
+async function checkExpiredListings() {
+    try {
+        const now = new Date();
+        
+        // Convert to firestore timestamp for proper comparison
+        const nowTimestamp = firebase.firestore.Timestamp.fromDate(now);
+        
+        const expiredListings = await db.collection("listings")
+            .where("isAvailable", "==", true)
+            .get();
 
-                const batch = db.batch();
-                expiredListings.forEach(doc => {
-                    batch.delete(doc.ref);
-                });
-
-                await batch.commit();
-                console.log(`Deleted ${expiredListings.size} expired listings`);
-                
-                // Also delete listings marked as requested more than 24 hours ago
-                const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-                const requestedListings = await db.collection("listings")
-                    .where("isAvailable", "==", false)
-                    .where("updatedAt", "<=", twentyFourHoursAgo.toISOString())
-                    .get();
-
-                const requestedBatch = db.batch();
-                requestedListings.forEach(doc => {
-                    requestedBatch.delete(doc.ref);
-                });
-
-                await requestedBatch.commit();
-                console.log(`Deleted ${requestedListings.size} requested listings`);
-
-                // Refresh listings if we're on a screen that shows them
-                if (currentScreen === "donor" || currentScreen === "receiver" || 
-                    currentScreen === "donorListings" || currentScreen === "receiverListings") {
-                    loadListings();
-                }
-            } catch (error) {
-                console.error("Error deleting expired listings:", error);
+        const batch = db.batch();
+        let expiredCount = 0;
+        
+        expiredListings.forEach(doc => {
+            const listingData = doc.data();
+            // Convert string date to actual Date object for comparison
+            const expiryDate = new Date(listingData.expiryDate);
+            
+            if (expiryDate <= now) {
+                batch.delete(doc.ref);
+                expiredCount++;
             }
+        });
+
+        await batch.commit();
+        console.log(`Deleted ${expiredCount} expired listings`);
+        
+        // Also delete listings marked as requested more than 24 hours ago
+        const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        const requestedListings = await db.collection("listings")
+            .where("isAvailable", "==", false)
+            .get();
+
+        const requestedBatch = db.batch();
+        let oldRequestCount = 0;
+        
+        requestedListings.forEach(doc => {
+            const listingData = doc.data();
+            // Check if updatedAt timestamp exists and convert to date
+            if (listingData.updatedAt) {
+                const updatedDate = listingData.updatedAt instanceof firebase.firestore.Timestamp ? 
+                    listingData.updatedAt.toDate() : 
+                    new Date(listingData.updatedAt);
+                    
+                if (updatedDate <= twentyFourHoursAgo) {
+                    requestedBatch.delete(doc.ref);
+                    oldRequestCount++;
+                }
+            }
+        });
+
+        await requestedBatch.commit();
+        console.log(`Deleted ${oldRequestCount} old requested listings`);
+
+        // Refresh listings if we're on a screen that shows them
+        if (currentScreen === "donor" || currentScreen === "receiver" || 
+            currentScreen === "donorListings" || currentScreen === "receiverListings") {
+            loadListings();
         }
+    } catch (error) {
+        console.error("Error deleting expired listings:", error);
+    }
+}
+
+// Add this function to filter expired listings
+function filterExpiredListings(listings) {
+    const now = new Date();
+    return listings.filter(listing => {
+        // Convert string date to actual Date object
+        const expiryDate = new Date(listing.expiryDate); 
+        return expiryDate > now;
+    });
+}
+
 
         // submitDonation function
         async function submitDonation() {
@@ -4202,9 +4251,218 @@
             alert(`Requests for listing ${id} would show here`);
         }
 
-        function viewDetails(id) {
-            alert(`Details for listing ${id} would show here`);
+async function viewDetails(listingId) {
+    try {
+        // Get the listing details from Firestore
+        const listingDoc = await db.collection("listings").doc(listingId).get();
+        
+        if (!listingDoc.exists) {
+            alert("This listing is no longer available");
+            loadListings(); // Refresh the listings
+            return;
         }
+
+        const listing = listingDoc.data();
+        
+        // Get donor information
+        const donorDoc = await db.collection("users").doc(listing.donorId).get();
+        const donorData = donorDoc.exists ? donorDoc.data() : null;
+
+        // Calculate days until expiry
+        let daysUntilExpiry = "N/A";
+        if (listing.expiryDate) {
+            const expiryDate = new Date(listing.expiryDate);
+            const today = new Date();
+            const timeDiff = expiryDate.getTime() - today.getTime();
+            daysUntilExpiry = Math.ceil(timeDiff / (1000 * 3600 * 24));
+        }
+
+        // Create the modal HTML
+        const modalHTML = `
+            <div class="modal-overlay" id="listingModal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>${listing.title || 'Food Listing'}</h3>
+                        <button class="close-modal" onclick="closeModal()">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="listing-image-container">
+                            <img src="${listing.imageUrl || categoryImages[listing.category] || categoryImages.other}" 
+                                 alt="${listing.title}" 
+                                 class="listing-image">
+                        </div>
+                        
+                        <div class="listing-details">
+                            <div class="detail-row">
+                                <i class="fas fa-info-circle"></i>
+                                <p><strong>Description:</strong> ${listing.description || 'No description provided'}</p>
+                            </div>
+                            
+                            <div class="detail-row">
+                                <i class="fas fa-user-circle"></i>
+                                <p><strong>Donated by:</strong> ${donorData?.name || 'Anonymous'}</p>
+                            </div>
+                            
+                            <div class="detail-row">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <p><strong>Pickup Location:</strong> ${listing.pickupAddress || 'Address not specified'}</p>
+                            </div>
+                            
+                            <div class="detail-row">
+                                <i class="fas fa-clock"></i>
+                                <p><strong>Expires in:</strong> ${daysUntilExpiry} day${daysUntilExpiry !== 1 ? 's' : ''}</p>
+                            </div>
+                            
+                            <div class="detail-row">
+                                <i class="fas fa-tag"></i>
+                                <p><strong>Category:</strong> ${listing.category ? listing.category.charAt(0).toUpperCase() + listing.category.slice(1) : 'Other'}</p>
+                            </div>
+                            
+                            <div class="detail-row">
+                                <i class="fas fa-calendar-alt"></i>
+                                <p><strong>Posted:</strong> ${listing.createdAt?.toDate().toLocaleDateString() || 'Date not available'}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" onclick="closeModal()">
+                            <i class="fas fa-times"></i> Close
+                        </button>
+                        <button class="btn btn-primary" onclick="requestFood('${listingId}', '${listing.donorId}')">
+                            <i class="fas fa-hand-holding-heart"></i> Request This Food
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Add the modal to the page
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        
+        // Add the modal styles if they don't exist
+        addModalStyles();
+
+    } catch (error) {
+        console.error("Error showing listing details:", error);
+        alert("Failed to load listing details. Please try again.");
+    }
+}
+
+function closeModal() {
+    const modal = document.getElementById('listingModal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+function addModalStyles() {
+    // Only add styles if they haven't been added already
+    if (!document.getElementById('modal-styles')) {
+        const style = document.createElement('style');
+        style.id = 'modal-styles';
+        style.textContent = `
+            .modal-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background-color: rgba(0, 0, 0, 0.5);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 1000;
+                animation: fadeIn 0.3s ease;
+            }
+            
+            .modal-content {
+                background-color: white;
+                border-radius: 12px;
+                width: 90%;
+                max-width: 500px;
+                max-height: 90vh;
+                overflow-y: auto;
+                box-shadow: var(--shadow-lg);
+                animation: slideUp 0.3s ease;
+            }
+            
+            .modal-header {
+                padding: 1rem;
+                border-bottom: 1px solid var(--gray-200);
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            
+            .modal-header h3 {
+                margin: 0;
+                color: var(--gray-600);
+            }
+            
+            .close-modal {
+                background: none;
+                border: none;
+                font-size: 1.5rem;
+                cursor: pointer;
+                color: var(--gray-400);
+            }
+            
+            .modal-body {
+                padding: 1rem;
+            }
+            
+            .listing-image-container {
+                width: 100%;
+                height: 200px;
+                border-radius: 8px;
+                overflow: hidden;
+                margin-bottom: 1rem;
+            }
+            
+            .listing-image {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+            
+            .listing-details {
+                display: flex;
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .detail-row {
+                display: flex;
+                align-items: flex-start;
+                gap: 0.75rem;
+            }
+            
+            .detail-row i {
+                color: var(--primary-green);
+                margin-top: 0.2rem;
+            }
+            
+            .modal-footer {
+                padding: 1rem;
+                border-top: 1px solid var(--gray-200);
+                display: flex;
+                justify-content: flex-end;
+                gap: 0.75rem;
+            }
+            
+            @keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+            
+            @keyframes slideUp {
+                from { transform: translateY(20px); opacity: 0; }
+                to { transform: translateY(0); opacity: 1; }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+}
 
         async function requestFood(listingId, donorId) {
             try {
