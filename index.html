@@ -3528,7 +3528,7 @@ function populateAvailableListings(listings) {
     });
 }
 
-        function createListingElement(listing, isOwner) {
+function createListingElement(listing, isOwner) {
     const foodCard = document.createElement("div");
     foodCard.className = "food-card";
     
@@ -4653,15 +4653,16 @@ function addModalStyles() {
         
         // Role selection animation
         function selectRoleOption(element, role) {
-            // Remove selected class from all options
-            const options = document.querySelectorAll('.role-option');
-            options.forEach(option => {
-                option.classList.remove('selected');
-            });
-            
-            // Add selected class to clicked option
-            element.classList.add('selected');
-        }
+    // Remove selected class from all options
+    const roleOptions = document.querySelectorAll(".role-option");
+    roleOptions.forEach(option => {
+        option.classList.remove("selected");
+    });
+
+    // Add selected class to clicked option
+    element.classList.add("selected");
+    selectedRole = role; // This line is crucial
+}
     </script>
 </body>
 </html>
