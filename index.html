@@ -844,83 +844,213 @@
             gap: 20px;
         }
 
-        .food-card {
-            background-color: white;
-            border-radius: 15px;
-            overflow: hidden;
-            box-shadow: var(--shadow-sm);
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
 
-        .food-card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-md);
-        }
+.food-card {
+    background-color: white;
+    border-radius:15px;
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+    transition: var(--transition);
+    height: 100%;
+    border: 1px solid var(--gray-200);
+    
+}
 
-        .food-image {
-            width: 100%;
-            height: 150px;
-            object-fit: cover;
-        }
+.food-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
 
-        .food-content {
-            padding: 1.5rem;
-        }
+.food-card-inner {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
 
-        .food-title {
-            color: var(--gray-600);
-            font-size: 1.25rem;
-            margin-bottom: 1rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: start;
-        }
+.food-image-container {
+    position: relative;
+    height: 140px;
+    overflow: hidden;
+}
 
-        .food-badge {
-            background-color: var(--primary-green-light);
-            color: var(--primary-green-dark);
-            padding: 0.25rem 0.75rem;
-            border-radius: 999px;
-            font-size: 0.875rem;
-        }
+.food-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: var(--transition);
+}
 
-        .food-meta {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
-            margin-bottom: 1rem;
-        }
+.food-card:hover .food-image {
+    transform: scale(1.05);
+}
 
-        .meta-item {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            color: var(--gray-600);
-            font-size: 0.875rem;
-        }
+.category-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background-color: rgba(255, 255, 255, 0.9);
+    color: var(--primary-green-dark);
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 4px 8px;
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-sm);
+}
 
-        .meta-item i {
-            color: var(--primary-green);
-        }
+.time-badge {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background-color: rgba(0, 0, 0, 0.6);
+    color: white;
+    font-size: 0.7rem;
+    padding: 3px 6px;
+    border-radius: var(--radius-sm);
+}
 
-        .food-description {
-            color: var(--gray-600);
-            margin-bottom: 1rem;
-            line-height: 1.5;
-            font-size: 0.9375rem;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
+.food-content {
+    display: flex;
+    flex-direction: column;
+    padding: 12px;
+    flex-grow: 1;
+}
 
-        .food-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 1rem;
-        }
+.food-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 8px;
+}
 
+.food-title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--gray-600);
+    line-height: 1.3;
+}
+
+.donor-info {
+    display: flex;
+    align-items: center;
+    font-size: 0.8rem;
+    color: var(--gray-600);
+    margin-left: 8px;
+}
+
+.donor-info i {
+    margin-right: 4px;
+    color: var(--primary-green);
+}
+
+.food-meta {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    font-size: 0.8rem;
+    color: var(--gray-600);
+}
+
+.meta-item i {
+    margin-right: 4px;
+    font-size: 0.85rem;
+    color: var(--primary-green);
+}
+
+.expiry-urgent i,
+.expiry-urgent span {
+    color: var(--red-500);
+}
+
+.expiry-warning i,
+.expiry-warning span {
+    color: var(--amber-500);
+}
+
+.food-description {
+    margin: 0 0 12px;
+    font-size: 0.85rem;
+    line-height: 1.4;
+    color: var(--gray-600);
+    flex-grow: 1;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.food-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    font-weight: 500;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    border: none;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.btn-sm {
+    padding: 6px 10px;
+    font-size: 0.8rem;
+}
+
+.btn-icon {
+    padding: 8px;
+    border-radius: 50%;
+    width: 34px;
+    height: 34px;
+}
+
+.btn i {
+    margin-right: 6px;
+    font-size: 0.9rem;
+}
+
+.btn-icon i {
+    margin-right: 0;
+}
+
+.btn-primary {
+    background-color: var(--primary-green);
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-green-dark);
+}
+
+.btn-secondary {
+    background-color: var(--gray-100);
+    color: var(--gray-600);
+}
+
+.btn-secondary:hover {
+    background-color: var(--gray-200);
+}
+
+.btn-danger {
+    background-color: var(--red-500);
+    color: white;
+}
+
+.btn-danger:hover {
+    background-color: #dc2626;
+}
         /* Bottom Navigation */
         .bottom-nav {
             position: fixed;
@@ -3531,76 +3661,162 @@ function populateAvailableListings(listings) {
 function createListingElement(listing, isOwner) {
     const foodCard = document.createElement("div");
     foodCard.className = "food-card";
+    foodCard.dataset.listingId = listing.id;
     
     // Calculate days until expiry
     let daysUntilExpiry = "N/A";
+    let expiryClass = "expiry-normal";
     if (listing.expiryDate) {
         const expiryDate = new Date(listing.expiryDate);
         const today = new Date();
         const timeDiff = expiryDate.getTime() - today.getTime();
         daysUntilExpiry = Math.ceil(timeDiff / (1000 * 3600 * 24));
+        
+        // Add color classes based on days remaining
+        if (daysUntilExpiry <= 2) {
+            expiryClass = "expiry-urgent";
+        } else if (daysUntilExpiry <= 5) {
+            expiryClass = "expiry-warning";
+        }
     }
-
+    
+    // Format creation time
+    let creationTime = "Recently";
+    if (listing.createdAt) {
+        const createdDate = listing.createdAt.toDate();
+        const today = new Date();
+        const timeDiff = today.getTime() - createdDate.getTime();
+        const hoursDiff = Math.floor(timeDiff / (1000 * 3600));
+        
+        if (hoursDiff < 1) {
+            const minutesDiff = Math.floor(timeDiff / (1000 * 60));
+            creationTime = `${minutesDiff}m ago`;
+        } else if (hoursDiff < 24) {
+            creationTime = `${hoursDiff}h ago`;
+        } else {
+            const daysDiff = Math.floor(timeDiff / (1000 * 3600 * 24));
+            creationTime = `${daysDiff}d ago`;
+        }
+    }
+    
     // Format category
     const category = listing.category 
         ? listing.category.charAt(0).toUpperCase() + listing.category.slice(1)
         : 'Other';
-
+    
     // Add donor information if not the owner (for receivers)
     const donorInfo = !isOwner && listing.donorName 
         ? `<div class="donor-info">
               <i class="fas fa-user-circle"></i>
-              <span>Donated by ${listing.donorName}</span>
+              <span>${listing.donorName}</span>
            </div>`
         : '';
-
+    
+    // Truncate description to avoid overflow
+    const truncatedDescription = listing.description && listing.description.length > 100 
+        ? `${listing.description.substring(0, 100)}...` 
+        : (listing.description || 'No description provided');
+        
     foodCard.innerHTML = `
-        <img src="${listing.imageUrl || categoryImages[listing.category] || categoryImages.other}" 
-             alt="${listing.title}" 
-             class="food-image">
-        <div class="food-content">
-            <div class="food-title">
-                <h3>${listing.title || 'Unnamed Listing'}</h3>
-                <span class="food-badge">${category}</span>
+        <div class="food-card-inner">
+            <div class="food-image-container">
+                <img src="${listing.imageUrl || categoryImages[listing.category] || categoryImages.other}" 
+                     alt="${listing.title}" 
+                     class="food-image">
+                <span class="category-badge">${category}</span>
+                <span class="time-badge">${creationTime}</span>
             </div>
             
-            ${donorInfo}
-            
-            <div class="food-meta">
-                <div class="meta-item">
-                    <i class="fas fa-clock"></i>
-                    <span>Expires in ${daysUntilExpiry} days</span>
+            <div class="food-content">
+                <div class="food-header">
+                    <h3 class="food-title">${listing.title || 'Unnamed Listing'}</h3>
+                    ${donorInfo}
                 </div>
-                <div class="meta-item">
-                    <i class="fas fa-map-marker-alt"></i>
-                    <span>${listing.distance || '0.5 miles'}</span>
+                
+                <div class="food-meta">
+                    <div class="meta-item ${expiryClass}">
+                        <i class="fas fa-clock"></i>
+                        <span>${daysUntilExpiry} days</span>
+                    </div>
+                    <div class="meta-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>${listing.distance || '0.5 mi'}</span>
+                    </div>
                 </div>
-            </div>
-            <p class="food-description">${listing.description || 'No description provided'}</p>
-            <div class="food-actions">
-                ${isOwner ? 
-                    `<button class="btn btn-secondary" onclick="editListing('${listing.id}')">
-                        <i class="fas fa-edit"></i>
-                        <span>Edit</span>
-                    </button>
-                    <button class="btn btn-primary" onclick="viewRequests('${listing.id}')">
-                        <i class="fas fa-users"></i>
-                        <span>Requests</span>
-                    </button>` :
-                    `<button class="btn btn-secondary" onclick="viewDetails('${listing.id}')">
-                        <i class="fas fa-info-circle"></i>
-                        <span>Details</span>
-                    </button>
-                    <button class="btn btn-primary" onclick="requestFood('${listing.id}', '${listing.donorId}')">
-                        <i class="fas fa-hand-holding-heart"></i>
-                        <span>Request</span>
-                    </button>`
-                }
+                
+                <p class="food-description">${truncatedDescription}</p>
+                
+                <div class="food-actions">
+                    ${isOwner ? 
+                        `<button class="btn btn-primary" onclick="viewRequests('${listing.id}')">
+                            <i class="fas fa-users"></i>
+                            <span>Requests</span>
+                         </button>
+                         <button class="btn btn-danger btn-icon" onclick="deleteListing('${listing.id}')" aria-label="Delete listing">
+                            <i class="fas fa-trash-alt"></i>
+                         </button>` :
+                        `<button class="btn btn-secondary btn-sm" onclick="viewDetails('${listing.id}')">
+                            <i class="fas fa-info-circle"></i>
+                            <span>Details</span>
+                         </button>
+                         <button class="btn btn-primary" onclick="requestFood('${listing.id}', '${listing.donorId}')">
+                            <i class="fas fa-hand-holding-heart"></i>
+                            <span>Request</span>
+                         </button>`
+                    }
+                </div>
             </div>
         </div>
     `;
     
     return foodCard;
+}
+
+// Firebase delete function
+async function deleteListing(listingId) {
+    if (confirm('Are you sure you want to delete this listing? This action cannot be undone.')) {
+        try {
+            // Import Firebase functions (make sure you've initialized Firebase elsewhere)
+            const { deleteDoc, doc } = await import('firebase/firestore');
+            const { getFirestore } = await import('firebase/firestore');
+            const { getStorage, ref, deleteObject } = await import('firebase/storage');
+            
+            const db = getFirestore();
+            const storage = getStorage();
+            
+            // Delete the document from Firestore
+            await deleteDoc(doc(db, 'listings', listingId));
+            
+            // Optional: Delete associated image from Storage if you store images there
+            if (listing.imageUrl && listing.imageUrl.startsWith('gs://')) {
+                const imageRef = ref(storage, listing.imageUrl);
+                await deleteObject(imageRef).catch(e => console.log('Error deleting image:', e));
+            }
+            
+            // Remove the listing from the UI
+            const listingElement = document.querySelector(`[data-listing-id="${listingId}"]`);
+            if (listingElement) {
+                listingElement.remove();
+            }
+            
+            showToast('Listing deleted successfully');
+        } catch (error) {
+            console.error('Error deleting listing:', error);
+            showToast('Error deleting listing', 'error');
+        }
+    }
+}
+
+// Toast notification function
+function showToast(message, type = 'success') {
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.remove();
+    }, 3000);
 }
     
         function searchListings(query) {
@@ -4243,13 +4459,202 @@ function filterExpiredListings(listings) {
         }
 
         // Listing action functions
-        function editListing(id) {
-            alert(`Edit form for listing ${id} would open here`);
+async function viewRequests(listingId) {
+    try {
+        // Show loading state
+        const loadingModal = createLoadingModal("Loading requests...");
+        document.body.appendChild(loadingModal);
+
+        // 1. Get the listing details
+        const listingDoc = await db.collection("listings").doc(listingId).get();
+        if (!listingDoc.exists) {
+            removeLoadingModal(loadingModal);
+            alert("This listing no longer exists");
+            return;
         }
 
-        function viewRequests(id) {
-            alert(`Requests for listing ${id} would show here`);
+        const listing = listingDoc.data();
+
+        // 2. Get all chats related to this listing
+        const chatsQuery = await db.collection("chats")
+            .where("listingId", "==", listingId)
+            .get();
+
+        if (chatsQuery.empty) {
+            removeLoadingModal(loadingModal);
+            showNoRequestsModal(listing);
+            return;
         }
+
+        // 3. Get user details for all requesters
+        const requesterIds = [];
+        const chats = [];
+        
+        chatsQuery.forEach(doc => {
+            const chat = { id: doc.id, ...doc.data() };
+            chats.push(chat);
+            
+            // Find the requester ID (the participant who isn't the current user)
+            const requesterId = chat.participants.find(id => id !== currentUser.id);
+            if (requesterId) {
+                requesterIds.push(requesterId);
+            }
+        });
+
+        // 4. Get requester user details
+        const userSnapshots = await db.collection("users")
+            .where(firebase.firestore.FieldPath.documentId(), "in", requesterIds)
+            .get();
+
+        const requesters = {};
+        userSnapshots.forEach(doc => {
+            requesters[doc.id] = doc.data();
+        });
+
+        // 5. Create and show the requests modal
+        removeLoadingModal(loadingModal);
+        showRequestsModal(listing, chats, requesters);
+
+    } catch (error) {
+        console.error("Error loading requests:", error);
+        alert("Failed to load requests. Please try again.");
+        removeLoadingModal(document.getElementById("loadingModal"));
+    }
+}
+
+// Helper function to create a loading modal
+function createLoadingModal(message) {
+    const modal = document.createElement("div");
+    modal.id = "loadingModal";
+    modal.style.position = "fixed";
+    modal.style.top = "0";
+    modal.style.left = "0";
+    modal.style.right = "0";
+    modal.style.bottom = "0";
+    modal.style.backgroundColor = "rgba(0,0,0,0.5)";
+    modal.style.display = "flex";
+    modal.style.justifyContent = "center";
+    modal.style.alignItems = "center";
+    modal.style.zIndex = "10000";
+    
+    const content = document.createElement("div");
+    content.style.backgroundColor = "white";
+    content.style.padding = "20px";
+    content.style.borderRadius = "8px";
+    content.style.display = "flex";
+    content.style.flexDirection = "column";
+    content.style.alignItems = "center";
+    
+    const spinner = document.createElement("div");
+    spinner.className = "loading-spinner";
+    spinner.style.marginBottom = "10px";
+    
+    const text = document.createElement("p");
+    text.textContent = message;
+    text.style.margin = "0";
+    
+    content.appendChild(spinner);
+    content.appendChild(text);
+    modal.appendChild(content);
+    
+    return modal;
+}
+
+function removeLoadingModal(modal) {
+    if (modal && modal.parentNode) {
+        modal.parentNode.removeChild(modal);
+    }
+}
+
+// Show modal when there are no requests
+function showNoRequestsModal(listing) {
+    const modalHTML = `
+        <div class="modal-overlay" id="requestsModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Requests for ${listing.title}</h3>
+                    <button class="close-modal" onclick="closeModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="empty-state">
+                        <i class="fas fa-users-slash"></i>
+                        <h4>No requests yet</h4>
+                        <p>When someone requests this item, it will appear here</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary" onclick="closeModal()">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    addModalStyles();
+}
+
+// Show modal with all requests
+function showRequestsModal(listing, chats, requesters) {
+    // Create the list of requests
+    let requestsHTML = '';
+    
+    chats.forEach(chat => {
+        const requesterId = chat.participants.find(id => id !== currentUser.id);
+        const requester = requesters[requesterId];
+        
+        if (requester) {
+            const lastUpdated = chat.lastUpdated?.toDate() || new Date();
+            const timeAgo = formatTimeAgo(lastUpdated);
+            
+            requestsHTML += `
+                <div class="request-item" onclick="openChatConversation('${chat.id}', ${JSON.stringify(requester).replace(/"/g, '&quot;')})">
+                    <div class="requester-avatar">
+                        ${requester.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div class="requester-info">
+                        <div class="requester-name">${requester.name}</div>
+                        <div class="request-time">${timeAgo}</div>
+                    </div>
+                    ${chat.unreadFor === currentUser.id && chat.unreadCount > 0 ? 
+                        `<div class="unread-badge">${chat.unreadCount}</div>` : ''}
+                    <i class="fas fa-chevron-right"></i>
+                </div>
+            `;
+        }
+    });
+    
+    const modalHTML = `
+        <div class="modal-overlay" id="requestsModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Requests for ${listing.title}</h3>
+                    <button class="close-modal" onclick="closeModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="requests-list">
+                        ${requestsHTML || `
+                            <div class="empty-state">
+                                <i class="fas fa-users-slash"></i>
+                                <h4>No requests yet</h4>
+                                <p>When someone requests this item, it will appear here</p>
+                            </div>
+                        `}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary" onclick="closeModal()">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    addModalStyles();
+}
 
 async function viewDetails(listingId) {
     try {
