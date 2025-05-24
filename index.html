@@ -24,6 +24,13 @@
             --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.1);
             --font-main: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
         }
+        
+.notification-sender {
+    font-size: 12px;
+    color: var(--gray-400);
+    margin-top: 5px;
+    font-style: italic;
+}
 
         * {
             margin: 0;
@@ -3798,31 +3805,35 @@ function setupDonorListeners() {
 }
 
         // Set up notifications listener
-        function setupNotificationsListener() {
-            const notificationsUnsubscribe = db.collection('notifications')
-                .where('userId', '==', currentUser.uid)
-                .orderBy('createdAt', 'desc')
-                .onSnapshot(snapshot => {
-                    const unreadCount = snapshot.docs.filter(doc => !doc.data().read).length;
-                    
-                    // Update badge counts
-                    if (unreadCount > 0) {
-                        notificationBadge.textContent = unreadCount;
-                        notificationBadge.style.display = 'flex';
-                        mobileMessageBadge.style.display = 'flex';
-                    } else {
-                        notificationBadge.style.display = 'none';
-                        mobileMessageBadge.style.display = 'none';
-                    }
-                    
-                    // Update notifications page if it's active
-                    if (currentPage === 'notifications') {
-                        renderNotifications(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-                    }
-                });
+function setupNotificationsListener() {
+    if (!currentUser) return;
+
+    const notificationsUnsubscribe = db.collection('notifications')
+        .where('userId', '==', currentUser.uid)
+        .where('forReceiver', '==', true)  // Only get notifications meant for receivers
+        .orderBy('createdAt', 'desc')
+        .onSnapshot(snapshot => {
+            const unreadCount = snapshot.docs.filter(doc => !doc.data().read).length;
             
-            unsubscribeFunctions.push(notificationsUnsubscribe);
-        }
+            // Update badge counts
+            if (unreadCount > 0) {
+                notificationBadge.textContent = unreadCount;
+                notificationBadge.style.display = 'flex';
+                mobileMessageBadge.textContent = unreadCount;
+                mobileMessageBadge.style.display = 'flex';
+            } else {
+                notificationBadge.style.display = 'none';
+                mobileMessageBadge.style.display = 'none';
+            }
+            
+            // Update notifications page if it's active
+            if (currentPage === 'notifications') {
+                renderNotifications(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+            }
+        });
+    
+    return notificationsUnsubscribe;
+}
 
         // Set up navigation
         function setupNavigation() {
@@ -4380,10 +4391,107 @@ function showPage(page) {
 }
 
         // Request food
-        function requestFood(listingId) {
-            // In a complete app, you would implement this
-            showToast('Info', 'Request functionality will be implemented in the full version', 'success');
+async function requestFood(listingId) {
+    try {
+        // Get the listing details
+        const listingDoc = await db.collection('listings').doc(listingId).get();
+        if (!listingDoc.exists) {
+            throw new Error('Listing not found');
         }
+        
+        const listing = listingDoc.data();
+        
+        // Check if listing is expired
+        if (isExpired(listing.expiryDate)) {
+            showToast('Error', 'This listing has expired', 'error');
+            return;
+        }
+        
+        // Show confirmation dialog
+        const confirmed = await showConfirmation(
+            'Request Food', 
+            `Are you sure you want to request "${listing.title}" from ${listing.donorName}?`,
+            false
+        );
+        
+        if (!confirmed) return;
+        
+        // Create request document
+        const requestRef = await db.collection('requests').add({
+            listingId: listingId,
+            donorId: listing.donorId,
+            receiverId: currentUser.uid,
+            receiverName: userData.name,
+            status: 'pending',
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        
+        // Create notification for donor
+        await db.collection('notifications').add({
+            userId: listing.donorId,
+            title: 'New Food Request',
+            message: `${userData.name} has requested your "${listing.title}" listing`,
+            type: 'request',
+            relatedRequestId: requestRef.id,
+            read: false,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        
+        // Start a chat with the donor
+        await startChat(listing.donorId, listingId);
+        
+        showToast('Success', 'Your request has been sent to the donor', 'success');
+        
+    } catch (error) {
+        console.error('Error requesting food:', error);
+        showToast('Error', 'Failed to send request', 'error');
+    }
+}
+
+async function updateRequestStatus(requestId, status) {
+    try {
+        // Update request status
+        await db.collection('requests').doc(requestId).update({
+            status: status,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        
+        // Get request details
+        const requestDoc = await db.collection('requests').doc(requestId).get();
+        const request = requestDoc.data();
+        
+        // Create appropriate notification
+        let notificationTitle, notificationMessage;
+        
+        if (status === 'accepted') {
+            notificationTitle = 'Request Accepted';
+            notificationMessage = `${userData.name} has accepted your request`;
+        } else if (status === 'declined') {
+            notificationTitle = 'Request Declined';
+            notificationMessage = `${userData.name} has declined your request`;
+        } else if (status === 'completed') {
+            notificationTitle = 'Request Completed';
+            notificationMessage = `${userData.name} has marked your request as completed`;
+        }
+        
+        await db.collection('notifications').add({
+            userId: request.receiverId,
+            title: notificationTitle,
+            message: notificationMessage,
+            type: 'request-update',
+            relatedRequestId: requestId,
+            read: false,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        
+        showToast('Success', `Request ${status}`, 'success');
+        
+    } catch (error) {
+        console.error('Error updating request:', error);
+        showToast('Error', 'Failed to update request', 'error');
+    }
+}
 
         // Start chat
 async function startChat(donorId, listingId) {
@@ -4610,9 +4718,26 @@ async function sendMessage() {
         });
         
         // Update chat last message
+        const chatDoc = await db.collection('chats').doc(currentChat).get();
+        const chatData = chatDoc.data();
+        
         await db.collection('chats').doc(currentChat).update({
             lastMessage: messageText,
             lastMessageTime: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        
+        // Get the other participant
+        const otherParticipantId = chatData.participants.find(id => id !== currentUser.uid);
+        
+        // Create notification for the other participant
+        await db.collection('notifications').add({
+            userId: otherParticipantId,
+            title: 'New Message',
+            message: `${userData.name}: ${messageText.substring(0, 30)}${messageText.length > 30 ? '...' : ''}`,
+            type: 'message',
+            relatedChatId: currentChat,
+            read: false,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
         
         // Clear input
@@ -4710,42 +4835,49 @@ function formatTime(date) {
         }
 
         // Render notifications
-        function renderNotifications(notifications) {
-            const container = document.getElementById('notifications-container');
-            
-            if (notifications.length === 0) {
-                container.innerHTML = '<div class="empty-state"><i class="fas fa-bell-slash"></i><h3>No Notifications</h3><p>When you have new notifications, they will appear here</p></div>';
-                return;
-            }
-            
-            container.innerHTML = '';
-            
-            notifications.forEach(notification => {
-                const notificationElement = document.createElement('div');
-                notificationElement.className = `notification-item ${notification.read ? '' : 'unread'}`;
-                notificationElement.innerHTML = `
-                    <div class="notification-icon">
-                        <i class="fas ${getNotificationIcon(notification.type)}"></i>
-                    </div>
-                    <div class="notification-content">
-                        <div class="notification-title">${notification.title}</div>
-                        <div class="notification-message">${notification.message}</div>
-                        <div class="notification-time">${formatDate(notification.createdAt?.toDate())}</div>
-                    </div>
-                `;
-                
-                container.appendChild(notificationElement);
-                
-                // Mark as read when clicked
-                if (!notification.read) {
-                    notificationElement.addEventListener('click', () => {
-                        db.collection('notifications').doc(notification.id).update({
-                            read: true
-                        });
-                    });
-                }
+function renderNotifications(notifications) {
+    const container = document.getElementById('notifications-container');
+    
+    if (notifications.length === 0) {
+        container.innerHTML = '<div class="empty-state"><i class="fas fa-bell-slash"></i><h3>No Notifications</h3><p>When you have notifications, they will appear here</p></div>';
+        return;
+    }
+    
+    container.innerHTML = '';
+    
+    notifications.forEach(notification => {
+        const notificationElement = document.createElement('div');
+        notificationElement.className = `notification-item ${notification.read ? '' : 'unread'}`;
+        
+        let icon = 'fa-bell';
+        if (notification.type === 'admin_message') icon = 'fa-envelope';
+        if (notification.type === 'admin_notification') icon = 'fa-shield-alt';
+        if (notification.type === 'verification') icon = 'fa-user-check';
+        
+        notificationElement.innerHTML = `
+            <div class="notification-icon">
+                <i class="fas ${icon}"></i>
+            </div>
+            <div class="notification-content">
+                <div class="notification-title">${notification.title}</div>
+                <div class="notification-message">${notification.message}</div>
+                <div class="notification-time">${formatDate(notification.createdAt?.toDate())}</div>
+                ${notification.adminName ? `<div class="notification-sender">From: ${notification.adminName}</div>` : ''}
+            </div>
+        `;
+        
+        container.appendChild(notificationElement);
+        
+        // Mark as read when clicked if not read
+        if (!notification.read) {
+            notificationElement.addEventListener('click', () => {
+                db.collection('notifications').doc(notification.id).update({
+                    read: true
+                });
             });
         }
+    });
+}
 
         // Set up modals
         function setupModals() {
@@ -5115,17 +5247,19 @@ function formatTime(date) {
         }
 
         function getNotificationIcon(type) {
-            switch (type) {
-                case 'request':
-                    return 'fa-hand-holding-heart';
-                case 'message':
-                    return 'fa-comment';
-                case 'rating':
-                    return 'fa-star';
-                default:
-                    return 'fa-bell';
-            }
-        }
+    switch (type) {
+        case 'request':
+            return 'fa-hand-holding-heart';
+        case 'request-update':
+            return 'fa-check-circle';
+        case 'message':
+            return 'fa-comment';
+        case 'rating':
+            return 'fa-star';
+        default:
+            return 'fa-bell';
+    }
+}
 
         // Custom confirmation function
         function showConfirmation(title, message, callback) {
