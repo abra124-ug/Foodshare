@@ -24,13 +24,6 @@
             --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.1);
             --font-main: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
         }
-        
-.notification-sender {
-    font-size: 12px;
-    color: var(--gray-400);
-    margin-top: 5px;
-    font-style: italic;
-}
 
         * {
             margin: 0;
@@ -1231,16 +1224,6 @@
         }
 
         /* Chat Conversation */
-        .chat-container {
-            display: none;
-            background-color: white;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: var(--shadow-sm);
-            height: calc(100vh - 200px);
-            flex-direction: column;
-        }
-
         .chat-header {
             padding: 15px;
             border-bottom: 1px solid var(--gray-200);
@@ -1849,7 +1832,6 @@
     border-radius: 10px;
     overflow: hidden;
     box-shadow: var(--shadow-sm);
-    height: calc(100vh - 200px);
     display: flex;
     flex-direction: column;
 }
@@ -2040,6 +2022,7 @@
 }
 
     /* Chat Page Animation */
+/* Chat Page Animation */
 #chat-page {
     position: fixed;
     top: 0;
@@ -2047,7 +2030,7 @@
     width: 100%;
     height: 100%;
     background-color: white;
-    z-index: 1000; /* Higher z-index to ensure it's above everything */
+    z-index: 1000;
     transition: transform 0.35s cubic-bezier(0.22, 0.61, 0.36, 1);
     will-change: transform;
     overflow: hidden;
@@ -2093,11 +2076,6 @@
     overflow: hidden;
     text-overflow: ellipsis;
     flex: 1;
-}
-
-/* Hide bottom nav when chat is active */
-body.chat-active .bottom-nav {
-    display: none !important;
 }
     
     /* Chat Container */
@@ -2246,10 +2224,24 @@ body.chat-active .bottom-nav {
         background-color: var(--primary-green-dark);
     }
     
-    /* Hide bottom nav when in chat */
-    body.chat-active .bottom-nav {
-        display: none !important;
-    }
+    .profile-details {
+    margin-top: 15px;
+    text-align: center;
+}
+
+.profile-details p {
+    margin: 8px 0;
+    color: var(--gray-600);
+    font-size: 14px;
+}
+
+.profile-details i {
+    margin-right: 8px;
+    color: var(--primary-green);
+    width: 16px;
+    text-align: center;
+}
+    
 </style>
 </head>
 <body>
@@ -2358,38 +2350,46 @@ body.chat-active .bottom-nav {
     </div>
 
     <!-- Profile Setup -->
-    <div class="profile-setup-container">
-        <div class="profile-setup-header">
-            <h1>Complete Your Profile</h1>
-            <p>Add some details to help others recognize you</p>
-        </div>
-        <div class="preview-avatar initials" id="preview-avatar">
-            <!-- Initials or image will be shown here -->
-        </div>
-        <div class="avatar-selection">
-            <h3>Choose an avatar</h3>
-            <div class="avatar-options">
-                <div class="avatar-option selected" data-avatar="1">
-                    <img src="https://i.ibb.co/0jQ4ZJ1/avatar1.png" alt="Avatar 1">
-                </div>
-                <div class="avatar-option" data-avatar="2">
-                    <img src="https://i.ibb.co/7Yk6z0P/avatar2.png" alt="Avatar 2">
-                </div>
-                <div class="avatar-option" data-avatar="3">
-                    <img src="https://i.ibb.co/0jQ4ZJ1/avatar3.png" alt="Avatar 3">
-                </div>
+<div class="profile-setup-container">
+    <div class="profile-setup-header">
+        <h1>Complete Your Profile</h1>
+        <p>Add some details to help others recognize you</p>
+    </div>
+    <div class="preview-avatar initials" id="preview-avatar">
+        <!-- Initials or image will be shown here -->
+    </div>
+    <div class="avatar-selection">
+        <h3>Choose an avatar</h3>
+        <div class="avatar-options">
+            <div class="avatar-option selected" data-avatar="1">
+                <img src="https://i.ibb.co/0jQ4ZJ1/avatar1.png" alt="Avatar 1">
+            </div>
+            <div class="avatar-option" data-avatar="2">
+                <img src="https://i.ibb.co/7Yk6z0P/avatar2.png" alt="Avatar 2">
+            </div>
+            <div class="avatar-option" data-avatar="3">
+                <img src="https://i.ibb.co/0jQ4ZJ1/avatar3.png" alt="Avatar 3">
             </div>
         </div>
-        <div class="custom-avatar-upload">
-            <label for="avatar-upload">Or upload your own</label>
-            <input type="file" id="avatar-upload" accept="image/*">
-        </div>
-        <div class="form-group">
-            <label for="profile-bio">Bio (Optional)</label>
-            <textarea id="profile-bio" rows="3" placeholder="Tell others a bit about yourself..."></textarea>
-        </div>
-        <button class="auth-btn" id="complete-profile-btn">Complete Setup</button>
     </div>
+    <div class="custom-avatar-upload">
+        <label for="avatar-upload">Or upload your own</label>
+        <input type="file" id="avatar-upload" accept="image/*">
+    </div>
+    <div class="form-group">
+        <label for="profile-bio">Bio</label>
+        <textarea id="profile-bio" rows="3" placeholder="Tell others a bit about yourself..."></textarea>
+    </div>
+    <div class="form-group">
+        <label for="profile-organization">Organization (Optional)</label>
+        <input type="text" id="profile-organization" placeholder="Where do you work/volunteer?">
+    </div>
+    <div class="form-group">
+        <label for="profile-location">Location</label>
+        <input type="text" id="profile-location" placeholder="Your city or neighborhood">
+    </div>
+    <button class="auth-btn" id="complete-profile-btn">Complete Setup</button>
+</div>
 
     <!-- Main App Container -->
     <div class="app-container">
@@ -2433,7 +2433,7 @@ body.chat-active .bottom-nav {
             <div class="header-right">
                 <div class="notification-icon" id="notification-icon">
                     <i class="fas fa-bell"></i>
-                    <span class="notification-badge" id="notification-badge">3</span>
+                    <span class="notification-badge" id="notification-badge"></span>
                 </div>
             </div>
         </div>
@@ -2696,7 +2696,7 @@ body.chat-active .bottom-nav {
             <a href="#" class="nav-item" data-page="messages">
                 <i class="fas fa-comments"></i>
                 <span>Messages</span>
-                <span class="nav-notification" id="mobile-message-badge" style="display: none;">3</span>
+                <span class="nav-notification" id="mobile-message-badge" style="display: none;"></span>
             </a>
             <a href="#" class="nav-item" data-page="profile">
                 <i class="fas fa-user"></i>
@@ -2793,26 +2793,7 @@ body.chat-active .bottom-nav {
                 <button class="modal-close" id="close-notification-modal">&times;</button>
             </div>
             <div class="modal-body">
-                <div class="notification-item unread">
-                    <div class="notification-icon">
-                        <i class="fas fa-utensils"></i>
-                    </div>
-                    <div class="notification-content">
-                        <div class="notification-title">New Request</div>
-                        <div class="notification-message">John requested your "Fresh Bread" listing</div>
-                        <div class="notification-time">2 hours ago</div>
-                    </div>
-                </div>
-                <div class="notification-item">
-                    <div class="notification-icon">
-                        <i class="fas fa-star"></i>
-                    </div>
-                    <div class="notification-content">
-                        <div class="notification-title">Rating Received</div>
-                        <div class="notification-message">Sarah gave you 5 stars for your donation</div>
-                        <div class="notification-time">1 day ago</div>
-                    </div>
-                </div>
+
             </div>
         </div>
     </div>
@@ -3392,7 +3373,8 @@ const ratingsCollection = db.collection('ratings');
                         profileComplete: false,
                         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                         avatar: null,
-                        bio: ''
+                        bio: '',
+                        verified: role === 'donor' // Donors are verified by default
                     });
                 })
                 .then(() => {
@@ -3472,40 +3454,52 @@ const ratingsCollection = db.collection('ratings');
         }
 
         // Complete profile setup
-        async function completeProfile() {
-            completeProfileBtn.disabled = true;
-            completeProfileBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
-            
-            let avatarUrl = null;
-            const bio = profileBio.value.trim();
-            
-            try {
-                // Upload custom avatar if selected
-                if (selectedAvatarFile) {
-                    avatarUrl = await uploadImageToImageBB(selectedAvatarFile);
-                } else if (selectedAvatar) {
-                    // Use default avatar
-                    avatarUrl = `https://i.ibb.co/0jQ4ZJ1/avatar${selectedAvatar}.png`;
-                }
-                
-                // Update user document
-                await db.collection('users').doc(currentUser.uid).update({
-                    avatar: avatarUrl,
-                    bio: bio,
-                    profileComplete: true
-                });
-                
-                // Show the app
-                showApp();
-            } catch (error) {
-                showToast('Error', 'Failed to complete profile setup. Please try again.', 'error');
-                completeProfileBtn.disabled = false;
-                completeProfileBtn.textContent = 'Complete Setup';
-            }
+async function completeProfile() {
+    completeProfileBtn.disabled = true;
+    completeProfileBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+    
+    let avatarUrl = null;
+    const bio = profileBio.value.trim();
+    const organization = document.getElementById('profile-organization').value.trim();
+    const location = document.getElementById('profile-location').value.trim();
+    
+    // Validate required fields
+    if (!bio || !location) {
+        showToast('Error', 'Please fill in all required fields', 'error');
+        completeProfileBtn.disabled = false;
+        completeProfileBtn.textContent = 'Complete Setup';
+        return;
+    }
+    
+    try {
+        // Upload custom avatar if selected
+        if (selectedAvatarFile) {
+            avatarUrl = await uploadImageToImageBB(selectedAvatarFile);
+        } else if (selectedAvatar) {
+            // Use default avatar
+            avatarUrl = `https://i.ibb.co/0jQ4ZJ1/avatar${selectedAvatar}.png`;
         }
+        
+        // Update user document
+        await db.collection('users').doc(currentUser.uid).update({
+            avatar: avatarUrl,
+            bio: bio,
+            organization: organization || null,
+            location: location,
+            profileComplete: true
+        });
+        
+        // Show the app
+        showApp();
+    } catch (error) {
+        showToast('Error', 'Failed to complete profile setup. Please try again.', 'error');
+        completeProfileBtn.disabled = false;
+        completeProfileBtn.textContent = 'Complete Setup';
+    }
+}
 
         // Show the main app
-        function showApp() {
+  function showApp() {
     const loadingScreen = document.getElementById('loading-screen');
     
     // Fade out loading screen
@@ -3553,15 +3547,19 @@ const ratingsCollection = db.collection('ratings');
         // Set up notifications and chat listeners
         setupNotificationsListener();
         setupChatListeners();
+        
+        // Check for admin messages
+        checkForAdminMessages();
     }
+    
+    // Set up interval to check for new admin messages periodically
+    setInterval(checkForAdminMessages, 300000); // Check every 5 minutes
 }
 
-        // Update UI with user data
-        function updateUserUI() {
+// Update UI with user data
+function updateUserUI() {
     // Header
     usernameText.textContent = userData.name;
-    
-    // Remove welcome card references
     
     // Avatar - remove welcomeAvatar reference
     updateAvatarElements(userData.avatar, userData.name);
@@ -3570,6 +3568,18 @@ const ratingsCollection = db.collection('ratings');
     profileName.textContent = userData.name;
     profileRole.textContent = userData.role === 'donor' ? 'Donor' : 'Receiver';
     profileBioText.textContent = userData.bio || 'No bio yet';
+    
+    // Add organization and location to profile page
+    const profileDetails = document.createElement('div');
+    profileDetails.className = 'profile-details';
+    profileDetails.innerHTML = `
+        ${userData.organization ? `<p><i class="fas fa-building"></i> ${userData.organization}</p>` : ''}
+        ${userData.location ? `<p><i class="fas fa-map-marker-alt"></i> ${userData.location}</p>` : ''}
+    `;
+    
+    // Insert after profile bio
+    const profileHeader = document.querySelector('.profile-header');
+    profileHeader.insertBefore(profileDetails, profileHeader.querySelector('.profile-stats'));
     
     // Show appropriate dashboard
     if (userData.role === 'donor') {
@@ -3608,11 +3618,14 @@ const ratingsCollection = db.collection('ratings');
     }
     
     // Profile page avatar
-    if (avatarUrl) {
-        profileAvatar.innerHTML = `<img src="${avatarUrl}" alt="User Avatar">`;
-    } else {
-        profileAvatar.textContent = initials;
-        profileAvatar.className = 'profile-avatar initials';
+    const profileAvatar = document.getElementById('profile-avatar');
+    if (profileAvatar) {
+        if (avatarUrl) {
+            profileAvatar.innerHTML = `<img src="${avatarUrl}" alt="User Avatar">`;
+        } else {
+            profileAvatar.textContent = initials;
+            profileAvatar.className = 'profile-avatar initials';
+        }
     }
 }
         
@@ -3806,46 +3819,36 @@ function setupDonorListeners() {
 
         // Set up notifications listener
 function setupNotificationsListener() {
-    if (!currentUser) return;
-
-    return db.collection('notifications')
+    const notificationsUnsubscribe = db.collection('notifications')
         .where('userId', '==', currentUser.uid)
         .orderBy('createdAt', 'desc')
         .onSnapshot(snapshot => {
-            const notifications = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }));
+            const notifications = [];
+            let unreadCount = 0;
             
-            // Filter only unread notifications for badge count
-            const unreadCount = notifications.filter(n => !n.read).length;
+            snapshot.forEach(doc => {
+                const notification = { id: doc.id, ...doc.data() };
+                notifications.push(notification);
+                if (!notification.read) unreadCount++;
+            });
             
             // Update badge counts
-            updateNotificationBadges(unreadCount);
+            if (unreadCount > 0) {
+                notificationBadge.textContent = unreadCount;
+                notificationBadge.style.display = 'flex';
+                mobileMessageBadge.style.display = 'flex';
+            } else {
+                notificationBadge.style.display = 'none';
+                mobileMessageBadge.style.display = 'none';
+            }
             
-            // Update notifications page if active
+            // Update notifications page if it's active
             if (currentPage === 'notifications') {
                 renderNotifications(notifications);
             }
-        }, error => {
-            console.error('Error loading notifications:', error);
         });
-}
-
-function updateNotificationBadges(count) {
-    const badges = [
-        document.getElementById('notification-badge'),
-        document.getElementById('mobile-message-badge')
-    ];
     
-    badges.forEach(badge => {
-        if (count > 0) {
-            badge.textContent = count;
-            badge.style.display = 'flex';
-        } else {
-            badge.style.display = 'none';
-        }
-    });
+    unsubscribeFunctions.push(notificationsUnsubscribe);
 }
 
         // Set up navigation
@@ -3910,18 +3913,6 @@ function updateNotificationBadges(count) {
 
         // Navigate to a page
 function navigateTo(page) {
-    // If navigating away from chat, clean up and restore UI
-    if (currentPage === 'chat') {
-        // Remove chat-active class from body
-        document.body.classList.remove('chat-active');
-        
-        // Hide chat page
-        document.getElementById('chat-page').classList.remove('active');
-        setTimeout(() => {
-            document.getElementById('chat-page').style.display = 'none';
-        }, 350); // Match this with your CSS transition duration
-    }
-
     // Hide all pages
     pages.forEach(p => p.style.display = 'none');
     
@@ -4008,6 +3999,39 @@ function setupPageListeners(page) {
     
     // Always set up notifications listener
     setupNotificationsListener();
+}
+
+function setupListingsListeners() {
+    if (!currentUser) return;
+
+    // Clean up any existing listeners
+    unsubscribeFunctions.forEach(unsubscribe => unsubscribe());
+    unsubscribeFunctions = [];
+
+    let query;
+    
+    if (userData.role === 'donor') {
+        // Donor sees their own listings
+        query = db.collection('listings')
+            .where('donorId', '==', currentUser.uid)
+            .orderBy('createdAt', 'desc');
+    } else {
+        // Receiver sees all active listings
+        query = db.collection('listings')
+            .where('expiryDate', '>=', new Date().toISOString().split('T')[0])
+            .orderBy('expiryDate')
+            .orderBy('createdAt', 'desc');
+    }
+
+    const unsubscribe = query.onSnapshot(snapshot => {
+        const listings = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        renderListings(listings);
+    }, error => {
+        console.error('Error listening to listings:', error);
+        showToast('Error', 'Failed to load listings', 'error');
+    });
+
+    unsubscribeFunctions.push(unsubscribe);
 }
 
 function showPage(page) {
@@ -4137,14 +4161,20 @@ function showPage(page) {
                             <span class="donor-name">${listing.donorName}</span>
                         </div>
                         <div class="listing-actions">
-                            ${userData.role === 'receiver' && !expired ? `
+                         ${userData.role === 'receiver' && !expired ? `
+                            ${userData.verified ? `
                                 <div class="action-icon" data-action="message" data-listing-id="${listing.id}" data-donor-id="${listing.donorId}">
                                     <i class="fas fa-comment"></i>
                                 </div>
                                 <div class="action-icon" data-action="request" data-listing-id="${listing.id}">
                                     <i class="fas fa-hand-holding-heart"></i>
                                 </div>
-                            ` : ''}
+                            ` : `
+                                <div class="action-icon disabled" data-action="verify" title="Complete verification to request food">
+                                    <i class="fas fa-lock"></i>
+                                </div>
+                            `}
+                        ` : ''}
                             ${userData.role === 'donor' ? `
                                 <div class="action-icon" data-action="edit" data-listing-id="${listing.id}">
                                     <i class="fas fa-edit"></i>
@@ -4404,107 +4434,17 @@ function showPage(page) {
 }
 
         // Request food
-async function requestFood(listingId) {
-    try {
-        // Get the listing details
-        const listingDoc = await db.collection('listings').doc(listingId).get();
-        if (!listingDoc.exists) {
-            throw new Error('Listing not found');
+        function requestFood(listingId) {
+              // Check if user is verified
+          if (userData.role === 'receiver' && !userData.verified) {
+              showToast('Verification Required', 'Please complete your verification before requesting food', 'error');
+              return;
+          }
+    
+          
+            // In a complete app, you would implement this
+            showToast('Info', 'Request functionality will be implemented in the full version', 'success');
         }
-        
-        const listing = listingDoc.data();
-        
-        // Check if listing is expired
-        if (isExpired(listing.expiryDate)) {
-            showToast('Error', 'This listing has expired', 'error');
-            return;
-        }
-        
-        // Show confirmation dialog
-        const confirmed = await showConfirmation(
-            'Request Food', 
-            `Are you sure you want to request "${listing.title}" from ${listing.donorName}?`,
-            false
-        );
-        
-        if (!confirmed) return;
-        
-        // Create request document
-        const requestRef = await db.collection('requests').add({
-            listingId: listingId,
-            donorId: listing.donorId,
-            receiverId: currentUser.uid,
-            receiverName: userData.name,
-            status: 'pending',
-            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        
-        // Create notification for donor
-        await db.collection('notifications').add({
-            userId: listing.donorId,
-            title: 'New Food Request',
-            message: `${userData.name} has requested your "${listing.title}" listing`,
-            type: 'request',
-            relatedRequestId: requestRef.id,
-            read: false,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        
-        // Start a chat with the donor
-        await startChat(listing.donorId, listingId);
-        
-        showToast('Success', 'Your request has been sent to the donor', 'success');
-        
-    } catch (error) {
-        console.error('Error requesting food:', error);
-        showToast('Error', 'Failed to send request', 'error');
-    }
-}
-
-async function updateRequestStatus(requestId, status) {
-    try {
-        // Update request status
-        await db.collection('requests').doc(requestId).update({
-            status: status,
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        
-        // Get request details
-        const requestDoc = await db.collection('requests').doc(requestId).get();
-        const request = requestDoc.data();
-        
-        // Create appropriate notification
-        let notificationTitle, notificationMessage;
-        
-        if (status === 'accepted') {
-            notificationTitle = 'Request Accepted';
-            notificationMessage = `${userData.name} has accepted your request`;
-        } else if (status === 'declined') {
-            notificationTitle = 'Request Declined';
-            notificationMessage = `${userData.name} has declined your request`;
-        } else if (status === 'completed') {
-            notificationTitle = 'Request Completed';
-            notificationMessage = `${userData.name} has marked your request as completed`;
-        }
-        
-        await db.collection('notifications').add({
-            userId: request.receiverId,
-            title: notificationTitle,
-            message: notificationMessage,
-            type: 'request-update',
-            relatedRequestId: requestId,
-            read: false,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        
-        showToast('Success', `Request ${status}`, 'success');
-        
-    } catch (error) {
-        console.error('Error updating request:', error);
-        showToast('Error', 'Failed to update request', 'error');
-    }
-}
 
         // Start chat
 async function startChat(donorId, listingId) {
@@ -4554,9 +4494,6 @@ async function startChat(donorId, listingId) {
 }
 
 async function openChat(chatId) {
-      // Add chat-active class to body
-    document.body.classList.add('chat-active');
-  
     try {
         // Get chat data
         const chatDoc = await db.collection('chats').doc(chatId).get();
@@ -4591,9 +4528,6 @@ async function openChat(chatId) {
 
         // Set current chat
         currentChat = chatId;
-
-        // Add chat-active class to body
-        document.body.classList.add('chat-active');
         
         // Show chat page with animation
         const chatPage = document.getElementById('chat-page');
@@ -4640,16 +4574,39 @@ async function loadMessages(chatId) {
 
 function addMessageToUI(message, messageId) {
     const isCurrentUser = message.senderId === currentUser.uid;
+    const isAdminMessage = message.isAdminMessage;
     const messageElement = document.createElement('div');
     messageElement.className = `message ${isCurrentUser ? 'sent' : 'received'}`;
     
+    // Special styling for admin messages
+    if (isAdminMessage) {
+        messageElement.classList.add('admin-message');
+    }
+    
     messageElement.innerHTML = `
+        ${isAdminMessage ? `<div class="message-sender">Admin: ${message.senderName || 'Admin'}</div>` : ''}
         <div class="message-content">${message.text}</div>
         <div class="message-time">${formatTime(message.timestamp?.toDate())}</div>
     `;
     
     chatMessages.appendChild(messageElement);
 }
+
+// Add CSS for admin messages
+const style = document.createElement('style');
+style.textContent = `
+    .message.admin-message .message-content {
+        background-color: #f0f7ff;
+        border-left: 3px solid #3b82f6;
+    }
+    .message-sender {
+        font-size: 12px;
+        font-weight: 600;
+        color: #3b82f6;
+        margin-bottom: 4px;
+    }
+`;
+document.head.appendChild(style);
 
 // Update the loadChats function
 async function loadChats() {
@@ -4717,41 +4674,49 @@ chatInput.addEventListener('keypress', (e) => {
     }
 });
 
+// sendMessage function
 async function sendMessage() {
     const messageText = chatInput.value.trim();
     
     if (!messageText || !currentChat) return;
     
     try {
+        // First, check if this is an admin chat
+        const chatDoc = await db.collection('chats').doc(currentChat).get();
+        const chatData = chatDoc.data();
+        
+        const isAdminChat = chatData.isAdminChat;
+        
         // Add message to chat
         await db.collection('chats').doc(currentChat).collection('messages').add({
             text: messageText,
             senderId: currentUser.uid,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            senderName: userData.name,
+            senderAvatar: userData.avatar,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            read: false,
+            isAdminMessage: false // This is a user message
         });
         
         // Update chat last message
-        const chatDoc = await db.collection('chats').doc(currentChat).get();
-        const chatData = chatDoc.data();
-        
         await db.collection('chats').doc(currentChat).update({
             lastMessage: messageText,
             lastMessageTime: firebase.firestore.FieldValue.serverTimestamp()
         });
         
-        // Get the other participant
-        const otherParticipantId = chatData.participants.find(id => id !== currentUser.uid);
-        
-        // Create notification for the other participant
-        await db.collection('notifications').add({
-            userId: otherParticipantId,
-            title: 'New Message',
-            message: `${userData.name}: ${messageText.substring(0, 30)}${messageText.length > 30 ? '...' : ''}`,
-            type: 'message',
-            relatedChatId: currentChat,
-            read: false,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
+        // If this is an admin chat, create a notification for the admin
+        if (isAdminChat) {
+            await db.collection('notifications').add({
+                adminId: chatData.adminId,
+                userId: currentUser.uid,
+                title: 'New Message from User',
+                message: messageText.substring(0, 50) + (messageText.length > 50 ? '...' : ''),
+                type: 'user_message',
+                read: false,
+                relatedChatId: currentChat,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        }
         
         // Clear input
         chatInput.value = '';
@@ -4766,7 +4731,11 @@ async function sendMessage() {
 function setupChatListeners() {
     if (!currentUser) return;
 
-    // Listen for new chats
+    // Clean up any existing listeners
+    unsubscribeFunctions.forEach(unsubscribe => unsubscribe());
+    unsubscribeFunctions = [];
+
+    // Listen for new chats including admin chats
     const chatsUnsubscribe = db.collection('chats')
         .where('participants', 'array-contains', currentUser.uid)
         .orderBy('lastMessageTime', 'desc')
@@ -4774,36 +4743,64 @@ function setupChatListeners() {
             if (currentPage === 'messages') {
                 chatList.innerHTML = '';
                 snapshot.forEach(doc => {
-                    addChatToUI(doc.data(), doc.id);
+                    const chat = doc.data();
+                    // Check if this is an admin chat
+                    if (chat.isAdminChat) {
+                        // Get admin info
+                        db.collection('admins').doc(chat.adminId).get().then(adminDoc => {
+                            if (adminDoc.exists) {
+                                const adminData = adminDoc.data();
+                                chat.participantNames[chat.adminId] = adminData.name;
+                                chat.participantAvatars[chat.adminId] = adminData.avatar;
+                                addChatToUI(chat, doc.id);
+                            }
+                        });
+                    } else {
+                        addChatToUI(chat, doc.id);
+                    }
                 });
             }
         });
 
-    // Listen for new messages in current chat
-    let messagesUnsubscribe = null;
-    let lastSeenMessageTime = null;
-    
-    if (currentChat) {
-messagesUnsubscribe = db.collection('chats').doc(currentChat)
-    .collection('messages')
-    .orderBy('timestamp', 'asc')
-    .onSnapshot(snapshot => {
-        if (currentPage === 'chat') {
-            // Handle message display...
-        } else {
-            // Only show notification for truly new messages
+    // Listen for admin messages (special handling)
+    const adminMessagesUnsubscribe = db.collection('chats')
+        .where('isAdminChat', '==', true)
+        .where('participants', 'array-contains', currentUser.uid)
+        .onSnapshot(snapshot => {
             snapshot.docChanges().forEach(change => {
-                if (change.type === 'added' && 
-                    change.doc.data().senderId !== currentUser.uid &&
-                    change.doc.data().timestamp.toDate() > new Date()) { // Only truly new messages
-                    showToast('New Message', 'You have a new message', 'success');
+                if (change.type === 'modified') {
+                    // Update the chat list if needed
+                    if (currentPage === 'messages') {
+                        loadChats();
+                    }
+                    // If this is the current chat, load messages
+                    if (currentChat === change.doc.id) {
+                        loadMessages(currentChat);
+                    }
                 }
             });
-        }
-    });
+        });
+
+    // Listen for new messages in current chat
+    let messagesUnsubscribe = null;
+    
+    if (currentChat) {
+        messagesUnsubscribe = db.collection('chats').doc(currentChat)
+            .collection('messages')
+            .orderBy('timestamp', 'asc')
+            .onSnapshot(snapshot => {
+                if (currentPage === 'chat') {
+                    chatMessages.innerHTML = '';
+                    snapshot.forEach(doc => {
+                        addMessageToUI(doc.data(), doc.id);
+                    });
+                    // Scroll to bottom
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                }
+            });
     }
 
-    return { chatsUnsubscribe, messagesUnsubscribe };
+    unsubscribeFunctions.push(chatsUnsubscribe, adminMessagesUnsubscribe, messagesUnsubscribe);
 }
 
 // Set up chat list listeners
@@ -4852,55 +4849,109 @@ function renderNotifications(notifications) {
     const container = document.getElementById('notifications-container');
     
     if (notifications.length === 0) {
-        container.innerHTML = `
-            <div class="empty-state">
-                <i class="fas fa-bell-slash"></i>
-                <h3>No Notifications</h3>
-                <p>When you receive notifications, they'll appear here</p>
-            </div>
-        `;
+        container.innerHTML = '<div class="empty-state"><i class="fas fa-bell-slash"></i><h3>No Notifications</h3><p>When you have new notifications, they will appear here</p></div>';
         return;
     }
     
     container.innerHTML = '';
     
     notifications.forEach(notification => {
-        const notificationEl = document.createElement('div');
-        notificationEl.className = `notification-item ${notification.read ? '' : 'unread'}`;
-        notificationEl.innerHTML = `
+        const notificationElement = document.createElement('div');
+        notificationElement.className = `notification-item ${notification.read ? '' : 'unread'} ${notification.isAdminMessage ? 'admin-notification' : ''}`;
+        
+        // Special handling for admin messages
+        let icon = getNotificationIcon(notification.type);
+        let title = notification.title;
+        
+        if (notification.isAdminMessage) {
+            icon = 'fa-shield-alt';
+            title = `Admin: ${title}`;
+        }
+        
+        notificationElement.innerHTML = `
             <div class="notification-icon">
-                <i class="fas ${getNotificationIcon(notification.type)}"></i>
+                <i class="fas ${icon}"></i>
             </div>
             <div class="notification-content">
-                <div class="notification-header">
-                    <span class="notification-title">${notification.title}</span>
-                    ${notification.senderType === 'admin' ? 
-                      '<span class="admin-badge">Admin</span>' : ''}
-                </div>
+                <div class="notification-title">${title}</div>
                 <div class="notification-message">${notification.message}</div>
-                <div class="notification-footer">
-                    <span class="notification-time">${formatDate(notification.createdAt?.toDate())}</span>
-                    ${notification.senderName ? 
-                      `<span class="notification-sender">From: ${notification.senderName}</span>` : ''}
-                </div>
+                <div class="notification-time">${formatDate(notification.createdAt?.toDate())}</div>
+                ${notification.relatedChatId ? `<button class="reply-btn" data-chat-id="${notification.relatedChatId}">Reply</button>` : ''}
             </div>
         `;
         
+        container.appendChild(notificationElement);
+        
         // Mark as read when clicked
         if (!notification.read) {
-            notificationEl.addEventListener('click', async () => {
-                try {
-                    await db.collection('notifications').doc(notification.id).update({
-                        read: true
-                    });
-                } catch (error) {
-                    console.error('Error marking notification as read:', error);
+            notificationElement.addEventListener('click', () => {
+                db.collection('notifications').doc(notification.id).update({
+                    read: true
+                });
+                
+                // If it's an admin message with a related chat, open the chat
+                if (notification.relatedChatId) {
+                    openChat(notification.relatedChatId);
                 }
             });
         }
         
-        container.appendChild(notificationEl);
+        // Add reply button functionality
+        const replyBtn = notificationElement.querySelector('.reply-btn');
+        if (replyBtn) {
+            replyBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                openChat(replyBtn.getAttribute('data-chat-id'));
+            });
+        }
     });
+}
+
+// Add CSS for admin notifications
+const notificationStyle = document.createElement('style');
+notificationStyle.textContent = `
+    .admin-notification {
+        border-left: 4px solid #3b82f6;
+    }
+    .reply-btn {
+        margin-top: 8px;
+        padding: 4px 8px;
+        background-color: var(--primary-green);
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-size: 12px;
+        cursor: pointer;
+    }
+    .reply-btn:hover {
+        background-color: var(--primary-green-dark);
+    }
+`;
+document.head.appendChild(notificationStyle);
+
+// Add this function to check for admin messages
+async function checkForAdminMessages() {
+    // Check for existing admin chat
+    const adminChatSnapshot = await db.collection('chats')
+        .where('isAdminChat', '==', true)
+        .where('participants', 'array-contains', currentUser.uid)
+        .limit(1)
+        .get();
+
+    if (!adminChatSnapshot.empty) {
+        // Admin chat exists, check for unread messages
+        const chat = adminChatSnapshot.docs[0];
+        const messagesSnapshot = await db.collection('chats').doc(chat.id)
+            .collection('messages')
+            .where('senderId', '!=', currentUser.uid)
+            .where('read', '==', false)
+            .get();
+
+        if (!messagesSnapshot.empty) {
+            // Show a notification about new admin messages
+            showToast('New Message', 'You have a new message from admin', 'success');
+        }
+    }
 }
 
         // Set up modals
@@ -5271,27 +5322,17 @@ function renderNotifications(notifications) {
         }
 
         function getNotificationIcon(type) {
-    switch (type) {
-        case 'request':
-            return 'fa-hand-holding-heart';
-        case 'request-update':
-            return 'fa-check-circle';
-        case 'message':
-            return 'fa-comment';
-        case 'rating':
-            return 'fa-star';
-        default:
-            return 'fa-bell';
-    }
-    
-    const icons = {
-        'admin_notification': 'fa-shield-alt',
-        'admin_message': 'fa-envelope',
-        'verification': 'fa-user-check',
-        'default': 'fa-bell'
-    };
-    return icons[type] || icons.default;
-}
+            switch (type) {
+                case 'request':
+                    return 'fa-hand-holding-heart';
+                case 'message':
+                    return 'fa-comment';
+                case 'rating':
+                    return 'fa-star';
+                default:
+                    return 'fa-bell';
+            }
+        }
 
         // Custom confirmation function
         function showConfirmation(title, message, callback) {
@@ -5327,8 +5368,118 @@ function renderNotifications(notifications) {
         }
         
         document.getElementById('chat-back').addEventListener('click', () => {
-    navigateTo('messages');
-});
+            navigateTo('messages');
+        });
+        
+        function setupChatListeners() {
+    if (!currentUser) return;
+
+    // Listen for new chats including admin chats
+    const chatsUnsubscribe = db.collection('chats')
+        .where('participants', 'array-contains', currentUser.uid)
+        .orderBy('lastMessageTime', 'desc')
+        .onSnapshot(snapshot => {
+            if (currentPage === 'messages') {
+                chatList.innerHTML = '';
+                snapshot.forEach(doc => {
+                    const chat = doc.data();
+                    // Check if this is an admin chat
+                    if (chat.isAdminChat) {
+                        // Get admin info
+                        db.collection('admins').doc(chat.adminId).get().then(adminDoc => {
+                            if (adminDoc.exists) {
+                                const adminData = adminDoc.data();
+                                chat.participantNames[chat.adminId] = adminData.name;
+                                chat.participantAvatars[chat.adminId] = adminData.avatar;
+                                addChatToUI(chat, doc.id);
+                            }
+                        });
+                    } else {
+                        addChatToUI(chat, doc.id);
+                    }
+                });
+            }
+        });
+
+    // Listen for admin messages (special handling)
+    const adminMessagesUnsubscribe = db.collection('chats')
+        .where('isAdminChat', '==', true)
+        .where('participants', 'array-contains', currentUser.uid)
+        .onSnapshot(snapshot => {
+            snapshot.docChanges().forEach(change => {
+                if (change.type === 'modified') {
+                    // Update the chat list if needed
+                    if (currentPage === 'messages') {
+                        loadChats();
+                    }
+                    // If this is the current chat, load messages
+                    if (currentChat === change.doc.id) {
+                        loadMessages(currentChat);
+                    }
+                }
+            });
+        });
+
+    // Listen for new messages in current chat
+    let messagesUnsubscribe = null;
+    
+    if (currentChat) {
+        messagesUnsubscribe = db.collection('chats').doc(currentChat)
+            .collection('messages')
+            .orderBy('timestamp', 'asc')
+            .onSnapshot(snapshot => {
+                if (currentPage === 'chat') {
+                    chatMessages.innerHTML = '';
+                    snapshot.forEach(doc => {
+                        addMessageToUI(doc.data(), doc.id);
+                    });
+                    // Scroll to bottom
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                }
+            });
+    }
+
+    return { chatsUnsubscribe, messagesUnsubscribe, adminMessagesUnsubscribe };
+}
+
+// function to handle admin messages
+async function checkForAdminMessages() {
+    // Check for existing admin chat
+    const adminChatSnapshot = await db.collection('chats')
+        .where('isAdminChat', '==', true)
+        .where('participants', 'array-contains', currentUser.uid)
+        .limit(1)
+        .get();
+
+    if (!adminChatSnapshot.empty) {
+        // Admin chat exists, check for unread messages
+        const chat = adminChatSnapshot.docs[0];
+        const messagesSnapshot = await db.collection('chats').doc(chat.id)
+            .collection('messages')
+            .where('senderId', '!=', currentUser.uid)
+            .where('read', '==', false)
+            .get();
+
+        if (!messagesSnapshot.empty) {
+            // Show a notification about new admin messages
+            showToast('New Message', 'You have a new message from admin', 'success');
+        }
+    }
+}
+
+// Add CSS for verification status
+const verificationStyle = document.createElement('style');
+verificationStyle.textContent = `
+    .profile-role.verified {
+        background-color: var(--primary-green-light);
+        color: var(--primary-green-dark);
+    }
+    .profile-role.unverified {
+        background-color: #fee2e2;
+        color: #dc2626;
+    }
+`;
+document.head.appendChild(verificationStyle);
 
         // Initialize the app when DOM is loaded
         document.addEventListener('DOMContentLoaded', initApp);
