@@ -91,54 +91,49 @@
 
         /* Onboarding Screens */
         .onboarding-container {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
+            position: relative;
             width: 100%;
-            height: 100%;
+            height: 100vh;
+            max-width: 390px;
             background-color: white;
-            z-index: 9998;
             overflow: hidden;
+            padding: 64px 0 40px;
+            display: flex;
+            flex-direction: column;
         }
 
         .onboarding-slides {
             display: flex;
-            width: 300%;
-            height: 100%;
-            transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: transform 0.5s cubic-bezier(0.4, 0.0, 0.2, 1);
+            flex: 1;
         }
 
         .onboarding-slide {
-            width: 33.333%;
-            height: 100%;
-            padding: 2rem;
+            min-width: 100%;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
+            padding: 20px;
             text-align: center;
             position: relative;
-        }
-
-        .onboarding-background {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            z-index: 0;
+            z-index: 2;
         }
 
         .shape {
             position: absolute;
-            border-radius: 50%;
-            filter: blur(30px);
             opacity: 0.15;
+            z-index: 1;
+        }
+
+        .shape-circle {
+            border-radius: 50%;
+            background-color: var(--primary-green);
+            filter: blur(30px);
         }
 
         .shape-1 {
             width: 230px;
             height: 230px;
-            background-color: var(--primary-green);
             top: 10%;
             left: -20%;
             animation: float-slow 20s infinite alternate ease-in-out;
@@ -147,172 +142,206 @@
         .shape-2 {
             width: 180px;
             height: 180px;
-            background-color: var(--primary-green-light);
             bottom: 15%;
             right: -10%;
+            background-color: var(--primary-green-light);
             animation: float-slow 15s infinite alternate-reverse ease-in-out;
         }
 
         .shape-3 {
             width: 120px;
             height: 120px;
-            background-color: var(--secondary-green);
             bottom: 25%;
             left: 10%;
+            background-color: var(--secondary-green);
             animation: float-slow 18s infinite alternate ease-in-out;
         }
 
         @keyframes float-slow {
-            0% { transform: translate(0, 0); }
-            100% { transform: translate(10px, 15px); }
+            0% {
+                transform: translate(0, 0);
+            }
+            100% {
+                transform: translate(10px, 15px);
+            }
         }
 
-        .onboarding-image {
-            width: 200px;
-            height: 200px;
-            margin-bottom: 2rem;
+        .slide-illustration {
+            width: 240px;
+            height: 240px;
+            margin-bottom: 24px;
+            margin-top: 20px;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .slide-image-container {
+            width: 180px;
+            height: 180px;
             background-color: var(--bg-green-light);
             border-radius: 50%;
             display: flex;
-            align-items: center;
             justify-content: center;
-            color: var(--primary-green);
-            font-size: 4rem;
+            align-items: center;
             position: relative;
-            z-index: 1;
             box-shadow: var(--shadow-sm);
             animation: pulse 3s infinite ease-in-out;
         }
 
         @keyframes pulse {
-            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.2); }
-            70% { transform: scale(1.05); box-shadow: 0 0 0 15px rgba(34, 197, 94, 0); }
-            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+            0% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.2);
+            }
+            70% {
+                transform: scale(1.05);
+                box-shadow: 0 0 0 15px rgba(34, 197, 94, 0);
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+            }
         }
 
-        .onboarding-title {
-            font-size: 1.8rem;
+        .slide-image {
+            width: 90px;
+            height: 90px;
+            object-fit: contain;
+        }
+
+        .slide-content {
+            max-width: 300px;
+            animation: fade-in 0.5s ease-out;
+        }
+
+        @keyframes fade-in {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .slide-title {
+            font-size: 28px;
             font-weight: 700;
-            color: var(--primary-green-dark);
-            margin-bottom: 1rem;
-            position: relative;
-            z-index: 1;
-        }
-
-        .onboarding-description {
-            font-size: 1rem;
+            margin-bottom: 16px;
             color: var(--gray-600);
-            margin-bottom: 2rem;
-            max-width: 350px;
-            position: relative;
-            z-index: 1;
+        }
+
+        .slide-description {
+            font-size: 16px;
             line-height: 1.6;
+            color: var(--gray-400);
+            margin-bottom: 32px;
         }
 
-        .onboarding-progress {
+        .slide-indicators {
             display: flex;
-            gap: 8px;
-            margin-bottom: 2rem;
+            justify-content: center;
+            gap: 10px;
+            margin-top: auto;
+            padding: 24px 0;
             position: relative;
-            z-index: 1;
+            z-index: 2;
         }
 
-        .progress-dot {
-            width: 10px;
-            height: 10px;
+        .slide-indicator {
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
-            background-color: var(--gray-200);
+            background-color: var(--gray-300);
             transition: all 0.3s ease;
         }
 
-        .progress-dot.active {
+        .slide-indicator.active {
+            width: 28px;
+            border-radius: 12px;
             background-color: var(--primary-green);
-            transform: scale(1.2);
         }
 
         .onboarding-actions {
             display: flex;
-            gap: 1rem;
-            width: 100%;
-            max-width: 350px;
+            justify-content: space-between;
+            padding: 16px 24px;
             position: relative;
-            z-index: 1;
+            z-index: 2;
+            width: 100%;
         }
 
         .btn {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 1rem;
+            padding: 14px 24px;
             border-radius: 12px;
-            border: none;
             font-weight: 600;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
+            font-size: 16px;
+            border: none;
+            transition: all 0.2s ease;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
         }
-        
-        .btn span {
-            position: relative;
-            z-index: 1;
-            transition: all 0.3s ease;
+
+        .skip-btn {
+            background-color: var(--gray-100);
+            color: var(--gray-400);
         }
-        
-        .btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background-image: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-            transition: all 0.5s ease;
-        }
-        
-        .btn:hover::before {
-            left: 100%;
-        }
-        
+
         .btn-primary {
             background-color: var(--primary-green);
             color: white;
             box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
-            flex: 1;
+            transition: all 0.3s ease;
         }
-        
-        .btn-primary:hover {
-            background-color: var(--primary-green-dark);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 18px rgba(34, 197, 94, 0.4);
-        }
-        
+
         .btn-primary:active {
-            transform: translateY(0);
+            transform: scale(0.97);
         }
 
-        .btn-secondary {
-            background-color: var(--gray-100);
-            color: var(--gray-600);
-            flex: 1;
+        /* Custom animations for each slide's icon */
+        #slide1 .slide-image {
+            animation: share-animation 5s infinite ease-in-out;
         }
 
-        .btn-secondary:hover {
-            background-color: var(--gray-200);
-            transform: translateY(-2px);
+        @keyframes share-animation {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
         }
 
-        .skip-btn {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: none;
-            border: none;
-            color: var(--gray-400);
-            font-weight: 500;
-            cursor: pointer;
-            z-index: 1;
+        #slide2 .slide-image {
+            animation: find-animation 5s infinite ease-in-out;
+        }
+
+        @keyframes find-animation {
+            0%, 100% {
+                transform: rotate(0deg);
+            }
+            25% {
+                transform: rotate(5deg);
+            }
+            75% {
+                transform: rotate(-5deg);
+            }
+        }
+
+        #slide3 .slide-image {
+            animation: smile-animation 5s infinite ease-in-out;
+        }
+
+        @keyframes smile-animation {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
         }
 
         /* Auth Screens */
@@ -2358,75 +2387,72 @@
 
     <!-- Onboarding Screens -->
     <div class="onboarding-container" id="onboardingContainer">
-        <button class="skip-btn" id="skipBtn">Skip</button>
-        <div class="onboarding-slides" id="onboardingSlides">
-            <!-- Slide 1 -->
-            <div class="onboarding-slide">
-                <div class="onboarding-background">
-                    <div class="shape shape-1"></div>
-                    <div class="shape shape-2"></div>
-                    <div class="shape shape-3"></div>
+        <div class="shape shape-circle shape-1"></div>
+        <div class="shape shape-circle shape-2"></div>
+        <div class="shape shape-circle shape-3"></div>
+        
+        <div class="onboarding-slides">
+            <div class="onboarding-slide" id="slide1">
+                <div class="slide-illustration">
+                    <div class="slide-image-container">
+                        <svg class="slide-image" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M19 10H5C3.89543 10 3 10.8954 3 12V19C3 20.1046 3.89543 21 5 21H19C20.1046 21 21 20.1046 21 19V12C21 10.8954 20.1046 10 19 10Z" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M12 15C13.1046 15 14 14.1046 14 13C14 11.8954 13.1046 11 12 11C10.8954 11 10 11.8954 10 13C10 14.1046 10.8954 15 12 15Z" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M17 3L12 7L7 3" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M7 7H17" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
                 </div>
-                <div class="onboarding-image">
-                    <i class="fas fa-hand-holding-heart"></i>
-                </div>
-                <h2 class="onboarding-title">Share Surplus Food</h2>
-                <p class="onboarding-description">Help reduce food waste by sharing your surplus food with those in need in your community.</p>
-                <div class="onboarding-progress">
-                    <div class="progress-dot active"></div>
-                    <div class="progress-dot"></div>
-                    <div class="progress-dot"></div>
-                </div>
-                   <div class="onboarding-actions">
-                      <button class="btn btn-primary" id="nextBtn1">Next</button>
-                  </div>
-            </div>
-
-            <!-- Slide 2 -->
-            <div class="onboarding-slide">
-                <div class="onboarding-background">
-                    <div class="shape shape-1"></div>
-                    <div class="shape shape-2"></div>
-                    <div class="shape shape-3"></div>
-                </div>
-                <div class="onboarding-image">
-                    <i class="fas fa-hands-helping"></i>
-                </div>
-                <h2 class="onboarding-title">Find Available Food</h2>
-                <p class="onboarding-description">Discover fresh food available near you and connect with donors to arrange pickup.</p>
-                <div class="onboarding-progress">
-                    <div class="progress-dot"></div>
-                    <div class="progress-dot active"></div>
-                    <div class="progress-dot"></div>
-                </div>
-                <div class="onboarding-actions">
-                    <button class="btn btn-secondary" id="prevBtn2">Back</button>
-                    <button class="btn btn-primary" id="nextBtn2">Next</button>
+                <div class="slide-content">
+                    <h2 class="slide-title">Share Surplus Food</h2>
+                    <p class="slide-description">Connect with your community to share excess food and reduce waste through our simple sharing platform.</p>
                 </div>
             </div>
-
-            <!-- Slide 3 -->
-            <div class="onboarding-slide">
-                <div class="onboarding-background">
-                    <div class="shape shape-1"></div>
-                    <div class="shape shape-2"></div>
-                    <div class="shape shape-3"></div>
+            
+            <div class="onboarding-slide" id="slide2">
+                <div class="slide-illustration">
+                    <div class="slide-image-container">
+                        <svg class="slide-image" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M17.5 21H6.5C5.11929 21 4 19.8807 4 18.5V5.5C4 4.11929 5.11929 3 6.5 3H17.5C18.8807 3 20 4.11929 20 5.5V18.5C20 19.8807 18.8807 21 17.5 21Z" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M9 7H15" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M9 11H15" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M9 15H13" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
                 </div>
-                <div class="onboarding-image">
-                    <i class="fas fa-heart"></i>
-                </div>
-                <h2 class="onboarding-title">Make a Difference</h2>
-                <p class="onboarding-description">Join our community of donors and receivers to fight hunger and reduce food waste together.</p>
-                <div class="onboarding-progress">
-                    <div class="progress-dot"></div>
-                    <div class="progress-dot"></div>
-                    <div class="progress-dot active"></div>
-                </div>
-                <div class="onboarding-actions">
-                    <button class="btn btn-secondary" id="prevBtn3">Back</button>
-                    <button class="btn btn-primary" id="getStartedBtn">Get Started</button>
+                <div class="slide-content">
+                    <h2 class="slide-title">Find Available Food</h2>
+                    <p class="slide-description">Discover fresh food shared by neighbors in your community with real-time updates and easy pick-up options.</p>
                 </div>
             </div>
+            
+            <div class="onboarding-slide" id="slide3">
+                <div class="slide-illustration">
+                    <div class="slide-image-container">
+                        <svg class="slide-image" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M8 14C8 14 9.5 16 12 16C14.5 16 16 14 16 14" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M9 9H9.01" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M15 9H15.01" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="slide-content">
+                    <h2 class="slide-title">Make a Difference</h2>
+                    <p class="slide-description">Join thousands fighting food waste while building stronger communities and helping those in need around you.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="slide-indicators">
+            <div class="slide-indicator active"></div>
+            <div class="slide-indicator"></div>
+            <div class="slide-indicator"></div>
+        </div>
+        
+        <div class="onboarding-actions">
+            <button class="btn skip-btn" id="skipBtn">Skip</button>
+            <button class="btn btn-primary" id="nextBtn">Next</button>
         </div>
     </div>
 
@@ -3208,6 +3234,10 @@
         let currentChannelId = null;
         let currentChatUnsubscribe = null;
         
+        // Global variables for slide state
+        let currentSlide = 0;
+        const totalSlides = 3;
+        
 
         // DOM Elements
         const loadingScreen = document.getElementById('loadingScreen');
@@ -3273,35 +3303,177 @@
         const deleteAccountModal = document.getElementById('deleteAccountModal');
 
         // Initialize the app
-        document.addEventListener('DOMContentLoaded', function() {
-            // Check if user has completed onboarding
-            const hasCompletedOnboarding = localStorage.getItem('hasCompletedOnboarding') === 'true';
-            
-            if (!hasCompletedOnboarding) {
-                showOnboarding();
-            } else {
-                checkAuthState();
-            }
-
-            // Set up event listeners
-            setupEventListeners();
-        });
+// Add this at app startup
+document.addEventListener('DOMContentLoaded', function() {
+    // Clear any existing onboarding flags if user is logged out
+    if (!auth.currentUser) {
+        localStorage.removeItem('hasCompletedOnboarding');
+    }
+    initApp();
+});
         
-        // Initialize the app
 function initApp() {
     setupEventListeners();
-    checkOnboardingStatus();
+    checkAuthState();
 }
 
-// Check if user has completed onboarding
-function checkOnboardingStatus() {
+// Check auth state and handle accordingly
+function checkAuthState() {
+    loadingScreen.style.display = 'flex';
+    
+    auth.onAuthStateChanged(async (user) => {
+        if (user) {
+            // User is signed in
+            currentUser = user;
+            await fetchUserData();
+            
+            // Now check onboarding status for authenticated users
+            await checkOnboardingStatus();
+        } else {
+            // No user is signed in
+            showAuthScreen();
+        }
+    });
+}
+
+// Check if user has completed onboarding (only for authenticated users)
+async function checkOnboardingStatus() {
+    // First check Firestore for profile completion status
+    if (userData && userData.profileComplete) {
+        localStorage.setItem('hasCompletedOnboarding', 'true');
+        showApp();
+        return;
+    }
+    
+    // Then check localStorage as fallback
     const onboardingCompleted = localStorage.getItem('hasCompletedOnboarding') === 'true';
     
     if (!onboardingCompleted) {
         showOnboarding();
     } else {
-        checkAuthState();
+        // Ensure Firestore is updated if localStorage says completed
+        if (currentUser) {
+            await db.collection('users').doc(currentUser.uid).update({
+                profileComplete: true,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        }
+        showApp();
     }
+}
+
+function showOnboarding() {
+    loadingScreen.style.display = 'none';
+    authScreen.style.display = 'none';
+    appContainer.style.display = 'none';
+    profileSetup.style.display = 'none';
+    onboardingContainer.style.display = 'flex';
+    
+    initOnboardingSlides();
+}
+
+function showApp() {
+    loadingScreen.style.display = 'none';
+    authScreen.style.display = 'none';
+    onboardingContainer.style.display = 'none';
+    profileSetup.style.display = 'none';
+    appContainer.style.display = 'block';
+    
+    updateUserInterface();
+    loadInitialData();
+    setupRealtimeListeners();
+    showPage('home');
+}
+
+function initOnboardingSlides() {
+    const slidesContainer = document.querySelector('.onboarding-slides');
+    const slides = document.querySelectorAll('.onboarding-slide');
+    const indicators = document.querySelectorAll('.slide-indicator');
+    const nextBtn = document.getElementById('nextBtn');
+    const skipBtn = document.getElementById('skipBtn');
+    
+    if (!slidesContainer || !slides.length || !indicators.length || !nextBtn || !skipBtn) {
+        console.error('Onboarding elements not found');
+        return;
+    }
+
+    // Initialize swipe detection
+    let touchStartX = 0;
+    let touchEndX = 0;
+    
+    function updateSlide() {
+        slidesContainer.style.transform = `translateX(-${currentSlide * 100}%)`;
+        
+        indicators.forEach((indicator, index) => {
+            if (index === currentSlide) {
+                indicator.classList.add('active');
+            } else {
+                indicator.classList.remove('active');
+            }
+        });
+        
+        nextBtn.textContent = currentSlide === totalSlides - 1 ? 'Get Started' : 'Next';
+    }
+    
+    function handleSwipe() {
+        const swipeThreshold = 50;
+        
+        if (touchEndX < touchStartX - swipeThreshold) {
+            goToNextSlide();
+        } else if (touchEndX > touchStartX + swipeThreshold) {
+            if (currentSlide > 0) {
+                currentSlide--;
+                updateSlide();
+            }
+        }
+    }
+    
+    // Set up button event listeners
+    nextBtn.addEventListener('click', goToNextSlide);
+    skipBtn.addEventListener('click', skipOnboarding);
+    
+    // Initialize swipe events
+    slidesContainer.addEventListener('touchstart', function(e) {
+        touchStartX = e.changedTouches[0].screenX;
+    }, { passive: true });
+    
+    slidesContainer.addEventListener('touchend', function(e) {
+        touchEndX = e.changedTouches[0].screenX;
+        handleSwipe();
+    }, { passive: true });
+    
+    // Initialize first slide
+    updateSlide();
+}
+
+// Global navigation functions
+function goToNextSlide() {
+    if (currentSlide < totalSlides - 1) {
+        currentSlide++;
+        updateSlide();
+    } else {
+        completeOnboarding();
+    }
+}
+
+function skipOnboarding() {
+    completeOnboarding();
+}
+
+function completeOnboarding() {
+    localStorage.setItem('hasCompletedOnboarding', 'true');
+    
+    if (currentUser) {
+        db.collection('users').doc(currentUser.uid).update({
+            profileComplete: true,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        }).catch(error => {
+            console.error('Error updating onboarding status:', error);
+        });
+    }
+    
+    document.getElementById('onboardingContainer').style.display = 'none';
+    checkAuthState();
 }
 
 function setupSearchAndFilters() {
@@ -3322,92 +3494,84 @@ function setupSearchAndFilters() {
     });
 }
 
-        function setupEventListeners() {
-            // Onboarding navigation
-            skipBtn.addEventListener('click', skipOnboarding);
-            nextBtn1.addEventListener('click', () => navigateOnboarding(1));
-            nextBtn2.addEventListener('click', () => navigateOnboarding(2));
-            prevBtn2.addEventListener('click', () => navigateOnboarding(0));
-            prevBtn3.addEventListener('click', () => navigateOnboarding(1));
-            getStartedBtn.addEventListener('click', completeOnboarding);
-
-            // Profile setup
-            defaultAvatarBtn.addEventListener('click', showDefaultAvatarOptions);
-            customAvatarBtn.addEventListener('click', showCustomAvatarUpload);
-            avatarUpload.addEventListener('change', handleAvatarUpload);
-            completeProfileBtn.addEventListener('click', completeProfileSetup);
-
-            // Image uploads
-            listingImageUpload.addEventListener('change', handleListingImageUpload);
-            
-            // Add this to your setupEventListeners function
-            document.getElementById('sendMessageBtn').addEventListener('click', sendMessage);
-            document.getElementById('chatMessageInput').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    sendMessage();
-                }
-            });
-        }
-
-        function showOnboarding() {
-    loadingScreen.style.display = 'none';
-    onboardingContainer.style.display = 'block';
+function setupEventListeners() {
+    // Onboarding navigation
+    const skipBtn = document.getElementById('skipBtn');
+    const nextBtn = document.getElementById('nextBtn');
     
-    // Reset to first slide
-    onboardingSlides.style.transform = 'translateX(0)';
+    if (skipBtn) skipBtn.addEventListener('click', skipOnboarding);
+    if (nextBtn) nextBtn.addEventListener('click', goToNextSlide);
+
+    // Profile setup
+    const defaultAvatarBtn = document.getElementById('defaultAvatarBtn');
+    const customAvatarBtn = document.getElementById('customAvatarBtn');
+    const avatarUpload = document.getElementById('avatarUpload');
+    const completeProfileBtn = document.getElementById('completeProfileBtn');
     
-    // Reset progress dots
-    const dots = document.querySelectorAll('.progress-dot');
-    dots.forEach((dot, index) => {
-        dot.classList.toggle('active', index === 0);
+    if (defaultAvatarBtn) defaultAvatarBtn.addEventListener('click', showDefaultAvatarOptions);
+    if (customAvatarBtn) customAvatarBtn.addEventListener('click', showCustomAvatarUpload);
+    if (avatarUpload) avatarUpload.addEventListener('change', handleAvatarUpload);
+    if (completeProfileBtn) completeProfileBtn.addEventListener('click', completeProfileSetup);
+
+    // Image uploads
+    const listingImageUpload = document.getElementById('listingImageUpload');
+    if (listingImageUpload) listingImageUpload.addEventListener('change', handleListingImageUpload);
+
+    // Chat functionality
+    const sendMessageBtn = document.getElementById('sendMessageBtn');
+    const chatMessageInput = document.getElementById('chatMessageInput');
+    
+    if (sendMessageBtn) sendMessageBtn.addEventListener('click', sendMessage);
+    if (chatMessageInput) {
+        chatMessageInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') sendMessage();
+        });
+    }
+
+    // Search and filters
+    const searchInput = document.getElementById('listingSearch');
+    if (searchInput) searchInput.addEventListener('input', filterListings);
+
+    // Category filters
+    document.querySelectorAll('.category-filter').forEach(filter => {
+        filter.addEventListener('click', () => {
+            document.querySelectorAll('.category-filter').forEach(f => f.classList.remove('active'));
+            filter.classList.add('active');
+            filterListings();
+        });
     });
-    
-    // Reset button visibility
-    document.getElementById('nextBtn1').style.display = 'flex';
-    document.getElementById('nextBtn2').style.display = 'none';
-    document.getElementById('getStartedBtn').style.display = 'none';
+
+    // Modal close buttons
+    document.querySelectorAll('.modal-close').forEach(button => {
+        button.addEventListener('click', function() {
+            const modal = this.closest('.modal-overlay');
+            if (modal) modal.style.display = 'none';
+        });
+    });
+
+    // Toast close buttons
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('toast-close')) {
+            e.target.parentElement.remove();
+        }
+    });
+
+    // Navigation items
+    document.querySelectorAll('.sidebar-item, .nav-item').forEach(item => {
+        item.addEventListener('click', function(e) {
+            const page = this.getAttribute('onclick').match(/showPage\('([^']+)'\)/)[1];
+            if (page) showPage(page);
+        });
+    });
+
+    // FAB button
+    const fabButton = document.getElementById('fabButton');
+    if (fabButton) fabButton.addEventListener('click', showCreateListingModal);
+
+    // Notification bell
+    const notificationBadge = document.querySelector('.notification-badge');
+    if (notificationBadge) notificationBadge.addEventListener('click', toggleNotificationsModal);
 }
-
-function navigateOnboarding(slideIndex) {
-    onboardingSlides.style.transform = `translateX(-${slideIndex * 100}%)`;
-    
-    // Update progress dots
-    const dots = document.querySelectorAll('.progress-dot');
-    dots.forEach(dot => dot.classList.remove('active'));
-    dots[slideIndex].classList.add('active');
-}
-
-        function skipOnboarding() {
-            completeOnboarding();
-        }
-
-        function completeOnboarding() {
-            localStorage.setItem('hasCompletedOnboarding', 'true');
-            onboardingContainer.style.display = 'none';
-            checkAuthState();
-        }
-
-        function checkAuthState() {
-            loadingScreen.style.display = 'flex';
-            
-            auth.onAuthStateChanged(async (user) => {
-                if (user) {
-                    // User is signed in
-                    currentUser = user;
-                    await fetchUserData();
-                    
-                    // Check if profile is complete
-                    if (!userData.profileComplete) {
-                        showProfileSetup();
-                    } else {
-                        showApp();
-                    }
-                } else {
-                    // No user is signed in
-                    showAuthScreen();
-                }
-            });
-        }
 
         function showAuthScreen() {
             loadingScreen.style.display = 'none';
@@ -3423,24 +3587,6 @@ function navigateOnboarding(slideIndex) {
             profileSetup.style.display = 'flex';
         }
 
-  async function showApp() {
-    loadingScreen.style.display = 'none';
-    authScreen.style.display = 'none';
-    appContainer.style.display = 'block';
-    profileSetup.style.display = 'none';
-    
-    // Update UI based on user data
-    updateUserInterface();
-    
-    // Load initial data FIRST
-    await loadInitialData();
-    
-    // THEN set up real-time listeners
-    setupRealtimeListeners();
-    
-    // Show the home page by default
-    showPage('home');
-}
 
         async function fetchUserData() {
             try {
@@ -4576,6 +4722,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
+
 function renderMessages() {
     messagesLoading = false;
     messagesContent.innerHTML = '';
@@ -4680,81 +4827,106 @@ function renderMessages() {
         }
 
         async function completeProfileSetup() {
-            try {
-                // Show loading state
-                completeProfileBtn.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right: 8px;"></i><span>Setting Up...</span>';
-                
-                let avatarUrl = '';
-                
-                if (selectedAvatarType === 'default') {
-                    // No need to upload for default avatar
-                    avatarUrl = '';
-                } else {
-                    // Upload custom avatar to ImageBB
-                    const file = avatarUpload.files[0];
-                    if (!file) {
-                        showToast('Please select a profile photo', 'error');
-                        completeProfileBtn.innerHTML = '<span>Complete Profile</span>';
-                        return;
-                    }
-                    
-                    const formData = new FormData();
-                    formData.append('image', file);
-                    
-                    const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMAGEBB_API_KEY}`, {
-                        method: 'POST',
-                        body: formData
-                    });
-                    
-                    const data = await response.json();
-                    if (!data.success) {
-                        throw new Error('Image upload failed');
-                    }
-                    
-                    avatarUrl = data.data.url;
-                }
-                
-                // Get profile details
-                const bio = document.getElementById('profileBio').value.trim();
-                const location = document.getElementById('profileLocation').value.trim();
-                const organization = document.getElementById('profileOrganization').value.trim();
-                
-                // Update user data in Firestore
-                await db.collection('users').doc(currentUser.uid).update({
-                    profileComplete: true,
-                    avatarType: selectedAvatarType,
-                    avatarInitial: selectedAvatar,
-                    avatarColor: selectedAvatarColor,
-                    avatarUrl: avatarUrl,
-                    bio: bio,
-                    location: location,
-                    organization: userData.role === 'donor' ? organization : '',
-                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                
-                // Update user data locally
-                userData.profileComplete = true;
-                userData.avatarType = selectedAvatarType;
-                userData.avatarInitial = selectedAvatar;
-                userData.avatarColor = selectedAvatarColor;
-                userData.avatarUrl = avatarUrl;
-                userData.bio = bio;
-                userData.location = location;
-                if (userData.role === 'donor') {
-                    userData.organization = organization;
-                }
-                
-                // Show success message
-                showToast('Profile setup complete!', 'success');
-                
-                // Show the app
-                showApp();
-            } catch (error) {
-                console.error('Error completing profile setup:', error);
-                showToast('Error completing profile setup', 'error');
+    try {
+        // Show loading state
+        const completeProfileBtn = document.getElementById('completeProfileBtn');
+        completeProfileBtn.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right: 8px;"></i><span>Setting Up...</span>';
+        completeProfileBtn.disabled = true;
+        
+        let avatarUrl = '';
+        
+        // Handle avatar upload based on selected type
+        if (selectedAvatarType === 'default') {
+            // For default avatar, we just store the initial and color
+            avatarUrl = '';
+        } else {
+            // For custom avatar, upload to ImageBB
+            const file = document.getElementById('avatarUpload').files[0];
+            if (!file) {
+                showToast('Please select a profile photo', 'error');
                 completeProfileBtn.innerHTML = '<span>Complete Profile</span>';
+                completeProfileBtn.disabled = false;
+                return;
             }
+            
+            const formData = new FormData();
+            formData.append('image', file);
+            
+            const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMAGEBB_API_KEY}`, {
+                method: 'POST',
+                body: formData
+            });
+            
+            const data = await response.json();
+            if (!data.success) {
+                throw new Error('Image upload failed');
+            }
+            
+            avatarUrl = data.data.url;
         }
+
+        // Get profile details from form
+        const bio = document.getElementById('profileBio').value.trim();
+        const location = document.getElementById('profileLocation').value.trim();
+        const organization = userData.role === 'donor' 
+            ? document.getElementById('profileOrganization').value.trim() 
+            : '';
+
+        // Prepare update data
+        const updateData = {
+            profileComplete: true,
+            avatarType: selectedAvatarType,
+            avatarInitial: selectedAvatar,
+            avatarColor: selectedAvatarColor,
+            bio: bio,
+            location: location,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        };
+
+        // Only add avatarUrl if it exists (for custom avatars)
+        if (avatarUrl) {
+            updateData.avatarUrl = avatarUrl;
+        }
+
+        // Add organization only for donors
+        if (userData.role === 'donor') {
+            updateData.organization = organization;
+        }
+
+        // Update user data in Firestore
+        await db.collection('users').doc(currentUser.uid).update(updateData);
+
+        // Update local user data
+        userData = {
+            ...userData,
+            ...updateData,
+            profileComplete: true
+        };
+
+        // Set onboarding completion in localStorage
+        localStorage.setItem('hasCompletedOnboarding', 'true');
+
+        // Show success message
+        showToast('Profile setup complete!', 'success');
+        
+        // Update UI with new profile data
+        updateUserInterface();
+        
+        // Show the app
+        showApp();
+        
+    } catch (error) {
+        console.error('Error completing profile setup:', error);
+        showToast('Error completing profile setup: ' + error.message, 'error');
+    } finally {
+        // Reset button state
+        const completeProfileBtn = document.getElementById('completeProfileBtn');
+        if (completeProfileBtn) {
+            completeProfileBtn.innerHTML = '<span>Complete Profile</span>';
+            completeProfileBtn.disabled = false;
+        }
+    }
+}
 
         function showCreateListingModal() {
             if (!userData.verified) {
@@ -4806,8 +4978,25 @@ function renderMessages() {
         const address = document.getElementById('listingAddress').value.trim();
         const imageFile = document.getElementById('listingImageUpload').files[0];
         
-        // Validate form (existing validation code remains the same)
+        // Validate form
+        if (!title) {
+            document.getElementById('listingTitleError').style.display = 'block';
+            document.getElementById('listingTitle').parentElement.classList.add('error');
+            return;
+        }
         
+        if (!expiryDate) {
+            document.getElementById('listingExpiryError').style.display = 'block';
+            document.getElementById('listingExpiry').parentElement.classList.add('error');
+            return;
+        }
+        
+        if (!address) {
+            document.getElementById('listingAddressError').style.display = 'block';
+            document.getElementById('listingAddress').parentElement.classList.add('error');
+            return;
+        }
+
         // Show loading state on button
         const originalButtonText = createListingBtn.innerHTML;
         createListingBtn.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right: 8px;"></i><span>Creating...</span>';
@@ -4815,7 +5004,23 @@ function renderMessages() {
         
         let imageUrl = '';
         
-        // Upload image if provided (existing upload code remains the same)
+        // Upload image if provided
+        if (imageFile) {
+            const formData = new FormData();
+            formData.append('image', imageFile);
+            
+            const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMAGEBB_API_KEY}`, {
+                method: 'POST',
+                body: formData
+            });
+            
+            const data = await response.json();
+            if (!data.success) {
+                throw new Error('Image upload failed');
+            }
+            
+            imageUrl = data.data.url;
+        }
         
         // Create listing in Firestore
         const newListing = {
@@ -4834,16 +5039,12 @@ function renderMessages() {
         // Add the new listing to Firestore
         const docRef = await db.collection('listings').add(newListing);
         
-        // Immediately add to local state before Firestore listener updates
-        const listingWithId = {
+        // Update UI immediately
+        userListings.unshift({
             id: docRef.id,
             ...newListing
-        };
+        });
         
-        // Add to beginning of array to show newest first
-        userListings.unshift(listingWithId);
-        
-        // Update the UI immediately
         renderUserListings();
         
         // Hide modal and show success message
@@ -4889,24 +5090,46 @@ async function createFoodRequest(listingId) {
             return;
         }
 
-        // Create a message thread first
-        const messageThread = await db.collection('messages').add({
-            participants: [currentUser.uid, listing.userId],
-            participantNames: {
-                [currentUser.uid]: userData.name,
-                [listing.userId]: listing.userName
-            },
-            participantInitials: {
-                [currentUser.uid]: userData.avatarInitial,
-                [listing.userId]: listing.userInitial || 'U'
-            },
-            listingId: listingId,
-            listingTitle: listing.title,
-            lastMessage: 'Hey, is this still available?',
-            lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
-            [`${currentUser.uid}_unread`]: 0,
-            [`${listing.userId}_unread`]: 1 // Mark as unread for donor
-        });
+        // Check if there's an existing message thread with this user
+        let existingThread = messages.find(m => 
+            m.participants.includes(listing.userId) && 
+            m.participants.includes(currentUser.uid)
+        );
+
+        let messageThreadId;
+        
+        if (existingThread) {
+            // Use existing thread
+            messageThreadId = existingThread.id;
+            
+            // Update the existing thread
+            await db.collection('messages').doc(messageThreadId).update({
+                lastMessage: 'New request about: ' + listing.title,
+                lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
+                [`${listing.userId}_unread`]: firebase.firestore.FieldValue.increment(1)
+            });
+        } else {
+            // Create a new message thread
+            const messageThread = await db.collection('messages').add({
+                participants: [currentUser.uid, listing.userId],
+                participantNames: {
+                    [currentUser.uid]: userData.name,
+                    [listing.userId]: listing.userName
+                },
+                participantInitials: {
+                    [currentUser.uid]: userData.avatarInitial,
+                    [listing.userId]: listing.userInitial || 'U'
+                },
+                listingId: listingId,
+                listingTitle: listing.title,
+                lastMessage: 'New request about: ' + listing.title,
+                lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
+                [`${currentUser.uid}_unread`]: 0,
+                [`${listing.userId}_unread`]: 1 // Mark as unread for donor
+            });
+            
+            messageThreadId = messageThread.id;
+        }
 
         // Create request document
         const requestRef = await db.collection('requests').add({
@@ -4918,28 +5141,28 @@ async function createFoodRequest(listingId) {
             receiverId: currentUser.uid,
             receiverName: userData.name,
             status: 'pending',
-            messageThreadId: messageThread.id, // Store the message thread ID
+            messageThreadId: messageThreadId,
             createdAt: firebase.firestore.FieldValue.serverTimestamp(),
             message: 'Hey, is this still available?'
         });
 
         // Create notification for donor
         await db.collection('notifications').add({
-            userId: listing.userId,  // Notification for the donor
+            userId: listing.userId,
             type: 'request',
             requestId: requestRef.id,
             listingId: listingId,
             listingTitle: listing.title,
             receiverId: currentUser.uid,
             receiverName: userData.name,
-            messageThreadId: messageThread.id,
+            messageThreadId: messageThreadId,
             status: 'pending',
             createdAt: firebase.firestore.FieldValue.serverTimestamp(),
             read: false
         });
 
         // Add initial message to the thread
-        await db.collection('messages').doc(messageThread.id).collection('conversation').add({
+        await db.collection('messages').doc(messageThreadId).collection('conversation').add({
             senderId: currentUser.uid,
             senderName: userData.name,
             text: 'Hey, is this still available?',
