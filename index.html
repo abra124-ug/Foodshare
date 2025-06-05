@@ -11,7 +11,8 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-storage-compat.js"></script>
-    <style>
+    <link rel="stylesheet" href="stye.css">
+<style>
         :root {
             --primary-green: #22c55e;
             --primary-green-dark: #16a34a;
@@ -2188,6 +2189,15 @@
     margin-left: 0.5rem;
 }
 
+.unread-badge {
+    background-color: var(--primary-green);
+    color: white;
+    padding: 0.1rem 0.5rem;
+    border-radius: 10px;
+    font-size: 0.7rem;
+    margin-left: 0.5rem;
+}
+
 /* Chat Page Styles */
 .chat-header {
     position: fixed;
@@ -2376,7 +2386,9 @@
     margin-top: 0;
     margin-bottom: 0;
 }
-    </style>
+
+
+</style>
 </head>
 <body>
     <!-- Loading Screen -->
@@ -3234,6 +3246,11 @@
         let currentChatUserId = null;
         let currentChannelId = null;
         let currentChatUnsubscribe = null;
+        let currentChat = {
+            userId: null,
+            channelId: null,
+            unsubscribe: null
+        };
         
         // Global variables for slide state
         let currentSlide = 0;
@@ -4316,6 +4333,7 @@ function renderNotifications(notifications, containerId = 'notificationsContent'
 
 function renderMessages() {
     messagesLoading = false;
+    messagesContent.innerHTML = '';
     
     if (messages.length === 0) {
         messagesContent.innerHTML = `
@@ -4328,34 +4346,48 @@ function renderMessages() {
         return;
     }
     
-    messagesContent.innerHTML = '';
-    
     messages.forEach(message => {
         const otherUserId = message.participants.find(id => id !== currentUser.uid);
+        const otherUserData = message.participantNames[otherUserId];
         const unreadCount = message[`${currentUser.uid}_unread`] || 0;
         const isRequest = message.listingId && message.listingTitle;
         
+        // Get avatar URL or use default
+        let avatarContent = '';
+        if (message.participantAvatars && message.participantAvatars[otherUserId]) {
+            avatarContent = `<img src="${message.participantAvatars[otherUserId]}" style="width: 100%; height: 100%; object-fit: cover;">`;
+        } else {
+            // Use default avatar with color
+            const color = getColorForInitial(message.participantColors?.[otherUserId] || 'color-1');
+            avatarContent = `<span style="font-weight: 600; color: white;">${message.participantInitials[otherUserId] || 'U'}</span>`;
+        }
+
         const messageElement = document.createElement('div');
-        messageElement.className = 'food-card';
+        messageElement.className = 'message-item';
         messageElement.style.cursor = 'pointer';
         messageElement.innerHTML = `
-            <div class="food-details" style="display: flex; align-items: center; gap: 1rem; padding: 1rem;">
-                <div style="width: 50px; height: 50px; border-radius: 50%; background-color: var(--gray-100); display: flex; align-items: center; justify-content: center; overflow: hidden;">
-                    <span style="font-weight: 600; color: white;">${message.participantInitials[otherUserId] || 'U'}</span>
+            <div class="message-preview" style="display: flex; align-items: center; gap: 1rem; padding: 1rem;">
+                <div class="user-avatar" style="width: 50px; height: 50px; border-radius: 50%; background-color: var(--gray-100); display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                    ${avatarContent}
                 </div>
                 <div style="flex: 1;">
                     <h3 style="font-size: 1rem; color: var(--gray-600); margin-bottom: 0.3rem;">
-                        ${message.participantNames[otherUserId]}
-                        ${unreadCount > 0 ? `<span style="background-color: var(--primary-green); color: white; padding: 0.1rem 0.5rem; border-radius: 10px; font-size: 0.7rem; margin-left: 0.5rem;">${unreadCount}</span>` : ''}
+                        ${otherUserData}
+                        ${unreadCount > 0 ? `<span class="unread-badge">${unreadCount}</span>` : ''}
                     </h3>
                     ${isRequest ? `<p style="font-size: 0.8rem; color: var(--gray-500); margin-bottom: 0.3rem;">About: ${message.listingTitle}</p>` : ''}
-                    <p style="font-size: 0.9rem; color: var(--gray-400); margin-bottom: 0.3rem;">${message.lastMessage || 'No messages yet'}</p>
+                    <p style="font-size: 0.9rem; color: var(--gray-400); margin-bottom: 0.3rem;">
+                        ${message.lastMessageSender === currentUser.uid ? 'You: ' : ''}
+                        ${message.lastMessage || 'No messages yet'}
+                    </p>
                     <p style="font-size: 0.8rem; color: var(--gray-400);">${formatTime(message.lastUpdated.toDate())}</p>
                 </div>
             </div>
         `;
         
-        messageElement.addEventListener('click', () => viewMessage(message.id));
+        messageElement.addEventListener('click', () => {
+            startChat(otherUserId, message.id);
+        });
         messagesContent.appendChild(messageElement);
     });
 }
@@ -4398,101 +4430,42 @@ function renderMessages() {
             showToast(`Chat with user ${otherUserId} would open here`, 'info');
         }
  
- async function loadMessagesPage() {
-    messagesLoading = false;
-    messagesContent.innerHTML = '<div class="loader"><div class="page-loading-spinner"></div><div class="page-loading-text">Loading messages...</div></div>';
-
-    try {
-        // Query all chats where current user is a participant
-        const querySnapshot = await db.collection('chats')
-            .where('participants', 'array-contains', currentUser.uid)
-            .orderBy('lastMessageAt', 'desc')
-            .get();
-
-        if (querySnapshot.empty) {
-            messagesContent.innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-comments"></i>
-                    <h3>No Messages Yet</h3>
-                    <p>When you start conversations about listings, they'll appear here.</p>
-                </div>
-            `;
-            return;
-        }
-
-        messagesContent.innerHTML = '';
-        
-        // Process each chat document
-        const promises = querySnapshot.docs.map(async (doc) => {
-            const chatData = doc.data();
-            const otherUserId = chatData.participants.find(id => id !== currentUser.uid);
-            
-            // Get the other user's details
-            const otherUserDoc = await db.collection('users').doc(otherUserId).get();
-            const otherUserData = otherUserDoc.data();
-            
-            // Get the listing details if this is a food request chat
-            let listingTitle = '';
-            if (chatData.listingId) {
-                const listingDoc = await db.collection('listings').doc(chatData.listingId).get();
-                if (listingDoc.exists) {
-                    listingTitle = listingDoc.data().title;
-                }
+async function loadMessagesPage() {
+  // Query chats where user is participant
+  const chatsQuery = db.collection('chats')
+    .where('participants', 'array-contains', currentUser.uid)
+    .orderBy('lastUpdated', 'desc');
+  
+  // Set up realtime listener
+  const unsubscribe = chatsQuery.onSnapshot(async snapshot => {
+    const messages = [];
+    const promises = [];
+    
+    // Get last message from each chat
+    snapshot.forEach(doc => {
+      promises.push(
+        doc.ref.collection('messages')
+          .orderBy('createdAt', 'desc')
+          .limit(1)
+          .get()
+          .then(messageSnapshot => {
+            if (!messageSnapshot.empty) {
+              messages.push({
+                id: doc.id,
+                ...doc.data(),
+                lastMessage: messageSnapshot.docs[0].data().text,
+                lastUpdated: messageSnapshot.docs[0].data().createdAt
+              });
             }
-            
-            // Format the last message time
-            const lastMessageTime = chatData.lastMessageAt 
-                ? formatTime(chatData.lastMessageAt.toDate())
-                : 'No messages';
-            
-            // Create the message card
-            const messageElement = document.createElement('div');
-            messageElement.className = 'food-card';
-            messageElement.style.cursor = 'pointer';
-            messageElement.innerHTML = `
-                <div class="food-details" style="display: flex; align-items: center; gap: 1rem; padding: 1rem;">
-                    <div style="width: 50px; height: 50px; border-radius: 50%; background-color: var(--gray-100); display: flex; align-items: center; justify-content: center; overflow: hidden;">
-                        ${otherUserData.avatarType === 'default' 
-                            ? `<span style="font-weight: 600; color: white; background-color: ${getColorForInitial(otherUserData.avatarColor)}; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
-                                ${otherUserData.avatarInitial}
-                              </span>`
-                            : `<img src="${otherUserData.avatarUrl}" style="width: 100%; height: 100%; object-fit: cover;">`}
-                    </div>
-                    <div style="flex: 1;">
-                        <h3 style="font-size: 1rem; color: var(--gray-600); margin-bottom: 0.3rem;">
-                            ${otherUserData.name}
-                            ${chatData[`${currentUser.uid}_unread`] > 0 
-                                ? `<span style="background-color: var(--primary-green); color: white; padding: 0.1rem 0.5rem; border-radius: 10px; font-size: 0.7rem; margin-left: 0.5rem;">
-                                    ${chatData[`${currentUser.uid}_unread`]}
-                                  </span>` 
-                                : ''}
-                        </h3>
-                        ${listingTitle ? `<p style="font-size: 0.8rem; color: var(--gray-500); margin-bottom: 0.3rem;">About: ${listingTitle}</p>` : ''}
-                        <p style="font-size: 0.9rem; color: var(--gray-400); margin-bottom: 0.3rem;">${chatData.lastMessage || 'No messages yet'}</p>
-                        <p style="font-size: 0.8rem; color: var(--gray-400);">${lastMessageTime}</p>
-                    </div>
-                </div>
-            `;
-            
-            messageElement.addEventListener('click', () => {
-                startChat(otherUserId, doc.id);
-            });
-            
-            messagesContent.appendChild(messageElement);
-        });
-        
-        await Promise.all(promises);
-        
-    } catch (error) {
-        console.error('Error loading messages:', error);
-        messagesContent.innerHTML = `
-            <div class="empty-state">
-                <i class="fas fa-exclamation-triangle"></i>
-                <h3>Error Loading Messages</h3>
-                <p>${error.message}</p>
-            </div>
-        `;
-    }
+          })
+      );
+    });
+    
+    await Promise.all(promises);
+    renderMessagesList(messages);
+  });
+  
+  return unsubscribe; // For cleanup
 }
 
 // Helper function to get color for avatar
@@ -4509,18 +4482,22 @@ function getColorForInitial(colorClass) {
 }
         
 async function startChat(otherUserId, chatId = null) {
-    showPage('chat');
-    
     try {
-        // Unsubscribe from previous chat if any
-        if (currentChatUnsubscribe) {
-            currentChatUnsubscribe();
-            currentChatUnsubscribe = null;
+        // Clean up previous chat if any
+        if (currentChat.unsubscribe) {
+            currentChat.unsubscribe();
         }
 
-        // Reset chat state
-        currentChatUserId = null;
-        currentChannelId = null;
+        // Show loading state
+        const messagesContainer = document.getElementById('chatMessages');
+        messagesContainer.innerHTML = `
+            <div class="page-loading">
+                <div class="page-loading-spinner"></div>
+                <div class="page-loading-text">Loading messages...</div>
+            </div>
+        `;
+
+        showPage('chat');
         
         // Get other user's data
         const otherUserDoc = await db.collection('users').doc(otherUserId).get();
@@ -4555,11 +4532,15 @@ async function startChat(otherUserId, chatId = null) {
         const participants = [currentUser.uid, otherUserId].sort();
         const channelId = participants.join('-');
         
-        currentChatUserId = otherUserId;
-        currentChannelId = channelId;
+        // Store current chat state
+        currentChat = {
+            userId: otherUserId,
+            channelId: chatId || channelId,
+            unsubscribe: null
+        };
         
         // Check if chat document exists
-        const chatRef = db.collection('chats').doc(chatId || channelId);
+        const chatRef = db.collection('chats').doc(currentChat.channelId);
         const chatDoc = await chatRef.get();
         
         const timestamp = firebase.firestore.FieldValue.serverTimestamp();
@@ -4571,11 +4552,17 @@ async function startChat(otherUserId, chatId = null) {
                 participantsInfo: {
                     [currentUser.uid]: {
                         name: userData.name,
-                        lastRead: timestamp
+                        lastRead: timestamp,
+                        avatar: userData.avatarType === 'default' ? null : userData.avatarUrl,
+                        initial: userData.avatarInitial,
+                        color: userData.avatarColor
                     },
                     [otherUserId]: {
                         name: otherUserData.name,
-                        lastRead: null
+                        lastRead: null,
+                        avatar: otherUserData.avatarType === 'default' ? null : otherUserData.avatarUrl,
+                        initial: otherUserData.avatarInitial,
+                        color: otherUserData.avatarColor
                     }
                 },
                 lastMessage: '',
@@ -4598,8 +4585,16 @@ async function startChat(otherUserId, chatId = null) {
         const messagesQuery = chatRef.collection('messages')
             .orderBy('createdAt', 'asc');
         
-        currentChatUnsubscribe = messagesQuery.onSnapshot(snapshot => {
+        currentChat.unsubscribe = messagesQuery.onSnapshot(snapshot => {
             const messagesContainer = document.getElementById('chatMessages');
+            
+            // Clear loading state if present
+            const loadingElement = messagesContainer.querySelector('.page-loading');
+            if (loadingElement) {
+                messagesContainer.removeChild(loadingElement);
+            }
+            
+            // Clear existing messages
             messagesContainer.innerHTML = '';
             
             if (snapshot.empty) {
@@ -4647,10 +4642,12 @@ function displayMessage(message, isReceived) {
     const messagesContainer = document.getElementById('chatMessages');
     const emptyState = messagesContainer.querySelector('.empty-state');
     
+    // Remove empty state if present
     if (emptyState) {
         messagesContainer.removeChild(emptyState);
     }
     
+    // Create message element
     const messageElement = document.createElement('div');
     messageElement.className = `message ${isReceived ? 'received' : 'sent'}`;
     
@@ -4678,48 +4675,37 @@ async function sendMessage() {
     const messageInput = document.getElementById('chatMessageInput');
     const messageText = messageInput.value.trim();
     
-    if (!messageText || !currentChannelId || !currentChatUserId) {
-        return;
-    }
+    if (!messageText || !currentChat.channelId || !currentChat.userId) return;
 
-    const timestamp = firebase.firestore.FieldValue.serverTimestamp();
-    
-    const message = {
-        text: messageText,
-        senderId: currentUser.uid,
-        senderName: userData.name,
-        createdAt: timestamp
-    };
-    
-    // Show message optimistically
-    displayMessage({
-        text: messageText,
-        senderId: currentUser.uid,
-        timestamp: new Date()
-    }, false);
-    
-    messageInput.value = '';
-    
     try {
-        const chatRef = db.collection('chats').doc(currentChannelId);
-        
+        // Show message optimistically
+        displayMessage({
+            text: messageText,
+            senderId: currentUser.uid,
+            timestamp: new Date()
+        }, false);
+
+        messageInput.value = '';
+
+        // Use currentChat state
+        const messageRef = await db.collection('chats').doc(currentChat.channelId)
+            .collection('messages').add({
+                text: messageText,
+                senderId: currentUser.uid,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+
         // Update chat document
-        await chatRef.update({
+        await db.collection('chats').doc(currentChat.channelId).update({
             lastMessage: messageText,
-            lastMessageAt: timestamp,
-            [`participantsInfo.${currentUser.uid}.lastRead`]: timestamp,
-            [`${currentChatUserId}_unread`]: firebase.firestore.FieldValue.increment(1),
-            updatedAt: timestamp
+            lastMessageAt: firebase.firestore.FieldValue.serverTimestamp(),
+            [`${currentChat.userId}_unread`]: firebase.firestore.FieldValue.increment(1),
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         });
-        
-        // Add the message to the subcollection
-        await chatRef.collection('messages').add(message);
-        
+
     } catch (error) {
         console.error('Error sending message:', error);
-        showToast('Error sending message', 'error');
-        
-        // Remove optimistic message if sending failed
+        // Remove optimistic message if failed
         const messages = document.querySelectorAll('.message');
         if (messages.length > 0) {
             const lastMessage = messages[messages.length - 1];
@@ -4727,18 +4713,16 @@ async function sendMessage() {
                 lastMessage.remove();
             }
         }
+        showToast('Error sending message', 'error');
     }
 }
 
 // Function to go back to messages
 function backToMessages() {
-    if (currentChatUnsubscribe) {
-        currentChatUnsubscribe();
-        currentChatUnsubscribe = null;
+    if (currentChat.unsubscribe) {
+        currentChat.unsubscribe();
+        currentChat = { userId: null, channelId: null, unsubscribe: null };
     }
-    
-    currentChatUserId = null;
-    currentChannelId = null;
     
     showPage('messages');
 }
@@ -4774,21 +4758,35 @@ function showPage(page) {
         fabButton.style.display = 'none';
     }
    
-    // Hide all pages
-    document.querySelectorAll('.page-content').forEach(el => {
-        el.style.display = 'none';
-    });
-    
-    // Toggle chat page class
+    // Handle chat page specifically
     if (page === 'chat') {
         document.body.classList.add('chat-page-active');
+        document.getElementById('chatPage').style.display = 'block';
+        
+        // Check if we have an active chat to restore
+        if (currentChat.userId && currentChat.channelId) {
+            // Messages should already be loading via the listener
+        } else {
+            // Show empty state if no active chat
+            document.getElementById('chatMessages').innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-comments"></i>
+                    <h3>No active conversation</h3>
+                    <p>Select a conversation from your messages</p>
+                </div>
+            `;
+        }
     } else {
         document.body.classList.remove('chat-page-active');
+        // Show the selected page
+        document.getElementById(`${page}Page`).style.display = 'block';
     }
     
-    // Show the selected page
-    document.getElementById(`${page}Page`).style.display = 'block';
-    
+    // Update navigation and header
+    updateNavigationState(page);
+}
+
+function updateNavigationState(page) {
     // Update active nav items
     document.querySelectorAll('.sidebar-item').forEach(el => {
         el.classList.remove('active');
@@ -4882,6 +4880,24 @@ function renderMessages() {
         });
         messagesContent.appendChild(messageElement);
     });
+}
+
+function renderMessagesList(messages) {
+  messagesContent.innerHTML = '';
+  
+  messages.forEach(msg => {
+    const otherUserId = msg.participants.find(id => id !== currentUser.uid);
+    const messageElement = document.createElement('div');
+    messageElement.className = 'message-item';
+    messageElement.innerHTML = `
+      <div class="message-content">
+        <h4>${msg.participantNames[otherUserId]}</h4>
+        <p>${msg.lastMessage}</p>
+        <small>${formatTime(msg.lastUpdated.toDate())}</small>
+      </div>
+    `;
+    messagesContent.appendChild(messageElement);
+  });
 }
 
         function showDefaultAvatarOptions() {
