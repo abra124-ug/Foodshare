@@ -16,6 +16,8 @@
         const db = firebase.firestore();
         const storage = firebase.storage();
 
+        const socket = io('https://foodshare-fgm9.onrender.com');
+
         // ImageBB API Key
         const IMAGEBB_API_KEY = '1dbc58387d100c16d5e7012f6fd434c1';
 
@@ -38,11 +40,14 @@
         let currentChatUserId = null;
         let currentChannelId = null;
         let currentChatUnsubscribe = null;
+        // Global chat variables
         let currentChat = {
             userId: null,
+            userName: null,
             channelId: null,
             unsubscribe: null
         };
+
         
         // Global variables for slide state
         let currentSlide = 0;
@@ -132,19 +137,52 @@ function checkAuthState() {
     loadingScreen.style.display = 'flex';
     
     auth.onAuthStateChanged(async (user) => {
-        if (user) {
-            // User is signed in
-            currentUser = user;
-            await fetchUserData();
-            
-            // Now check onboarding status for authenticated users
-            await checkOnboardingStatus();
-        } else {
-            // No user is signed in
-            showAuthScreen();
-        }
-    });
+  if (user) {
+    // User is signed in
+    currentUser = user;
+    await fetchUserData();
+    
+    // Authenticate with Socket.io
+    socket.emit('authenticate', user.uid);
+    
+    // Now check onboarding status for authenticated users
+    await checkOnboardingStatus();
+  } else {
+    // No user is signed in
+    showAuthScreen();
+  }
+});
+
 }
+
+// socket io listeners
+socket.on('newMessage', (message) => {
+  showToast(`New message from ${message.senderName}`, 'info');
+  // Refresh messages if on messages page
+  if (currentPage === 'messages' || currentPage === 'chat') {
+    loadMessages();
+  }
+  updateMessageBadges(); // Update badge count
+});
+
+socket.on('newRequest', async (request) => {
+  showToast('New food request received', 'info');
+  // Refresh requests if on home page or listings page
+  if (currentPage === 'home' || currentPage === 'listings') {
+    await loadInitialData();
+  }
+  updateNotificationBadges(); // Update badge count
+});
+
+socket.on('newListing', (listing) => {
+  if (userData.role === 'receiver') {
+    showToast(`New listing available: ${listing.title} (${listing.category})`, 'info');
+    // Refresh listings if on listings page
+    if (currentPage === 'listings') {
+      loadInitialData();
+    }
+  }
+});
 
 // Check if user has completed onboarding (only for authenticated users)
 async function checkOnboardingStatus() {
@@ -463,17 +501,14 @@ async function fetchUserData() {
 
   async function loadInitialData() {
     try {
-        // Load user listings
+        // Load user listings based on role
         if (userData.role === 'donor') {
             const listingsSnapshot = await db.collection('listings')
                 .where('userId', '==', currentUser.uid)
                 .orderBy('createdAt', 'desc')
                 .get();
             
-            userListings = [];
-            listingsSnapshot.forEach(doc => {
-                userListings.push({ id: doc.id, ...doc.data() });
-            });
+            userListings = listingsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             
             // Load recent requests
             const requestsSnapshot = await db.collection('requests')
@@ -482,10 +517,7 @@ async function fetchUserData() {
                 .limit(3)
                 .get();
             
-            recentRequests = [];
-            requestsSnapshot.forEach(doc => {
-                recentRequests.push({ id: doc.id, ...doc.data() });
-            });
+            recentRequests = requestsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         } else {
             // Load all available listings for receivers
             const listingsSnapshot = await db.collection('listings')
@@ -493,22 +525,16 @@ async function fetchUserData() {
                 .orderBy('createdAt', 'desc')
                 .get();
             
-            userListings = [];
-            listingsSnapshot.forEach(doc => {
-                userListings.push({ id: doc.id, ...doc.data() });
-            });
+            userListings = listingsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         }
         
-        // Load messages
-        const messagesSnapshot = await db.collection('messages')
+        // Load chats with last message info
+        const chatsSnapshot = await db.collection('chats')
             .where('participants', 'array-contains', currentUser.uid)
-            .orderBy('lastUpdated', 'desc')
+            .orderBy('lastMessageAt', 'desc')
             .get();
         
-        messages = [];
-        messagesSnapshot.forEach(doc => {
-            messages.push({ id: doc.id, ...doc.data() });
-        });
+        messages = chatsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         
         // Load notifications
         const notificationsSnapshot = await db.collection('notifications')
@@ -516,20 +542,17 @@ async function fetchUserData() {
             .orderBy('createdAt', 'desc')
             .get();
         
-        notifications = [];
-        notificationsSnapshot.forEach(doc => {
-            notifications.push({ id: doc.id, ...doc.data() });
-        });
+        notifications = notificationsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         
         // Update UI with loaded data
         renderUserListings();
         renderMessages();
-        renderNotificationsList(notifications);
-        await loadNotifications();
+        renderNotificationsList();
+        updateNotificationBadges(notifications.filter(n => !n.read).length);
         
     } catch (error) {
         console.error('Error loading initial data:', error);
-        showToast('Error loading data', 'error');
+        showToast('Error loading data: ' + error.message, 'error');
     }
 }
 
@@ -858,24 +881,26 @@ function updateProfileDetails() {
            // Chat listener
     const chatsListener = db.collection('chats')
         .where('participants', 'array-contains', currentUser.uid)
-        .orderBy('lastUpdated', 'desc')
+        .orderBy('lastMessageAt', 'desc')
         .onSnapshot(snapshot => {
-            messages = [];
+            const newMessages = [];
             snapshot.forEach(doc => {
-                messages.push({
+                newMessages.push({
                     id: doc.id,
                     ...doc.data()
                 });
             });
-            renderMessages();
             
-            // Update message badges
-            const unreadCount = messages.reduce((count, message) => {
-                return count + (message[`${currentUser.uid}_unread`] || 0);
-            }, 0);
-            
-            updateMessageBadges(unreadCount);
+            // Only update if there are actual changes
+            if (JSON.stringify(newMessages) !== JSON.stringify(messages)) {
+                messages = newMessages;
+                renderMessages();
+            }
+        }, error => {
+            console.error('Chat listener error:', error);
         });
+        // Message listener for current chat
+    let messagesListener = null;
     
     // Store the listeners for cleanup
     return {
@@ -883,7 +908,8 @@ function updateProfileDetails() {
         listingsListener,
         notificationsListener,
         unsubscribeNotifications,
-        chatsListener
+        chatsListener,
+        messagesListener
     };
 }
 
@@ -906,19 +932,22 @@ function updateProfileDetails() {
   function updateMessageBadges(count) {
     const badges = [
         document.getElementById('messageBadge'),
-        document.getElementById('bottomNavMessageBadge')
+        document.getElementById('bottomNavMessageBadge'),
+        document.getElementById('mobileNotificationBadge')
     ];
     
     badges.forEach(badge => {
-        if (count > 0) {
-            badge.textContent = count;
-            badge.style.display = 'flex';
-        } else {
-            badge.style.display = 'none';
+        if (badge) {
+            if (count > 0) {
+                badge.textContent = count > 9 ? '9+' : count;
+                badge.style.display = 'flex';
+            } else {
+                badge.style.display = 'none';
+            }
         }
     });
 }
-  
+
         function updateStats() {
             // Update active listings count
             const activeListingsCount = userListings.filter(listing => 
@@ -1153,100 +1182,6 @@ function renderNotifications(notifications, containerId = 'notificationsContent'
     });
 }
 
-        function renderRecentRequests() {
-            if (recentRequests.length === 0) {
-                document.getElementById('recentActivity').innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-utensils"></i>
-                        <h3>No Recent Requests</h3>
-                        <p>When you receive requests for your listings, they'll appear here.</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            const recentActivity = document.getElementById('recentActivity');
-            recentActivity.innerHTML = '';
-            
-            recentRequests.forEach(request => {
-                const requestElement = document.createElement('div');
-                requestElement.className = 'food-card';
-                requestElement.innerHTML = `
-                    <div class="food-image">
-                        <img src="${request.listingImageUrl || 'https://via.placeholder.com/300x200?text=No+Image'}" alt="${request.listingTitle}">
-                        <span class="food-badge">Request</span>
-                    </div>
-                    <div class="food-details">
-                        <h3 class="food-title">${request.listingTitle}</h3>
-                        <p class="food-description">Request from ${request.receiverName}</p>
-                        <div class="food-meta">
-                            <span>
-                                <i class="fas fa-calendar"></i>
-                                ${formatDate(request.createdAt.toDate())}
-                            </span>
-                            <span>
-                                <i class="fas fa-comment"></i>
-                                ${request.message || 'No message'}
-                            </span>
-                        </div>
-                    </div>
-                `;
-                
-                requestElement.addEventListener('click', () => viewRequestDetails(request.id));
-                recentActivity.appendChild(requestElement);
-            });
-        }
-
-function renderMessages() {
-    messagesLoading = false;
-    messagesContent.innerHTML = '';
-    
-    if (messages.length === 0) {
-        messagesContent.innerHTML = `
-            <div class="empty-state">
-                <i class="fas fa-comments"></i>
-                <h3>No Messages Yet</h3>
-                <p>When you start conversations about listings, they'll appear here.</p>
-            </div>
-        `;
-        return;
-    }
-    
-    messages.forEach(chat => {
-        const otherUserId = chat.participants.find(id => id !== currentUser.uid);
-        const otherUserData = chat.participantNames[otherUserId];
-        const unreadCount = chat[`${currentUser.uid}_unread`] || 0;
-        const isFoodChat = chat.listingId && chat.listingTitle;
-        
-        const messageElement = document.createElement('div');
-        messageElement.className = 'food-card';
-        messageElement.style.cursor = 'pointer';
-        messageElement.innerHTML = `
-            <div class="food-details" style="display: flex; align-items: center; gap: 1rem; padding: 1rem;">
-                <div class="user-avatar" style="width: 50px; height: 50px; border-radius: 50%; background-color: var(--gray-100); display: flex; align-items: center; justify-content: center; overflow: hidden;">
-                    ${chat.participantAvatars && chat.participantAvatars[otherUserId] 
-                        ? `<img src="${chat.participantAvatars[otherUserId]}" style="width: 100%; height: 100%; object-fit: cover;">`
-                        : `<span style="font-weight: 600; color: white;">${chat.participantInitials?.[otherUserId] || 'U'}</span>`}
-                </div>
-                <div style="flex: 1;">
-                    <h3 style="font-size: 1rem; color: var(--gray-600); margin-bottom: 0.3rem;">
-                        ${otherUserData}
-                        ${unreadCount > 0 ? `<span style="background-color: var(--primary-green); color: white; padding: 0.1rem 0.5rem; border-radius: 10px; font-size: 0.7rem; margin-left: 0.5rem;">${unreadCount}</span>` : ''}
-                    </h3>
-                    ${isFoodChat ? `<p style="font-size: 0.8rem; color: var(--gray-500); margin-bottom: 0.3rem;">About: ${chat.listingTitle}</p>` : ''}
-                    <p style="font-size: 0.9rem; color: var(--gray-400); margin-bottom: 0.3rem;">${chat.lastMessage || 'No messages yet'}</p>
-                    <p style="font-size: 0.8rem; color: var(--gray-400);">${formatTime(chat.lastUpdated?.toDate() || new Date())}</p>
-                </div>
-            </div>
-        `;
-        
-        messageElement.addEventListener('click', () => {
-            startChat(otherUserId, chat.id);
-        });
-        messagesContent.appendChild(messageElement);
-    });
-}
-
         function formatCategory(category) {
             const categories = {
                 'bakery': 'Bakery',
@@ -1270,321 +1205,9 @@ function renderMessages() {
             return date.toLocaleTimeString(undefined, options);
         }
 
-        function viewListingDetails(listingId) {
-            // In a real app, this would show a detailed view of the listing
-            showToast('Listing details would show here', 'info');
-        }
 
-        function viewRequestDetails(requestId) {
-            // In a real app, this would show the request details
-            showToast('Request details would show here', 'info');
-        }
-
-        function viewMessage(otherUserId) {
-            // In a real app, this would open the chat with the other user
-            showToast(`Chat with user ${otherUserId} would open here`, 'info');
-        }
  
-async function loadMessagesPage() {
-  // Query chats where user is participant
-  const chatsQuery = db.collection('chats')
-    .where('participants', 'array-contains', currentUser.uid)
-    .orderBy('lastUpdated', 'desc');
-  
-  // Set up realtime listener
-  const unsubscribe = chatsQuery.onSnapshot(async snapshot => {
-    const messages = [];
-    const promises = [];
-    
-    // Get last message from each chat
-    snapshot.forEach(doc => {
-      promises.push(
-        doc.ref.collection('messages')
-          .orderBy('createdAt', 'desc')
-          .limit(1)
-          .get()
-          .then(messageSnapshot => {
-            if (!messageSnapshot.empty) {
-              messages.push({
-                id: doc.id,
-                ...doc.data(),
-                lastMessage: messageSnapshot.docs[0].data().text,
-                lastUpdated: messageSnapshot.docs[0].data().createdAt
-              });
-            }
-          })
-      );
-    });
-    
-    await Promise.all(promises);
-    renderMessagesList(messages);
-  });
-  
-  return unsubscribe; // For cleanup
-}
 
-// Helper function to get color for avatar
-function getColorForInitial(colorClass) {
-    const colorMap = {
-        'color-1': '#3b82f6',
-        'color-2': '#ef4444',
-        'color-3': '#f59e0b',
-        'color-4': '#8b5cf6',
-        'color-5': '#10b981',
-        'color-6': '#ec4899'
-    };
-    return colorMap[colorClass] || '#3b82f6';
-}
-        
-// Enhanced startChat function
-async function startChat(otherUserId, chatId = null) {
-    try {
-        // Clean up previous chat if any
-        if (currentChat.unsubscribe) {
-            currentChat.unsubscribe();
-        }
-
-        // Show loading state
-        const messagesContainer = document.getElementById('chatMessages');
-        messagesContainer.innerHTML = `
-            <div class="page-loading">
-                <div class="page-loading-spinner"></div>
-                <div class="page-loading-text">Loading messages...</div>
-            </div>
-        `;
-
-        showPage('chat');
-        
-        // Get other user's data
-        const otherUserDoc = await db.collection('users').doc(otherUserId).get();
-        if (!otherUserDoc.exists) {
-            showToast('User not found', 'error');
-            return;
-        }
-        
-        const otherUserData = otherUserDoc.data();
-        
-        // Update chat header
-        document.getElementById('chatHeaderName').textContent = otherUserData.name;
-        
-        // Update avatar in chat header
-        const chatHeaderAvatar = document.getElementById('chatHeaderAvatar');
-        const chatAvatarInitial = document.getElementById('chatAvatarInitial');
-        const chatAvatarImage = document.getElementById('chatAvatarImage');
-        
-        if (otherUserData.avatarType === 'default') {
-            chatAvatarInitial.textContent = otherUserData.avatarInitial || 'U';
-            chatAvatarInitial.style.display = 'flex';
-            chatAvatarImage.style.display = 'none';
-            chatHeaderAvatar.style.backgroundColor = getColorForInitial(otherUserData.avatarColor);
-        } else {
-            chatAvatarInitial.style.display = 'none';
-            chatAvatarImage.style.display = 'block';
-            chatAvatarImage.src = otherUserData.avatarUrl;
-            chatHeaderAvatar.style.backgroundColor = '';
-        }
-        
-        // Create channel ID (sorted user IDs joined by hyphen)
-        const participants = [currentUser.uid, otherUserId].sort();
-        const channelId = participants.join('-');
-        
-        // Store current chat state
-        currentChat = {
-            userId: otherUserId,
-            channelId: chatId || channelId,
-            unsubscribe: null
-        };
-        
-        // Check if chat document exists
-        const chatRef = db.collection('chats').doc(currentChat.channelId);
-        const chatDoc = await chatRef.get();
-        
-        const timestamp = firebase.firestore.FieldValue.serverTimestamp();
-        
-        if (!chatDoc.exists) {
-            // Create new chat document
-            await chatRef.set({
-                participants: participants,
-                participantNames: {
-                    [currentUser.uid]: userData.name,
-                    [otherUserId]: otherUserData.name
-                },
-                participantInitials: {
-                    [currentUser.uid]: userData.avatarInitial,
-                    [otherUserId]: otherUserData.avatarInitial || 'U'
-                },
-                participantAvatars: {
-                    [currentUser.uid]: userData.avatarType === 'default' ? null : userData.avatarUrl,
-                    [otherUserId]: otherUserData.avatarType === 'default' ? null : otherUserData.avatarUrl
-                },
-                lastMessage: 'New conversation started',
-                lastUpdated: timestamp,
-                [`${currentUser.uid}_unread`]: 0,
-                [`${otherUserId}_unread`]: 0,
-                createdAt: timestamp
-            });
-        } else {
-            // Update last read time and mark messages as read
-            await chatRef.update({
-                [`${currentUser.uid}_unread`]: 0,
-                updatedAt: timestamp
-            });
-        }
-        
-        // Set up real-time listener for messages
-        const messagesQuery = chatRef.collection('messages')
-            .orderBy('createdAt', 'asc');
-        
-        currentChat.unsubscribe = messagesQuery.onSnapshot(snapshot => {
-            messagesContainer.innerHTML = '';
-            
-            if (snapshot.empty) {
-                messagesContainer.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-comments"></i>
-                        <h3>No messages yet</h3>
-                        <p>Send a message to start the conversation!</p>
-                    </div>
-                `;
-            } else {
-                snapshot.forEach(doc => {
-                    const message = doc.data();
-                    displayMessage({
-                        text: message.text,
-                        senderId: message.senderId,
-                        timestamp: message.createdAt?.toDate() || new Date()
-                    }, message.senderId !== currentUser.uid);
-                });
-                
-                // Scroll to bottom
-                setTimeout(() => {
-                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
-                }, 100);
-            }
-        }, error => {
-            console.error('Message listener error:', error);
-            messagesContainer.innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <h3>Error loading messages</h3>
-                    <p>${error.message}</p>
-                </div>
-            `;
-        });
-        
-    } catch (error) {
-        console.error('Error starting chat:', error);
-        showToast('Error starting chat', 'error');
-    }
-}
-
-// Function to display a message
-function displayMessage(message, isReceived) {
-    const messagesContainer = document.getElementById('chatMessages');
-    const emptyState = messagesContainer.querySelector('.empty-state');
-    
-    // Remove empty state if present
-    if (emptyState) {
-        messagesContainer.removeChild(emptyState);
-    }
-    
-    // Create message element
-    const messageElement = document.createElement('div');
-    messageElement.className = `message ${isReceived ? 'received' : 'sent'}`;
-    
-    // Format time
-    const messageTime = new Date(message.timestamp).toLocaleTimeString([], {
-        hour: '2-digit',
-        minute: '2-digit'
-    });
-    
-    messageElement.innerHTML = `
-        <div class="message-content">${message.text}</div>
-        <div class="message-time">${messageTime}</div>
-    `;
-    
-    messagesContainer.appendChild(messageElement);
-    
-    // Scroll to bottom
-    setTimeout(() => {
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
-    }, 50);
-}
-
-// Function to send a message
-async function sendMessage() {
-    const messageInput = document.getElementById('chatMessageInput');
-    const messageText = messageInput.value.trim();
-    
-    if (!messageText || !currentChat.channelId || !currentChat.userId) return;
-
-    try {
-        // Show message optimistically
-        displayMessage({
-            text: messageText,
-            senderId: currentUser.uid,
-            timestamp: new Date()
-        }, false);
-
-        messageInput.value = '';
-
-        const timestamp = firebase.firestore.FieldValue.serverTimestamp();
-        
-        // Save message to Firestore
-        await db.collection('chats').doc(currentChat.channelId)
-            .collection('messages').add({
-                text: messageText,
-                senderId: currentUser.uid,
-                createdAt: timestamp
-            });
-
-        // Update chat document
-        await db.collection('chats').doc(currentChat.channelId).update({
-            lastMessage: messageText,
-            lastUpdated: timestamp,
-            [`${currentChat.userId}_unread`]: firebase.firestore.FieldValue.increment(1),
-            updatedAt: timestamp
-        });
-
-    } catch (error) {
-        console.error('Error sending message:', error);
-        // Remove optimistic message if failed
-        const messages = document.querySelectorAll('.message');
-        if (messages.length > 0) {
-            const lastMessage = messages[messages.length - 1];
-            if (lastMessage.querySelector('.message-content').textContent === messageText) {
-                lastMessage.remove();
-            }
-        }
-        showToast('Error sending message', 'error');
-    }
-}
-
-// Function to go back to messages
-function backToMessages() {
-    if (currentChat.unsubscribe) {
-        currentChat.unsubscribe();
-        currentChat = { userId: null, channelId: null, unsubscribe: null };
-    }
-    
-    showPage('messages');
-}
-
-function viewMessage(threadId) {
-    // Store the thread ID in session to access in the chat UI
-    sessionStorage.setItem('currentChatThread', threadId);
-    
-    // Show the messages page
-    showPage('messages');
-    
-    // In a real implementation, you would:
-    // 1. Load the specific chat messages
-    // 2. Scroll to the conversation
-    // 3. Update the UI to highlight the active chat
-    
-    // For now, we'll just show a toast
-    showToast(`Opening chat with thread ID: ${threadId}`, 'info');
-}
 
 function showPage(page) {
     currentPage = page;
@@ -1661,88 +1284,6 @@ function updateNavigationState(page) {
     if (page !== 'chat') {
         mainContent.scrollTo(0, 0);
     }
-}
-
-// Add event listeners for chat input
-document.addEventListener('DOMContentLoaded', function() {
-    document.getElementById('sendMessageBtn').addEventListener('click', sendMessage);
-    
-    document.getElementById('chatMessageInput').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            sendMessage();
-        }
-    });
-});
-
-// Update the renderMessages function in app.js
-function renderMessages() {
-    messagesLoading = false;
-    messagesContent.innerHTML = '';
-    
-    if (messages.length === 0) {
-        messagesContent.innerHTML = `
-            <div class="empty-state">
-                <i class="fas fa-comments"></i>
-                <h3>No Messages Yet</h3>
-                <p>When you start conversations about listings, they'll appear here.</p>
-            </div>
-        `;
-        return;
-    }
-    
-    // Create a container for all message items
-    const messagesList = document.createElement('div');
-    messagesList.className = 'messages-list';
-    
-    messages.forEach(chat => {
-        const otherUserId = chat.participants.find(id => id !== currentUser.uid);
-        const otherUserData = chat.participantNames?.[otherUserId] || 'Unknown User';
-        const unreadCount = chat[`${currentUser.uid}_unread`] || 0;
-        
-        const messageElement = document.createElement('div');
-        messageElement.className = `message-item ${unreadCount > 0 ? 'unread' : ''}`;
-        messageElement.innerHTML = `
-            <div class="message-avatar">
-                ${chat.participantAvatars?.[otherUserId] 
-                    ? `<img src="${chat.participantAvatars[otherUserId]}" alt="${otherUserData}">`
-                    : `<span>${chat.participantInitials?.[otherUserId] || 'UU'}</span>`}
-            </div>
-            <div class="message-content">
-                <div class="message-header">
-                    <h4>${otherUserData}</h4>
-                    <span class="message-time">${formatTime(chat.lastUpdated?.toDate() || new Date())}</span>
-                </div>
-                <p class="message-preview">${chat.lastMessage || 'No messages yet'}</p>
-                ${unreadCount > 0 ? `<span class="unread-count">${unreadCount}</span>` : ''}
-            </div>
-        `;
-        
-        messageElement.addEventListener('click', () => {
-            startChat(otherUserId, chat.id);
-        });
-        
-        messagesList.appendChild(messageElement);
-    });
-    
-    messagesContent.appendChild(messagesList);
-}
-
-function renderMessagesList(messages) {
-  messagesContent.innerHTML = '';
-  
-  messages.forEach(msg => {
-    const otherUserId = msg.participants.find(id => id !== currentUser.uid);
-    const messageElement = document.createElement('div');
-    messageElement.className = 'message-item';
-    messageElement.innerHTML = `
-      <div class="message-content">
-        <h4>${msg.participantNames[otherUserId]}</h4>
-        <p>${msg.lastMessage}</p>
-        <small>${formatTime(msg.lastUpdated.toDate())}</small>
-      </div>
-    `;
-    messagesContent.appendChild(messageElement);
-  });
 }
 
         function showDefaultAvatarOptions() {
@@ -2048,316 +1589,429 @@ function showCreateListingModal() {
     }
 }
 
-        function selectCategory(element, category) {
-            // Remove selected class from all options
-            document.querySelectorAll('.category-option').forEach(option => {
-                option.classList.remove('selected');
-            });
-            
-            // Add selected class to clicked option
-            element.classList.add('selected');
-            
-            // Update selected category
-            selectedCategory = category;
-        }
+  function selectCategory(element, category) {
+      // Remove selected class from all options
+      document.querySelectorAll('.category-option').forEach(option => {
+          option.classList.remove('selected');
+      });
+      
+      // Add selected class to clicked option
+      element.classList.add('selected');
+      
+      // Update selected category
+      selectedCategory = category;
+  }
 
-// Improved createFoodRequest function
 async function createFoodRequest(listingId) {
     try {
-        // Check if user is verified
-        if (!userData.verified) {
-            showToast('Please verify your account to request food', 'error');
-            showVerificationModal();
-            return;
-        }
-
-        // Find the listing
-        const listing = userListings.find(l => l.id === listingId);
-        if (!listing) {
+        // Get listing details
+        const listingDoc = await db.collection('listings').doc(listingId).get();
+        if (!listingDoc.exists) {
             showToast('Listing not found', 'error');
             return;
         }
-        
-        // Check if listing is expired
-        const expiryDate = listing.expiryDate?.toDate() || new Date();
-        const today = new Date();
-        if (expiryDate < today) {
-            showToast('This listing has expired and cannot be requested', 'error');
-            return;
-        }
+        const listing = listingDoc.data();
 
-        // Get donor user data
-        const donorDoc = await db.collection('users').doc(listing.userId).get();
-        if (!donorDoc.exists) {
-            showToast('Donor not found', 'error');
-            return;
-        }
-        const donorData = donorDoc.data();
-
-        // Create channel ID (sorted user IDs joined by hyphen)
+        // Create unique chat ID (sorted user IDs)
         const participants = [currentUser.uid, listing.userId].sort();
         const channelId = participants.join('-');
 
-        // Create/update chat document
-        const chatRef = db.collection('chats').doc(channelId);
-        await chatRef.set({
-            participants: participants,
-            participantNames: {
-                [currentUser.uid]: userData.name,
-                [listing.userId]: donorData.name
-            },
-            participantInitials: {
-                [currentUser.uid]: userData.avatarInitial,
-                [listing.userId]: donorData.avatarInitial || 'U'
-            },
-            participantAvatars: {
-                [currentUser.uid]: userData.avatarType === 'default' ? null : userData.avatarUrl,
-                [listing.userId]: donorData.avatarType === 'default' ? null : donorData.avatarUrl
-            },
-            listingId: listingId,
-            listingTitle: listing.title,
-            lastMessage: 'New request about: ' + listing.title,
-            lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
-            [`${currentUser.uid}_unread`]: 0,
-            [`${listing.userId}_unread`]: 1,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        }, { merge: true });
-
-        // Create request document
+        // 1. Create the request record
         const requestRef = await db.collection('requests').add({
             listingId: listingId,
-            listingTitle: listing.title,
-            listingImageUrl: listing.imageUrl,
-            donorId: listing.userId,
-            donorName: listing.userName,
+            listingOwnerId: listing.userId,
             receiverId: currentUser.uid,
-            receiverName: userData.name,
             status: 'pending',
-            messageThreadId: channelId,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-            message: 'Hey, is this still available?'
-        });
-
-        // Add initial message to the chat
-        await chatRef.collection('messages').add({
-            senderId: currentUser.uid,
-            text: 'Hey, is this still available?',
+            chatId: channelId,
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
 
-        // Create notification for donor
+        // 2. Create/update the chat document
+        const chatRef = db.collection('chats').doc(channelId);
+        await chatRef.set({
+            id: channelId,
+            participants: participants,
+            participantsInfo: {
+                [currentUser.uid]: {
+                    name: userData.name,
+                    avatarUrl: userData.avatarUrl || '',
+                    lastRead: firebase.firestore.FieldValue.serverTimestamp()
+                },
+                [listing.userId]: {
+                    name: listing.userName,
+                    avatarUrl: listing.userAvatarUrl || '',
+                    lastRead: null
+                }
+            },
+            listingId: listingId,
+            listingTitle: listing.title,
+            listingImageUrl: listing.imageUrl || '',
+            lastMessage: `${userData.name} requested ${listing.title}`,
+            lastMessageAt: firebase.firestore.FieldValue.serverTimestamp(),
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+
+        // 3. Add initial message to the chat's messages subcollection
+        const messageData = {
+            text: `${userData.name} requested ${listing.title}`,
+            senderId: currentUser.uid,
+            senderName: userData.name,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            isSystemMessage: true,
+            status: 'delivered'
+        };
+        
+        await chatRef.collection('messages').add(messageData);
+
+        // 4. Create notification for the donor
         await db.collection('notifications').add({
-            userId: listing.userId,
             type: 'request',
             requestId: requestRef.id,
             listingId: listingId,
             listingTitle: listing.title,
             receiverId: currentUser.uid,
             receiverName: userData.name,
+            donorId: listing.userId,
             messageThreadId: channelId,
-            status: 'pending',
             createdAt: firebase.firestore.FieldValue.serverTimestamp(),
             read: false
         });
 
-        showToast('Request sent to donor!', 'success');
-        
-        // Automatically open the chat
-        startChat(listing.userId, channelId);
-        
+        // 5. Update UI immediately
+        messages.unshift({
+            id: channelId,
+            ...(await chatRef.get()).data()
+        });
+        renderMessages();
+
+        // 6. Open the chat immediately
+        startChat(listing.userId, listing.userName, channelId);
+
+        showToast('Request sent successfully!', 'success');
     } catch (error) {
-        console.error('Error creating food request:', error);
-        showToast('Error sending request', 'error');
+        console.error('Request error:', error);
+        showToast('Failed to send request: ' + error.message, 'error');
     }
 }
 
-async function handleRequestAction(requestId, action) {
+// Start a chat with another user
+async function startChat(userId, userName, channelId = null) {
     try {
-        const requestRef = db.collection('requests').doc(requestId);
-        const requestDoc = await requestRef.get();
-        
-        if (!requestDoc.exists) {
-            showToast('Request not found', 'error');
-            return;
+        // Clean up previous chat listener if exists
+        if (currentChat.unsubscribe) {
+            currentChat.unsubscribe();
         }
-
-        const request = requestDoc.data();
         
-        if (action === 'accept') {
-            // Update request status
-            await requestRef.update({
-                status: 'accepted',
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-
-            // Update listing status
-            await db.collection('listings').doc(request.listingId).update({
-                status: 'claimed',
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-
-            // Create notification for receiver
-            await db.collection('notifications').add({
-                userId: request.receiverId,
-                type: 'request_accepted',
-                requestId: requestId,
-                listingId: request.listingId,
-                listingTitle: request.listingTitle,
-                donorId: currentUser.uid,
-                donorName: userData.name,
-                messageThreadId: request.messageThreadId,
+        // Create channel ID if not provided (sorted user IDs joined by '-')
+        const participants = [currentUser.uid, userId].sort();
+        channelId = channelId || participants.join('-');
+        
+        // Update current chat state
+        currentChat = {
+            userId: userId,
+            userName: userName,
+            channelId: channelId,
+            unsubscribe: null
+        };
+        
+        // Update UI
+        document.getElementById('chatHeaderName').textContent = userName;
+        document.getElementById('chatHeaderAvatar').innerHTML = getInitials(userName);
+        
+        // Show loading state
+        document.getElementById('chatMessages').innerHTML = `
+            <div class="page-loading">
+                <div class="page-loading-spinner"></div>
+                <div class="page-loading-text">Loading chat...</div>
+            </div>
+        `;
+        
+        // Create/update chat document if needed
+        const chatRef = db.collection('chats').doc(channelId);
+        const chatDoc = await chatRef.get();
+        
+        if (!chatDoc.exists) {
+            await chatRef.set({
+                participants: participants,
+                participantsInfo: {
+                    [currentUser.uid]: {
+                        name: userData.name,
+                        lastRead: firebase.firestore.FieldValue.serverTimestamp()
+                    },
+                    [userId]: {
+                        name: userName,
+                        lastRead: null
+                    }
+                },
+                lastMessage: '',
+                lastMessageAt: null,
                 createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                read: false
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             });
-
-            showToast('Request accepted!', 'success');
+        } else {
+            // Update last read timestamp for current user
+            await chatRef.update({
+                [`participantsInfo.${currentUser.uid}.lastRead`]: firebase.firestore.FieldValue.serverTimestamp(),
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        }
+        
+        // Set up real-time listener for messages
+        const messagesQuery = db.collection('messages')
+            .where('channelId', '==', channelId)
+            .orderBy('timestamp', 'asc');
+        
+        currentChat.unsubscribe = messagesQuery.onSnapshot(snapshot => {
+            const messagesContainer = document.getElementById('chatMessages');
+            messagesContainer.innerHTML = '';
             
-        } else if (action === 'reject') {
-            // Update request status
-            await requestRef.update({
-                status: 'rejected',
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-
-            // Create notification for receiver
-            await db.collection('notifications').add({
-                userId: request.receiverId,
-                type: 'request_rejected',
-                requestId: requestId,
-                listingId: request.listingId,
-                listingTitle: request.listingTitle,
-                donorId: currentUser.uid,
-                donorName: userData.name,
-                messageThreadId: request.messageThreadId,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                read: false
-            });
-
-            showToast('Request rejected', 'info');
-        }
-
-        // Refresh data
-        await loadInitialData();
-        renderUserListings();
+            if (snapshot.empty) {
+                messagesContainer.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-comments"></i>
+                        <h3>No messages yet</h3>
+                        <p>Send a message to start the conversation!</p>
+                    </div>
+                `;
+            } else {
+                snapshot.forEach(doc => {
+                    const message = doc.data();
+                    displayMessage({
+                        text: message.text,
+                        senderId: message.senderId,
+                        timestamp: message.timestamp?.toDate() || new Date()
+                    }, message.senderId !== currentUser.uid);
+                });
+                
+                // Scroll to bottom
+                setTimeout(() => {
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                }, 100);
+            }
+        }, error => {
+            console.error('Chat listener error:', error);
+            document.getElementById('chatMessages').innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <h3>Error loading messages</h3>
+                    <p>${error.message}</p>
+                </div>
+            `;
+        });
+        
+        // Show the chat page
+        showPage('chat');
         
     } catch (error) {
-        console.error('Error handling request action:', error);
-        showToast('Error processing request', 'error');
+        console.error('Error starting chat:', error);
+        showToast('Error starting chat: ' + error.message, 'error');
     }
 }
 
-async function handleNotificationAction(notificationId, action, event) {
-    event.stopPropagation();
+async function loadMessages() {
+    try {
+        // Load all chats where user is a participant
+        const snapshot = await db.collection('chats')
+            .where('participants', 'array-contains', currentUser.uid)
+            .orderBy('lastMessageAt', 'desc')
+            .get();
+
+        messages = [];
+        snapshot.forEach(doc => {
+            messages.push({
+                id: doc.id,
+                ...doc.data()
+            });
+        });
+
+        renderMessages();
+    } catch (error) {
+        console.error('Error loading messages:', error);
+        showToast('Error loading messages', 'error');
+    }
+}
+
+// Display a message in the chat
+function displayMessage(message, isReceived) {
+    const messagesContainer = document.getElementById('chatMessages');
+    const emptyState = messagesContainer.querySelector('.empty-state');
+    
+    if (emptyState) {
+        messagesContainer.removeChild(emptyState);
+    }
+    
+    const messageElement = document.createElement('div');
+    messageElement.className = `message ${isReceived ? 'received' : 'sent'}`;
+    
+    const messageTime = new Date(message.timestamp).toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+    
+    messageElement.innerHTML = `
+        <div class="message-content">${message.text}</div>
+        <div class="message-time">${messageTime}</div>
+    `;
+    
+    messagesContainer.appendChild(messageElement);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+// Send a chat message
+async function sendMessage() {
+    const messageInput = document.getElementById('chatMessageInput');
+    const messageText = messageInput.value.trim();
+    
+    if (!messageText || !currentChat.channelId) return;
     
     try {
-        const notificationRef = db.collection('notifications').doc(notificationId);
-        const notificationDoc = await notificationRef.get();
+        // Create message object
+        const message = {
+            channelId: currentChat.channelId,
+            text: messageText,
+            senderId: currentUser.uid,
+            senderName: userData.name,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        };
         
-        if (!notificationDoc.exists) return;
-
-        const notification = notificationDoc.data();
-
-        if (action === 'accept') {
-            // Update the request status
-            await db.collection('requests').doc(notification.requestId).update({
-                status: 'accepted',
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-
-            // Add a message to the existing thread
-            await db.collection('messages').doc(notification.messageThreadId).collection('conversation').add({
-                senderId: currentUser.uid,
-                senderName: userData.name,
-                text: 'I\'ve accepted your request! When would you like to pick up?',
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                type: 'text'
-            });
-
-            // Update the message thread
-            await db.collection('messages').doc(notification.messageThreadId).update({
-                lastMessage: 'I\'ve accepted your request! When would you like to pick up?',
-                lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
-                [`${notification.receiverId}_unread`]: 1 // Mark as unread for receiver
-            });
-
-            // Create notification for receiver
-            await db.collection('notifications').add({
-                userId: notification.receiverId,
-                type: 'request_accepted',
-                requestId: notification.requestId,
-                listingId: notification.listingId,
-                listingTitle: notification.listingTitle,
-                donorId: currentUser.uid,
-                donorName: userData.name,
-                messageThreadId: notification.messageThreadId,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                read: false
-            });
-
-            // Update the original notification
-            await notificationRef.update({
-                status: 'processed',
-                read: true,
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-
-            showToast('Request accepted!', 'success');
-            
-        } else if (action === 'reject') {
-            // Update the request status
-            await db.collection('requests').doc(notification.requestId).update({
-                status: 'rejected',
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-
-            // Add a message to the existing thread
-            await db.collection('messages').doc(notification.messageThreadId).collection('conversation').add({
-                senderId: currentUser.uid,
-                senderName: userData.name,
-                text: 'Sorry, this item is no longer available.',
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                type: 'text'
-            });
-
-            // Update the message thread
-            await db.collection('messages').doc(notification.messageThreadId).update({
-                lastMessage: 'Sorry, this item is no longer available.',
-                lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
-                [`${notification.receiverId}_unread`]: 1 // Mark as unread for receiver
-            });
-
-            // Create notification for receiver
-            await db.collection('notifications').add({
-                userId: notification.receiverId,
-                type: 'request_rejected',
-                requestId: notification.requestId,
-                listingId: notification.listingId,
-                listingTitle: notification.listingTitle,
-                donorId: currentUser.uid,
-                donorName: userData.name,
-                messageThreadId: notification.messageThreadId,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                read: false
-            });
-
-            // Update the original notification
-            await notificationRef.update({
-                status: 'processed',
-                read: true,
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-
-            showToast('Request rejected', 'info');
-        }
-
-        // Refresh the UI
-        await loadNotifications();
-        await loadInitialData();
+        // Display message optimistically
+        displayMessage({
+            text: messageText,
+            senderId: currentUser.uid,
+            timestamp: new Date()
+        }, false);
+        
+        // Clear input
+        messageInput.value = '';
+        
+        // Save message to Firestore
+        await db.collection('messages').add(message);
+        
+        // Update chat document
+        await db.collection('chats').doc(currentChat.channelId).update({
+            lastMessage: messageText,
+            lastMessageAt: firebase.firestore.FieldValue.serverTimestamp(),
+            [`participantsInfo.${currentUser.uid}.lastRead`]: firebase.firestore.FieldValue.serverTimestamp(),
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
         
     } catch (error) {
-        console.error('Error handling notification action:', error);
-        showToast('Error processing request', 'error');
+        console.error('Error sending message:', error);
+        showToast('Error sending message', 'error');
     }
+}
+
+// Back to messages from chat
+function backToMessages() {
+    if (currentChat.unsubscribe) {
+        currentChat.unsubscribe();
+        currentChat = {
+            userId: null,
+            userName: null,
+            channelId: null,
+            unsubscribe: null
+        };
+    }
+    showPage('messages');
+}
+
+function renderMessages() {
+    const container = document.getElementById('messagesContent');
+    container.innerHTML = '';
+
+    if (messages.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-comments"></i>
+                <h3>No messages yet</h3>
+                <p>Start a conversation by requesting a listing</p>
+            </div>
+        `;
+        return;
+    }
+
+    const list = document.createElement('div');
+    list.className = 'messages-list';
+
+    messages.forEach(chat => {
+        const otherUserId = chat.participants.find(id => id !== currentUser.uid);
+        const otherUser = chat.participantsInfo[otherUserId];
+        const unreadCount = chat[`${currentUser.uid}_unread`] || 0;
+        const lastMessageTime = chat.lastMessageAt?.toDate();
+        
+        // Determine if the last message was sent by the other user
+        const lastMessageIsReceived = chat.lastMessageSenderId === otherUserId;
+
+        list.innerHTML += `
+            <div class="message-item ${unreadCount > 0 ? 'unread' : ''}" onclick="startChat('${otherUserId}', '${otherUser.name}', '${chat.id}')">
+                <div class="message-avatar">
+                    ${otherUser.avatarUrl ? 
+                        `<img src="${otherUser.avatarUrl}" alt="${otherUser.name}">` : 
+                        `<span style="background-color: ${stringToColor(otherUser.name)}">${getInitials(otherUser.name)}</span>`
+                    }
+                </div>
+                <div class="message-content">
+                    <div class="message-header">
+                        <h3>${otherUser.name}</h3>
+                        <span class="message-time">${formatTime(lastMessageTime)}</span>
+                    </div>
+                    <p class="message-preview">
+                        ${lastMessageIsReceived ? '' : 'You: '}${chat.lastMessage || 'New chat'}
+                    </p>
+                    ${unreadCount > 0 ? `<div class="unread-badge">${unreadCount}</div>` : ''}
+                </div>
+            </div>
+        `;
+    });
+
+    container.appendChild(list);
+    
+    // Update message badges
+    const totalUnread = messages.reduce((sum, chat) => sum + (chat[`${currentUser.uid}_unread`] || 0), 0);
+    updateMessageBadges(totalUnread);
+}
+
+// Helper functions
+function stringToColor(str) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const hue = Math.abs(hash % 360);
+    return `hsl(${hue}, 70%, 60%)`;
+}
+
+function formatChatTime(date) {
+    const now = new Date();
+    const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) {
+        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    } else if (diffDays === 1) {
+        return 'Yesterday';
+    } else if (diffDays < 7) {
+        return date.toLocaleDateString([], { weekday: 'short' });
+    } else {
+        return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+    }
+}
+
+function filterMessages() {
+    const searchTerm = document.getElementById('messagesSearch').value.toLowerCase();
+    const messageItems = document.querySelectorAll('.message-item');
+    
+    messageItems.forEach(item => {
+        const name = item.querySelector('h3').textContent.toLowerCase();
+        const preview = item.querySelector('.message-preview').textContent.toLowerCase();
+        const listing = item.querySelector('.message-listing')?.textContent.toLowerCase() || '';
+        
+        const matchesSearch = name.includes(searchTerm) || 
+                             preview.includes(searchTerm) || 
+                             listing.includes(searchTerm);
+        
+        item.style.display = matchesSearch ? 'flex' : 'none';
+    });
 }
 
 async function loadRecentActivities() {
@@ -2995,16 +2649,17 @@ async function uploadImageToImageBB(file) {
             }
         }
         
-         async function logout() {
-            try {
-                await auth.signOut();
-                showToast('Logged out successfully', 'success');
-                showAuthScreen();
-            } catch (error) {
-                console.error('Logout error:', error);
-                showToast('Logout failed', 'error');
-            }
-        }
+async function logout() {
+  try {
+    socket.disconnect();
+    await auth.signOut();
+    showToast('Logged out successfully', 'success');
+    showAuthScreen();
+  } catch (error) {
+    console.error('Logout error:', error);
+    showToast('Logout failed', 'error');
+  }
+}
         
 function toggleNotificationsModal() {
     const modal = document.getElementById('notificationsModal');
@@ -3068,5 +2723,12 @@ function validateEmail(email) {
     const re = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     return re.test(String(email).toLowerCase());
 }    
+        
+   function cleanupListeners() {
+    if (currentChat.unsubscribe) {
+        currentChat.unsubscribe();
+    }
+    // Add any other listeners you need to clean up
+}
         
  window.addEventListener('DOMContentLoaded', initApp);
