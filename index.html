@@ -11,6 +11,8 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-storage-compat.js"></script>
+    <!-- Add this after your Firebase scripts -->
+<script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -479,15 +481,13 @@
             </div>
 
             <!-- Messages Page Content -->
-            <div class="page-content" id="messagesPage" style="display: none;">
-
-                <div id="messagesContent">
-                    <div class="page-loading">
-                        <div class="page-loading-spinner"></div>
-                        <div class="page-loading-text">Loading messages...</div>
-                    </div>
-                </div>
-            </div>
+<div class="page-content" id="messagesPage" style="display: none;">
+    <div id="messagesContent">
+        <div class="messages-list">
+            <!-- Messages will be rendered here dynamically -->
+        </div>
+    </div>
+</div>
             
 <!-- Chat Page Content -->
 <div class="page-content" id="chatPage" style="display: none;">
