@@ -1171,7 +1171,7 @@
             font-size: 1rem;
         }
 
-.stats-grid {
+        .stats-grid {
             display: flex;
             flex-wrap: wrap;
             gap: 1rem;
@@ -2502,4 +2502,145 @@
     margin-top: 0.25rem;
     display: block;
     text-align: right;
+}
+
+.chat-item.unread {
+  background-color: #f8f9fa;
+}
+
+.chat-item.unread .user-info h3 {
+  font-weight: bold;
+}
+
+.chat-item.unread .message-preview {
+  color: #000;
+  font-weight: 500;
+}
+
+.unread-badge {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  background-color: var(--primary-green);
+  border-radius: 50%;
+  margin-right: 5px;
+}
+
+/* Add these styles to your CSS */
+.messages-list {
+    background-color: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.message-item {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid #f3f4f6;
+    transition: background-color 0.2s;
+    cursor: pointer;
+}
+
+.message-item:hover {
+    background-color: #f9fafb;
+}
+
+.message-item.unread {
+    background-color: #f0fdf4;
+}
+
+.message-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background-color: #22c55e;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+    font-weight: bold;
+    font-size: 1.25rem;
+}
+
+.message-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.message-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.25rem;
+}
+
+.message-header h3 {
+    margin: 0;
+    font-size: 1rem;
+    color: #1f2937;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.message-time {
+    font-size: 0.75rem;
+    color: #9ca3af;
+    white-space: nowrap;
+    margin-left: 0.5rem;
+}
+
+.message-preview {
+    margin: 0;
+    color: #6b7280;
+    font-size: 0.875rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.message-listing {
+    display: inline-block;
+    background-color: #e5e7eb;
+    color: #4b5563;
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    margin-top: 0.25rem;
+}
+
+.unread-badge {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: #22c55e;
+    margin-left: 1rem;
+}
+
+.search-bar {
+    position: relative;
+    margin-bottom: 1rem;
+}
+
+.search-bar i {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9ca3af;
+}
+
+.search-bar input {
+    width: 100%;
+    padding: 0.75rem 1rem 0.75rem 2.5rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 0.875rem;
+}
+
+.search-bar input:focus {
+    outline: none;
+    border-color: #22c55e;
 }
