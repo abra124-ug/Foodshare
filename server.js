@@ -5,7 +5,7 @@ const admin = require('firebase-admin');
 const cors = require('cors');
 
 // Initialize Firebase Admin SDK
-const serviceAccount = require('./serviceAccountKey.json'); // Download from Firebase Console
+const serviceAccount = require('./serviceAccountKey.json');
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
@@ -13,109 +13,113 @@ admin.initializeApp({
 });
 
 const app = express();
-app.use(cors());
+
+// Configure CORS for Express (REST endpoints)
+const allowedOrigins = [
+  'https://mealswap.netlify.app',  // Production
+  'http://localhost:3000',        // React/Vite dev server
+  'http://127.0.0.1:5500'         // Live Server (static HTML)
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  },
+  methods: ['GET', 'POST', 'PUT', 'OPTIONS'],
+  credentials: true
+}));
+
 const server = http.createServer(app);
+
+// Configure CORS for Socket.io
 const io = socketIo(server, {
   cors: {
-    origin: "*",
-    methods: ["GET", "POST"]
-  }
+    origin: allowedOrigins,
+    methods: ['GET', 'POST'],
+    credentials: true,
+    transports: ['websocket', 'polling']  // Fallback options
+  },
+  allowEIO3: true  // Legacy Socket.io client support
 });
 
 // Store connected users
 const connectedUsers = {};
 
 io.on('connection', (socket) => {
-  console.log('New client connected');
-  
-  // Listen for authentication
+  console.log('New client connected', socket.id);
+
+  // Authenticate user
   socket.on('authenticate', (userId) => {
     connectedUsers[userId] = socket.id;
-    console.log(`User ${userId} connected with socket ID ${socket.id}`);
+    console.log(`Authenticated: ${userId} → ${socket.id}`);
   });
 
-  // Handle disconnection
   socket.on('disconnect', () => {
     const userId = Object.keys(connectedUsers).find(key => connectedUsers[key] === socket.id);
     if (userId) {
       delete connectedUsers[userId];
-      console.log(`User ${userId} disconnected`);
+      console.log(`Disconnected: ${userId}`);
     }
   });
 });
 
-// Firebase Firestore listeners for real-time updates
+// Firebase listeners (unchanged)
 function setupFirestoreListeners() {
   const db = admin.firestore();
   
-  // Listen for new messages
   db.collection('messages').onSnapshot((snapshot) => {
     snapshot.docChanges().forEach((change) => {
       if (change.type === 'added') {
         const message = change.doc.data();
-        notifyUsersAboutMessage(message);
+        const recipientId = message.participants.find(id => id !== message.senderId);
+        if (connectedUsers[recipientId]) {
+          io.to(connectedUsers[recipientId]).emit('newMessage', message);
+        }
       }
     });
   });
-  
-  // Listen for new requests
+
+  // Listings listener
+  db.collection('listings').onSnapshot((snapshot) => {
+    snapshot.docChanges().forEach((change) => {
+      if (change.type === 'added' || change.type === 'modified') {
+        const listing = change.doc.data();
+        // Notify interested users or the listing owner
+        if (listing.userId && connectedUsers[listing.userId]) {
+          io.to(connectedUsers[listing.userId]).emit('listingUpdate', listing);
+        }
+      }
+    });
+  });
+
+  // Requests listener
   db.collection('requests').onSnapshot((snapshot) => {
     snapshot.docChanges().forEach((change) => {
       if (change.type === 'added') {
         const request = change.doc.data();
-        notifyUsersAboutRequest(request);
-      }
-    });
-  });
-  
-  // Listen for new listings
-  db.collection('listings').onSnapshot((snapshot) => {
-    snapshot.docChanges().forEach((change) => {
-      if (change.type === 'added') {
-        const listing = change.doc.data();
-        notifyUsersAboutListing(listing);
+        // Notify the listing owner about new requests
+        if (request.listingOwnerId && connectedUsers[request.listingOwnerId]) {
+          io.to(connectedUsers[request.listingOwnerId]).emit('newRequest', request);
+        }
       }
     });
   });
 }
 
-// Notification helper functions
-function notifyUsersAboutMessage(message) {
-  const recipientId = message.participants.find(id => id !== message.senderId);
-  if (connectedUsers[recipientId]) {
-    io.to(connectedUsers[recipientId]).emit('newMessage', {
-      senderId: message.senderId,
-      text: message.text,
-      timestamp: message.timestamp
-    });
-  }
-}
-
-function notifyUsersAboutRequest(request) {
-  if (connectedUsers[request.listingOwnerId]) {
-    io.to(connectedUsers[request.listingOwnerId]).emit('newRequest', {
-      requestId: request.id,
-      receiverId: request.receiverId,
-      listingId: request.listingId
-    });
-  }
-}
-
-function notifyUsersAboutListing(listing) {
-  // For receivers - notify all connected receivers about new listings
-  Object.keys(connectedUsers).forEach(userId => {
-    // In a real app, you'd check the user's role and location before notifying
-    io.to(connectedUsers[userId]).emit('newListing', {
-      listingId: listing.id,
-      title: listing.title,
-      category: listing.category
-    });
-  });
-}
-
-// Start the server
+// Start server
 const PORT = process.env.PORT || 3001;
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   setupFirestoreListeners();
+});
+
+// Error handling
+process.on('unhandledRejection', (err) => {
+  console.error('Unhandled rejection:', err);
 });
