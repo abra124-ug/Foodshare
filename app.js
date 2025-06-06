@@ -195,6 +195,35 @@ function showApp() {
     showPage('home');
 }
 
+document.addEventListener('DOMContentLoaded', function() {
+    // Clear any existing onboarding flags if user is logged out
+    if (!auth.currentUser) {
+        localStorage.removeItem('hasCompletedOnboarding');
+    }
+    initApp();
+});
+
+function updateSlide() {
+    const slidesContainer = document.querySelector('.onboarding-slides');
+    const slides = document.querySelectorAll('.onboarding-slide');
+    const indicators = document.querySelectorAll('.slide-indicator');
+    const nextBtn = document.getElementById('nextBtn');
+    
+    slidesContainer.style.transform = `translateX(-${currentSlide * 100}%)`;
+    
+    indicators.forEach((indicator, index) => {
+        if (index === currentSlide) {
+            indicator.classList.add('active');
+        } else {
+            indicator.classList.remove('active');
+        }
+    });
+    
+    if (nextBtn) {
+        nextBtn.textContent = currentSlide === totalSlides - 1 ? 'Get Started' : 'Next';
+    }
+}
+
 function initOnboardingSlides() {
     const slidesContainer = document.querySelector('.onboarding-slides');
     const slides = document.querySelectorAll('.onboarding-slide');
@@ -210,20 +239,6 @@ function initOnboardingSlides() {
     // Initialize swipe detection
     let touchStartX = 0;
     let touchEndX = 0;
-    
-    function updateSlide() {
-        slidesContainer.style.transform = `translateX(-${currentSlide * 100}%)`;
-        
-        indicators.forEach((indicator, index) => {
-            if (index === currentSlide) {
-                indicator.classList.add('active');
-            } else {
-                indicator.classList.remove('active');
-            }
-        });
-        
-        nextBtn.textContent = currentSlide === totalSlides - 1 ? 'Get Started' : 'Next';
-    }
     
     function handleSwipe() {
         const swipeThreshold = 50;
@@ -840,13 +855,35 @@ function updateProfileDetails() {
             updateNotificationBadges();
         });
        
+           // Chat listener
+    const chatsListener = db.collection('chats')
+        .where('participants', 'array-contains', currentUser.uid)
+        .orderBy('lastUpdated', 'desc')
+        .onSnapshot(snapshot => {
+            messages = [];
+            snapshot.forEach(doc => {
+                messages.push({
+                    id: doc.id,
+                    ...doc.data()
+                });
+            });
+            renderMessages();
+            
+            // Update message badges
+            const unreadCount = messages.reduce((count, message) => {
+                return count + (message[`${currentUser.uid}_unread`] || 0);
+            }, 0);
+            
+            updateMessageBadges(unreadCount);
+        });
     
     // Store the listeners for cleanup
     return {
         userListener,
         listingsListener,
         notificationsListener,
-        unsubscribeNotifications
+        unsubscribeNotifications,
+        chatsListener
     };
 }
 
@@ -854,6 +891,22 @@ function updateProfileDetails() {
     const badges = [
         document.getElementById('notificationBadge'),
         document.getElementById('mobileNotificationBadge')
+    ];
+    
+    badges.forEach(badge => {
+        if (count > 0) {
+            badge.textContent = count;
+            badge.style.display = 'flex';
+        } else {
+            badge.style.display = 'none';
+        }
+    });
+}
+  
+  function updateMessageBadges(count) {
+    const badges = [
+        document.getElementById('messageBadge'),
+        document.getElementById('bottomNavMessageBadge')
     ];
     
     badges.forEach(badge => {
@@ -903,12 +956,13 @@ function renderUserListings() {
         const today = new Date();
         const timeDiff = expiryDate.getTime() - today.getTime();
         const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+        const isExpired = daysDiff < 0;
         
         // Check if current user has already requested this listing
         const userRequest = listing.requests?.find(r => r.receiverId === currentUser.uid);
         
         const listingElement = document.createElement('div');
-        listingElement.className = 'food-card';
+        listingElement.className = `food-card ${isExpired ? 'expired' : ''}`;
         listingElement.innerHTML = `
             <img src="${listing.imageUrl || 'https://via.placeholder.com/300x200?text=No+Image'}" 
                  alt="${listing.title}" class="listing-image" onerror="this.src='https://via.placeholder.com/300x200?text=Image+Error'">
@@ -919,9 +973,9 @@ function renderUserListings() {
                 </div>
                 <div class="listing-meta">
                     <span><i class="fas fa-map-marker-alt"></i> ${listing.address || 'No address'}</span>
-                    <span class="${daysDiff < 0 ? 'expired' : daysDiff < 3 ? 'soon' : ''}">
+                    <span class="${isExpired ? 'expired' : daysDiff < 3 ? 'soon' : ''}">
                         <i class="fas fa-clock"></i> 
-                        ${daysDiff < 0 ? 'Expired' : `Expires in ${daysDiff} day${daysDiff !== 1 ? 's' : ''}`}
+                        ${isExpired ? 'Expired' : `Expires in ${daysDiff} day${daysDiff !== 1 ? 's' : ''}`}
                     </span>
                 </div>
                 <p class="listing-description">${listing.description || 'No description provided'}</p>
@@ -934,7 +988,12 @@ function renderUserListings() {
                     </div>
                     ${userData.role === 'receiver' ? `
                         <div class="listing-actions">
-                            ${userRequest ? 
+                            ${isExpired ? `
+                                <div class="action-icon disabled" title="This listing has expired">
+                                    <i class="fas fa-ban"></i>
+                                    <span class="tooltip"></span>
+                                </div>
+                            ` : userRequest ? 
                                 (userRequest.status === 'accepted' ? `
                                     <div class="action-icon" onclick="startChat('${listing.userId}', '${userRequest.messageThreadId || ''}')">
                                         <i class="fas fa-comment"></i>
@@ -962,11 +1021,6 @@ function renderUserListings() {
                 </div>
             </div>
         `;
-        
-        // Add expired class to entire card if expired
-        if (daysDiff < 0) {
-            listingElement.classList.add('expired');
-        }
         
         listingsContainer.appendChild(listingElement);
     });
@@ -1158,47 +1212,36 @@ function renderMessages() {
         return;
     }
     
-    messages.forEach(message => {
-        const otherUserId = message.participants.find(id => id !== currentUser.uid);
-        const otherUserData = message.participantNames[otherUserId];
-        const unreadCount = message[`${currentUser.uid}_unread`] || 0;
-        const isRequest = message.listingId && message.listingTitle;
+    messages.forEach(chat => {
+        const otherUserId = chat.participants.find(id => id !== currentUser.uid);
+        const otherUserData = chat.participantNames[otherUserId];
+        const unreadCount = chat[`${currentUser.uid}_unread`] || 0;
+        const isFoodChat = chat.listingId && chat.listingTitle;
         
-        // Get avatar URL or use default
-        let avatarContent = '';
-        if (message.participantAvatars && message.participantAvatars[otherUserId]) {
-            avatarContent = `<img src="${message.participantAvatars[otherUserId]}" style="width: 100%; height: 100%; object-fit: cover;">`;
-        } else {
-            // Use default avatar with color
-            const color = getColorForInitial(message.participantColors?.[otherUserId] || 'color-1');
-            avatarContent = `<span style="font-weight: 600; color: white;">${message.participantInitials[otherUserId] || 'U'}</span>`;
-        }
-
         const messageElement = document.createElement('div');
-        messageElement.className = 'message-item';
+        messageElement.className = 'food-card';
         messageElement.style.cursor = 'pointer';
         messageElement.innerHTML = `
-            <div class="message-preview" style="display: flex; align-items: center; gap: 1rem; padding: 1rem;">
+            <div class="food-details" style="display: flex; align-items: center; gap: 1rem; padding: 1rem;">
                 <div class="user-avatar" style="width: 50px; height: 50px; border-radius: 50%; background-color: var(--gray-100); display: flex; align-items: center; justify-content: center; overflow: hidden;">
-                    ${avatarContent}
+                    ${chat.participantAvatars && chat.participantAvatars[otherUserId] 
+                        ? `<img src="${chat.participantAvatars[otherUserId]}" style="width: 100%; height: 100%; object-fit: cover;">`
+                        : `<span style="font-weight: 600; color: white;">${chat.participantInitials?.[otherUserId] || 'U'}</span>`}
                 </div>
                 <div style="flex: 1;">
                     <h3 style="font-size: 1rem; color: var(--gray-600); margin-bottom: 0.3rem;">
                         ${otherUserData}
-                        ${unreadCount > 0 ? `<span class="unread-badge">${unreadCount}</span>` : ''}
+                        ${unreadCount > 0 ? `<span style="background-color: var(--primary-green); color: white; padding: 0.1rem 0.5rem; border-radius: 10px; font-size: 0.7rem; margin-left: 0.5rem;">${unreadCount}</span>` : ''}
                     </h3>
-                    ${isRequest ? `<p style="font-size: 0.8rem; color: var(--gray-500); margin-bottom: 0.3rem;">About: ${message.listingTitle}</p>` : ''}
-                    <p style="font-size: 0.9rem; color: var(--gray-400); margin-bottom: 0.3rem;">
-                        ${message.lastMessageSender === currentUser.uid ? 'You: ' : ''}
-                        ${message.lastMessage || 'No messages yet'}
-                    </p>
-                    <p style="font-size: 0.8rem; color: var(--gray-400);">${formatTime(message.lastUpdated.toDate())}</p>
+                    ${isFoodChat ? `<p style="font-size: 0.8rem; color: var(--gray-500); margin-bottom: 0.3rem;">About: ${chat.listingTitle}</p>` : ''}
+                    <p style="font-size: 0.9rem; color: var(--gray-400); margin-bottom: 0.3rem;">${chat.lastMessage || 'No messages yet'}</p>
+                    <p style="font-size: 0.8rem; color: var(--gray-400);">${formatTime(chat.lastUpdated?.toDate() || new Date())}</p>
                 </div>
             </div>
         `;
         
         messageElement.addEventListener('click', () => {
-            startChat(otherUserId, message.id);
+            startChat(otherUserId, chat.id);
         });
         messagesContent.appendChild(messageElement);
     });
@@ -1293,6 +1336,7 @@ function getColorForInitial(colorClass) {
     return colorMap[colorClass] || '#3b82f6';
 }
         
+// Enhanced startChat function
 async function startChat(otherUserId, chatId = null) {
     try {
         // Clean up previous chat if any
@@ -1361,33 +1405,27 @@ async function startChat(otherUserId, chatId = null) {
             // Create new chat document
             await chatRef.set({
                 participants: participants,
-                participantsInfo: {
-                    [currentUser.uid]: {
-                        name: userData.name,
-                        lastRead: timestamp,
-                        avatar: userData.avatarType === 'default' ? null : userData.avatarUrl,
-                        initial: userData.avatarInitial,
-                        color: userData.avatarColor
-                    },
-                    [otherUserId]: {
-                        name: otherUserData.name,
-                        lastRead: null,
-                        avatar: otherUserData.avatarType === 'default' ? null : otherUserData.avatarUrl,
-                        initial: otherUserData.avatarInitial,
-                        color: otherUserData.avatarColor
-                    }
+                participantNames: {
+                    [currentUser.uid]: userData.name,
+                    [otherUserId]: otherUserData.name
                 },
-                lastMessage: '',
-                lastMessageAt: null,
+                participantInitials: {
+                    [currentUser.uid]: userData.avatarInitial,
+                    [otherUserId]: otherUserData.avatarInitial || 'U'
+                },
+                participantAvatars: {
+                    [currentUser.uid]: userData.avatarType === 'default' ? null : userData.avatarUrl,
+                    [otherUserId]: otherUserData.avatarType === 'default' ? null : otherUserData.avatarUrl
+                },
+                lastMessage: 'New conversation started',
+                lastUpdated: timestamp,
                 [`${currentUser.uid}_unread`]: 0,
                 [`${otherUserId}_unread`]: 0,
-                createdAt: timestamp,
-                updatedAt: timestamp
+                createdAt: timestamp
             });
         } else {
             // Update last read time and mark messages as read
             await chatRef.update({
-                [`participantsInfo.${currentUser.uid}.lastRead`]: timestamp,
                 [`${currentUser.uid}_unread`]: 0,
                 updatedAt: timestamp
             });
@@ -1398,15 +1436,6 @@ async function startChat(otherUserId, chatId = null) {
             .orderBy('createdAt', 'asc');
         
         currentChat.unsubscribe = messagesQuery.onSnapshot(snapshot => {
-            const messagesContainer = document.getElementById('chatMessages');
-            
-            // Clear loading state if present
-            const loadingElement = messagesContainer.querySelector('.page-loading');
-            if (loadingElement) {
-                messagesContainer.removeChild(loadingElement);
-            }
-            
-            // Clear existing messages
             messagesContainer.innerHTML = '';
             
             if (snapshot.empty) {
@@ -1434,7 +1463,7 @@ async function startChat(otherUserId, chatId = null) {
             }
         }, error => {
             console.error('Message listener error:', error);
-            document.getElementById('chatMessages').innerHTML = `
+            messagesContainer.innerHTML = `
                 <div class="empty-state">
                     <i class="fas fa-exclamation-triangle"></i>
                     <h3>Error loading messages</h3>
@@ -1499,20 +1528,22 @@ async function sendMessage() {
 
         messageInput.value = '';
 
-        // Use currentChat state
-        const messageRef = await db.collection('chats').doc(currentChat.channelId)
+        const timestamp = firebase.firestore.FieldValue.serverTimestamp();
+        
+        // Save message to Firestore
+        await db.collection('chats').doc(currentChat.channelId)
             .collection('messages').add({
                 text: messageText,
                 senderId: currentUser.uid,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                createdAt: timestamp
             });
 
         // Update chat document
         await db.collection('chats').doc(currentChat.channelId).update({
             lastMessage: messageText,
-            lastMessageAt: firebase.firestore.FieldValue.serverTimestamp(),
+            lastUpdated: timestamp,
             [`${currentChat.userId}_unread`]: firebase.firestore.FieldValue.increment(1),
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            updatedAt: timestamp
         });
 
     } catch (error) {
@@ -1643,7 +1674,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-
+// Update the renderMessages function in app.js
 function renderMessages() {
     messagesLoading = false;
     messagesContent.innerHTML = '';
@@ -1659,39 +1690,41 @@ function renderMessages() {
         return;
     }
     
-    messages.forEach(message => {
-        const otherUserId = message.participants.find(id => id !== currentUser.uid);
-        const otherUserData = message.participantNames[otherUserId];
-        const unreadCount = message[`${currentUser.uid}_unread`] || 0;
-        const isRequest = message.listingId && message.listingTitle;
+    // Create a container for all message items
+    const messagesList = document.createElement('div');
+    messagesList.className = 'messages-list';
+    
+    messages.forEach(chat => {
+        const otherUserId = chat.participants.find(id => id !== currentUser.uid);
+        const otherUserData = chat.participantNames?.[otherUserId] || 'Unknown User';
+        const unreadCount = chat[`${currentUser.uid}_unread`] || 0;
         
         const messageElement = document.createElement('div');
-        messageElement.className = 'food-card';
-        messageElement.style.cursor = 'pointer';
+        messageElement.className = `message-item ${unreadCount > 0 ? 'unread' : ''}`;
         messageElement.innerHTML = `
-            <div class="food-details" style="display: flex; align-items: center; gap: 1rem; padding: 1rem;">
-                <div class="user-avatar" style="width: 50px; height: 50px; border-radius: 50%; background-color: var(--gray-100); display: flex; align-items: center; justify-content: center; overflow: hidden;">
-                    ${message.participantAvatars && message.participantAvatars[otherUserId] 
-                        ? `<img src="${message.participantAvatars[otherUserId]}" style="width: 100%; height: 100%; object-fit: cover;">`
-                        : `<span style="font-weight: 600; color: white;">${message.participantInitials[otherUserId] || 'U'}</span>`}
+            <div class="message-avatar">
+                ${chat.participantAvatars?.[otherUserId] 
+                    ? `<img src="${chat.participantAvatars[otherUserId]}" alt="${otherUserData}">`
+                    : `<span>${chat.participantInitials?.[otherUserId] || 'UU'}</span>`}
+            </div>
+            <div class="message-content">
+                <div class="message-header">
+                    <h4>${otherUserData}</h4>
+                    <span class="message-time">${formatTime(chat.lastUpdated?.toDate() || new Date())}</span>
                 </div>
-                <div style="flex: 1;">
-                    <h3 style="font-size: 1rem; color: var(--gray-600); margin-bottom: 0.3rem;">
-                        ${otherUserData}
-                        ${unreadCount > 0 ? `<span style="background-color: var(--primary-green); color: white; padding: 0.1rem 0.5rem; border-radius: 10px; font-size: 0.7rem; margin-left: 0.5rem;">${unreadCount}</span>` : ''}
-                    </h3>
-                    ${isRequest ? `<p style="font-size: 0.8rem; color: var(--gray-500); margin-bottom: 0.3rem;">About: ${message.listingTitle}</p>` : ''}
-                    <p style="font-size: 0.9rem; color: var(--gray-400); margin-bottom: 0.3rem;">${message.lastMessage || 'No messages yet'}</p>
-                    <p style="font-size: 0.8rem; color: var(--gray-400);">${formatTime(message.lastUpdated.toDate())}</p>
-                </div>
+                <p class="message-preview">${chat.lastMessage || 'No messages yet'}</p>
+                ${unreadCount > 0 ? `<span class="unread-count">${unreadCount}</span>` : ''}
             </div>
         `;
         
         messageElement.addEventListener('click', () => {
-            startChat(otherUserId, message.id);
+            startChat(otherUserId, chat.id);
         });
-        messagesContent.appendChild(messageElement);
+        
+        messagesList.appendChild(messageElement);
     });
+    
+    messagesContent.appendChild(messagesList);
 }
 
 function renderMessagesList(messages) {
@@ -1861,30 +1894,38 @@ function renderMessagesList(messages) {
     }
 }
 
-        function showCreateListingModal() {
-            if (!userData.verified) {
-                showToast('Please verify your account to create listings', 'error');
-                showPage('profile');
-                return;
-            }
-            
-            // Reset form
-            listingImagePreview.innerHTML = '<i class="fas fa-camera"></i>';
-            document.getElementById('listingTitle').value = '';
-            document.getElementById('listingDescription').value = '';
-            document.getElementById('listingExpiry').value = '';
-            document.getElementById('listingAddress').value = '';
-            
-            // Reset category selection
-            document.querySelectorAll('.category-option').forEach(option => {
-                option.classList.remove('selected');
-            });
-            document.querySelector('.category-option[data-category="bakery"]').classList.add('selected');
-            selectedCategory = 'bakery';
-            
-            // Show modal
-            createListingModal.style.display = 'flex';
-        }
+function showCreateListingModal() {
+    if (!userData.verified) {
+        showToast('Please verify your account to create listings', 'error');
+        showPage('profile');
+        return;
+    }
+    
+    // Set minimum date to today
+    const today = new Date();
+    const dd = String(today.getDate()).padStart(2, '0');
+    const mm = String(today.getMonth() + 1).padStart(2, '0'); // January is 0!
+    const yyyy = today.getFullYear();
+    const minDate = `${yyyy}-${mm}-${dd}`;
+    document.getElementById('listingExpiry').min = minDate;
+    
+    // Reset form
+    listingImagePreview.innerHTML = '<i class="fas fa-camera"></i>';
+    document.getElementById('listingTitle').value = '';
+    document.getElementById('listingDescription').value = '';
+    document.getElementById('listingExpiry').value = '';
+    document.getElementById('listingAddress').value = '';
+    
+    // Reset category selection
+    document.querySelectorAll('.category-option').forEach(option => {
+        option.classList.remove('selected');
+    });
+    document.querySelector('.category-option[data-category="bakery"]').classList.add('selected');
+    selectedCategory = 'bakery';
+    
+    // Show modal
+    createListingModal.style.display = 'flex';
+}
 
         function handleListingImageUpload(event) {
             const file = event.target.files[0];
@@ -1920,6 +1961,19 @@ function renderMessagesList(messages) {
         
         if (!expiryDate) {
             document.getElementById('listingExpiryError').style.display = 'block';
+            document.getElementById('listingExpiryError').textContent = 'Please select an expiry date';
+            document.getElementById('listingExpiry').parentElement.classList.add('error');
+            return;
+        }
+        
+        // Validate expiry date is not in the past
+        const selectedDate = new Date(expiryDate);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // Set to start of day for comparison
+        
+        if (selectedDate < today) {
+            document.getElementById('listingExpiryError').style.display = 'block';
+            document.getElementById('listingExpiryError').textContent = 'Expiry date cannot be in the past';
             document.getElementById('listingExpiry').parentElement.classList.add('error');
             return;
         }
@@ -2007,6 +2061,7 @@ function renderMessagesList(messages) {
             selectedCategory = category;
         }
 
+// Improved createFoodRequest function
 async function createFoodRequest(listingId) {
     try {
         // Check if user is verified
@@ -2022,53 +2077,51 @@ async function createFoodRequest(listingId) {
             showToast('Listing not found', 'error');
             return;
         }
+        
+        // Check if listing is expired
+        const expiryDate = listing.expiryDate?.toDate() || new Date();
+        const today = new Date();
+        if (expiryDate < today) {
+            showToast('This listing has expired and cannot be requested', 'error');
+            return;
+        }
 
-        // Check if there's an existing message thread with this user
+        // Get donor user data
+        const donorDoc = await db.collection('users').doc(listing.userId).get();
+        if (!donorDoc.exists) {
+            showToast('Donor not found', 'error');
+            return;
+        }
+        const donorData = donorDoc.data();
+
+        // Create channel ID (sorted user IDs joined by hyphen)
         const participants = [currentUser.uid, listing.userId].sort();
         const channelId = participants.join('-');
-        
-        let existingThread = null;
-        let messageThreadId = null;
 
-        // Check if chat document exists
+        // Create/update chat document
         const chatRef = db.collection('chats').doc(channelId);
-        const chatDoc = await chatRef.get();
-        
-        if (chatDoc.exists) {
-            existingThread = chatDoc.data();
-            messageThreadId = channelId;
-            
-            // Update the existing thread
-            await chatRef.update({
-                lastMessage: 'New request about: ' + listing.title,
-                lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
-                [`${listing.userId}_unread`]: firebase.firestore.FieldValue.increment(1),
-                listingId: listingId,
-                listingTitle: listing.title
-            });
-        } else {
-            // Create a new chat document
-            await chatRef.set({
-                participants: participants,
-                participantNames: {
-                    [currentUser.uid]: userData.name,
-                    [listing.userId]: listing.userName
-                },
-                participantInitials: {
-                    [currentUser.uid]: userData.avatarInitial,
-                    [listing.userId]: listing.userInitial || 'U'
-                },
-                listingId: listingId,
-                listingTitle: listing.title,
-                lastMessage: 'New request about: ' + listing.title,
-                lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
-                [`${currentUser.uid}_unread`]: 0,
-                [`${listing.userId}_unread`]: 1, // Mark as unread for donor
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-            
-            messageThreadId = channelId;
-        }
+        await chatRef.set({
+            participants: participants,
+            participantNames: {
+                [currentUser.uid]: userData.name,
+                [listing.userId]: donorData.name
+            },
+            participantInitials: {
+                [currentUser.uid]: userData.avatarInitial,
+                [listing.userId]: donorData.avatarInitial || 'U'
+            },
+            participantAvatars: {
+                [currentUser.uid]: userData.avatarType === 'default' ? null : userData.avatarUrl,
+                [listing.userId]: donorData.avatarType === 'default' ? null : donorData.avatarUrl
+            },
+            listingId: listingId,
+            listingTitle: listing.title,
+            lastMessage: 'New request about: ' + listing.title,
+            lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
+            [`${currentUser.uid}_unread`]: 0,
+            [`${listing.userId}_unread`]: 1,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
 
         // Create request document
         const requestRef = await db.collection('requests').add({
@@ -2080,9 +2133,16 @@ async function createFoodRequest(listingId) {
             receiverId: currentUser.uid,
             receiverName: userData.name,
             status: 'pending',
-            messageThreadId: messageThreadId,
+            messageThreadId: channelId,
             createdAt: firebase.firestore.FieldValue.serverTimestamp(),
             message: 'Hey, is this still available?'
+        });
+
+        // Add initial message to the chat
+        await chatRef.collection('messages').add({
+            senderId: currentUser.uid,
+            text: 'Hey, is this still available?',
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
 
         // Create notification for donor
@@ -2094,28 +2154,17 @@ async function createFoodRequest(listingId) {
             listingTitle: listing.title,
             receiverId: currentUser.uid,
             receiverName: userData.name,
-            messageThreadId: messageThreadId,
+            messageThreadId: channelId,
             status: 'pending',
             createdAt: firebase.firestore.FieldValue.serverTimestamp(),
             read: false
         });
 
-        // Add initial message to the thread
-        await chatRef.collection('messages').add({
-            senderId: currentUser.uid,
-            senderName: userData.name,
-            text: 'Hey, is this still available?',
-            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-            type: 'text'
-        });
-
         showToast('Request sent to donor!', 'success');
         
-        // Refresh the listings to update the UI
-        renderUserListings();
+        // Automatically open the chat
+        startChat(listing.userId, channelId);
         
-        // Show the messages page
-        showPage('messages');
     } catch (error) {
         console.error('Error creating food request:', error);
         showToast('Error sending request', 'error');
@@ -2147,40 +2196,6 @@ async function handleRequestAction(requestId, action) {
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             });
 
-            // Create a message thread between donor and receiver
-            const messageRef = await db.collection('messages').add({
-                participants: [currentUser.uid, request.receiverId],
-                participantNames: {
-                    [currentUser.uid]: userData.name,
-                    [request.receiverId]: request.receiverName
-                },
-                participantInitials: {
-                    [currentUser.uid]: userData.avatarInitial,
-                    [request.receiverId]: request.receiverInitial || 'U'
-                },
-                participantAvatars: {
-                    [currentUser.uid]: userData.avatarType === 'default' 
-                        ? null 
-                        : userData.avatarUrl,
-                    [request.receiverId]: request.receiverAvatarUrl || null
-                },
-                listingId: request.listingId,
-                listingTitle: request.listingTitle,
-                lastMessage: `Request for "${request.listingTitle}" was accepted`,
-                lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
-                [`${currentUser.uid}_unread`]: 0,
-                [`${request.receiverId}_unread`]: 1 // Mark as unread for receiver
-            });
-
-            // Add initial message to the thread
-            await db.collection('messages').doc(messageRef.id).collection('conversation').add({
-                senderId: currentUser.uid,
-                senderName: userData.name,
-                text: `I've accepted your request for "${request.listingTitle}"! When would you like to pick up?`,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                type: 'text'
-            });
-
             // Create notification for receiver
             await db.collection('notifications').add({
                 userId: request.receiverId,
@@ -2190,12 +2205,12 @@ async function handleRequestAction(requestId, action) {
                 listingTitle: request.listingTitle,
                 donorId: currentUser.uid,
                 donorName: userData.name,
-                messageThreadId: messageRef.id,
+                messageThreadId: request.messageThreadId,
                 createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                 read: false
             });
 
-            showToast('Request accepted! A message thread has been created.', 'success');
+            showToast('Request accepted!', 'success');
             
         } else if (action === 'reject') {
             // Update request status
@@ -2213,6 +2228,7 @@ async function handleRequestAction(requestId, action) {
                 listingTitle: request.listingTitle,
                 donorId: currentUser.uid,
                 donorName: userData.name,
+                messageThreadId: request.messageThreadId,
                 createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                 read: false
             });
@@ -2895,25 +2911,25 @@ async function uploadImageToImageBB(file) {
             passwordError.style.display = 'none';
             
             // Validate name
-            if (!name) {
-                nameField.classList.add('error');
-                nameError.style.display = 'block';
-                isValid = false;
-            }
-            
-            // Validate email
-            if (!email || !email.includes('@')) {
-                emailField.classList.add('error');
-                emailError.style.display = 'block';
-                isValid = false;
-            }
-            
-            // Validate password
-            if (!password || password.length < 6) {
-                passwordField.classList.add('error');
-                passwordError.style.display = 'block';
-                isValid = false;
-            }
+    if (!name || name.length < 2 || name.length > 30) {
+        document.getElementById('signupNameError').textContent = 'Name must be 2-30 characters (letters and numbers only)';
+        document.getElementById('signupNameError').style.display = 'block';
+        isValid = false;
+    }
+    
+    // Validate email format
+    if (!validateEmail(email)) {
+        document.getElementById('signupEmailError').textContent = 'Please enter a valid email address';
+        document.getElementById('signupEmailError').style.display = 'block';
+        isValid = false;
+    }
+    
+    // Validate password (6+ chars)
+    if (!password || password.length < 6) {
+        document.getElementById('signupPasswordError').textContent = 'Password must be at least 6 characters';
+        document.getElementById('signupPasswordError').style.display = 'block';
+        isValid = false;
+    }
             
             // Validate terms agreement
             if (!agreeTerms) {
@@ -3028,5 +3044,29 @@ function cleanupListeners() {
     listeners.listingsListener();
     listeners.notificationsListener();
 }      
+
+function togglePasswordVisibility(inputId, icon) {
+    const input = document.getElementById(inputId);
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    } else {
+        input.type = 'password';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    }
+}
+    
+function validateNameInput(input) {
+    // Remove any non-alphanumeric characters
+    input.value = input.value.replace(/[^a-zA-Z0-9\s]/g, '');
+}
+
+// Validate email format
+function validateEmail(email) {
+    const re = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return re.test(String(email).toLowerCase());
+}    
         
-       window.addEventListener('DOMContentLoaded', initApp);
+ window.addEventListener('DOMContentLoaded', initApp);
