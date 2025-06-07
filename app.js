@@ -1,3029 +1,2926 @@
 
-        // Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyANq9cJd9tpTnbfMIY8ImsxWFWsn9prXbI",
-            authDomain: "mealswap-15d15.firebaseapp.com",
-            projectId: "mealswap-15d15",
-            storageBucket: "mealswap-15d15.appspot.com",
-            messagingSenderId: "534579466781",
-            appId: "1:534579466781:web:b9b42fa8272c0da1f1ecf4",
-            measurementId: "G-BEBCMKFVSY"
-        };
-
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
-        const storage = firebase.storage();
-
-        // ImageBB API Key
-        const IMAGEBB_API_KEY = '1dbc58387d100c16d5e7012f6fd434c1';
-
-        // Global variables
-        let currentUser = null;
-        let userData = null;
-        let selectedRole = 'donor';
-        let selectedAvatarType = 'default';
-        let selectedAvatar = 'A';
-        let selectedAvatarColor = 'color-1';
-        let selectedCategory = 'bakery';
-        let currentPage = 'home';
-        let userListings = [];
-        let recentRequests = [];
-        let messages = [];
-        let notifications = [];
-        let listingsLoading = true;
-        let messagesLoading = true;
-        
-        let currentChatUserId = null;
-        let currentChannelId = null;
-        let currentChatUnsubscribe = null;
-        // Global chat variables
-        let currentChat = {
-            userId: null,
-            userName: null,
-            channelId: null,
-            unsubscribe: null
-        };
-
-        
-        // Global variables for slide state
-        let currentSlide = 0;
-        const totalSlides = 3;
-        
-
-        // DOM Elements
-        const loadingScreen = document.getElementById('loadingScreen');
-        const onboardingContainer = document.getElementById('onboardingContainer');
-        const onboardingSlides = document.getElementById('onboardingSlides');
-        const skipBtn = document.getElementById('skipBtn');
-        const nextBtn1 = document.getElementById('nextBtn1');
-        const nextBtn2 = document.getElementById('nextBtn2');
-        const getStartedBtn = document.getElementById('getStartedBtn');
-        const authScreen = document.getElementById('authScreen');
-        const appContainer = document.getElementById('appContainer');
-        const profileSetup = document.getElementById('profileSetup');
-        const defaultAvatarBtn = document.getElementById('defaultAvatarBtn');
-        const customAvatarBtn = document.getElementById('customAvatarBtn');
-        const defaultAvatarOptions = document.getElementById('defaultAvatarOptions');
-        const customAvatarUpload = document.getElementById('customAvatarUpload');
-        const avatarUpload = document.getElementById('avatarUpload');
-        const avatarPreview = document.getElementById('avatarPreview');
-        const completeProfileBtn = document.getElementById('completeProfileBtn');
-        const sidebar = document.getElementById('sidebar');
-        const mobileHeaderTitle = document.getElementById('mobileHeaderTitle');
-        const mainContent = document.getElementById('mainContent');
-        const homePage = document.getElementById('homePage');
-        const listingsPage = document.getElementById('listingsPage');
-        const messagesPage = document.getElementById('messagesPage');
-        const profilePage = document.getElementById('profilePage');
-        const greeting = document.getElementById('greeting');
-        const welcomeUserName = document.getElementById('welcomeUserName');
-        const verificationBanner = document.getElementById('verificationBanner');
-        const listingsContent = document.getElementById('listingsContent');
-        const messagesContent = document.getElementById('messagesContent');
-        const sidebarAvatar = document.getElementById('sidebarAvatar');
-        const sidebarAvatarInitial = document.getElementById('sidebarAvatarInitial');
-        const sidebarAvatarImage = document.getElementById('sidebarAvatarImage');
-        const sidebarUserName = document.getElementById('sidebarUserName');
-        const sidebarUserStatus = document.getElementById('sidebarUserStatus');
-        const verifiedIcon = document.getElementById('verifiedIcon');
-        const unverifiedIcon = document.getElementById('unverifiedIcon');
-        const statusText = document.getElementById('statusText');
-        const mobileHeaderAvatar = document.getElementById('mobileHeaderAvatar');
-        const mobileAvatarInitial = document.getElementById('mobileAvatarInitial');
-        const mobileAvatarImage = document.getElementById('mobileAvatarImage');
-        const profileAvatar = document.getElementById('profileAvatar');
-        const profileAvatarInitial = document.getElementById('profileAvatarInitial');
-        const profileAvatarImage = document.getElementById('profileAvatarImage');
-        const profileUserName = document.getElementById('profileUserName');
-        const profileUserRole = document.getElementById('profileUserRole');
-        const profileVerificationStatus = document.getElementById('profileVerificationStatus');
-        const profileVerificationBanner = document.getElementById('profileVerificationBanner');
-        const profileBioText = document.getElementById('profileBioText');
-        const profileLocationText = document.getElementById('profileLocationText');
-        const profileOrganizationText = document.getElementById('profileOrganizationText');
-        const profileOrganizationContainer = document.getElementById('profileOrganizationContainer');
-        const listingsNavItem = document.getElementById('listingsNavItem');
-        const fabButton = document.getElementById('fabButton');
-        const toastContainer = document.getElementById('toastContainer');
-        const createListingModal = document.getElementById('createListingModal');
-        const listingImagePreview = document.getElementById('listingImagePreview');
-        const listingImageUpload = document.getElementById('listingImageUpload');
-        const createListingBtn = document.getElementById('createListingBtn');
-        const verificationModal = document.getElementById('verificationModal');
-        const submitVerificationBtn = document.getElementById('submitVerificationBtn');
-        const deleteAccountModal = document.getElementById('deleteAccountModal');
-
-        // Initialize the app
-// Add this at app startup
-document.addEventListener('DOMContentLoaded', function() {
-    // Clear any existing onboarding flags if user is logged out
-    if (!auth.currentUser) {
-        localStorage.removeItem('hasCompletedOnboarding');
-    }
-    initApp();
-});
-        
-function initApp() {
-    setupEventListeners();
-    setupSearchAndFilters(); // Add this line
-    checkAuthState();
-}
-
-// Check auth state and handle accordingly
-function checkAuthState() {
-    loadingScreen.style.display = 'flex';
-    
-    auth.onAuthStateChanged(async (user) => {
-        if (user) {
-            // User is signed in
-            currentUser = user;
-            await fetchUserData();
-            
-            // Now check onboarding status for authenticated users
-            await checkOnboardingStatus();
-        } else {
-            // No user is signed in
-            showAuthScreen();
+        :root {
+            --primary-green: #22c55e;
+            --primary-green-dark: #16a34a;
+            --primary-green-light: #86efac;
+            --secondary-green: #4ade80;
+            --bg-green-light: #f0fdf4;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+            --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.1);
+            --font-main: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            --sidebar-width: 280px;
+            --bottom-nav-height: 70px;
+            --header-height: 70px;
         }
-    });
-}
 
-// Check if user has completed onboarding (only for authenticated users)
-async function checkOnboardingStatus() {
-    // First check Firestore for profile completion status
-    if (userData && userData.profileComplete) {
-        localStorage.setItem('hasCompletedOnboarding', 'true');
-        showApp();
-        return;
-    }
-    
-    // Then check localStorage as fallback
-    const onboardingCompleted = localStorage.getItem('hasCompletedOnboarding') === 'true';
-    
-    if (!onboardingCompleted) {
-        showOnboarding();
-    } else {
-        // Ensure Firestore is updated if localStorage says completed
-        if (currentUser) {
-            await db.collection('users').doc(currentUser.uid).update({
-                profileComplete: true,
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: var(--font-main);
+            -webkit-tap-highlight-color: transparent;
         }
-        showApp();
-    }
-}
 
-function showOnboarding() {
-    loadingScreen.style.display = 'none';
-    authScreen.style.display = 'none';
-    appContainer.style.display = 'none';
-    profileSetup.style.display = 'none';
-    onboardingContainer.style.display = 'flex';
-    
-    initOnboardingSlides();
-}
-
-function showApp() {
-    loadingScreen.style.display = 'none';
-    authScreen.style.display = 'none';
-    onboardingContainer.style.display = 'none';
-    profileSetup.style.display = 'none';
-    appContainer.style.display = 'block';
-    
-    updateUserInterface();
-    loadInitialData();
-    loadStatsComparison(); // Add this line
-    setupRealtimeListeners();
-    showPage('home');
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-    // Clear any existing onboarding flags if user is logged out
-    if (!auth.currentUser) {
-        localStorage.removeItem('hasCompletedOnboarding');
-    }
-    initApp();
-});
-
-function updateSlide() {
-    const slidesContainer = document.querySelector('.onboarding-slides');
-    const slides = document.querySelectorAll('.onboarding-slide');
-    const indicators = document.querySelectorAll('.slide-indicator');
-    const nextBtn = document.getElementById('nextBtn');
-    
-    slidesContainer.style.transform = `translateX(-${currentSlide * 100}%)`;
-    
-    indicators.forEach((indicator, index) => {
-        if (index === currentSlide) {
-            indicator.classList.add('active');
-        } else {
-            indicator.classList.remove('active');
+        body {
+            background-color: var(--bg-green-light);
+            overscroll-behavior: none;
+            height: 100vh;
+            position: relative;
         }
-    });
-    
-    if (nextBtn) {
-        nextBtn.textContent = currentSlide === totalSlides - 1 ? 'Get Started' : 'Next';
-    }
-}
 
-function initOnboardingSlides() {
-    const slidesContainer = document.querySelector('.onboarding-slides');
-    const slides = document.querySelectorAll('.onboarding-slide');
-    const indicators = document.querySelectorAll('.slide-indicator');
-    const nextBtn = document.getElementById('nextBtn');
-    const skipBtn = document.getElementById('skipBtn');
-    
-    if (!slidesContainer || !slides.length || !indicators.length || !nextBtn || !skipBtn) {
-        console.error('Onboarding elements not found');
-        return;
-    }
 
-    // Initialize swipe detection
-    let touchStartX = 0;
-    let touchEndX = 0;
-    
-    function handleSwipe() {
-        const swipeThreshold = 50;
-        
-        if (touchEndX < touchStartX - swipeThreshold) {
-            goToNextSlide();
-        } else if (touchEndX > touchStartX + swipeThreshold) {
-            if (currentSlide > 0) {
-                currentSlide--;
-                updateSlide();
+        /* Loading Screen */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid var(--gray-200);
+            border-top: 4px solid var(--primary-green);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: var(--gray-600);
+            font-size: 1rem;
+            margin-top: 15px;
+        }
+
+        /* Onboarding Screens */
+        .onboarding-container {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            max-width: 390px;
+            background-color: white;
+            overflow: hidden;
+            padding: 64px 0 40px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .onboarding-slides {
+            display: flex;
+            transition: transform 0.5s cubic-bezier(0.4, 0.0, 0.2, 1);
+            flex: 1;
+        }
+
+        .onboarding-slide {
+            min-width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .shape {
+            position: absolute;
+            opacity: 0.15;
+            z-index: 1;
+        }
+
+        .shape-circle {
+            border-radius: 50%;
+            background-color: var(--primary-green);
+            filter: blur(30px);
+        }
+
+        .shape-1 {
+            width: 230px;
+            height: 230px;
+            top: 10%;
+            left: -20%;
+            animation: float-slow 20s infinite alternate ease-in-out;
+        }
+
+        .shape-2 {
+            width: 180px;
+            height: 180px;
+            bottom: 15%;
+            right: -10%;
+            background-color: var(--primary-green-light);
+            animation: float-slow 15s infinite alternate-reverse ease-in-out;
+        }
+
+        .shape-3 {
+            width: 120px;
+            height: 120px;
+            bottom: 25%;
+            left: 10%;
+            background-color: var(--secondary-green);
+            animation: float-slow 18s infinite alternate ease-in-out;
+        }
+
+        @keyframes float-slow {
+            0% {
+                transform: translate(0, 0);
             }
-        }
-    }
-    
-    // Set up button event listeners
-    nextBtn.addEventListener('click', goToNextSlide);
-    skipBtn.addEventListener('click', skipOnboarding);
-    
-    // Initialize swipe events
-    slidesContainer.addEventListener('touchstart', function(e) {
-        touchStartX = e.changedTouches[0].screenX;
-    }, { passive: true });
-    
-    slidesContainer.addEventListener('touchend', function(e) {
-        touchEndX = e.changedTouches[0].screenX;
-        handleSwipe();
-    }, { passive: true });
-    
-    // Initialize first slide
-    updateSlide();
-}
-
-// Global navigation functions
-function goToNextSlide() {
-    if (currentSlide < totalSlides - 1) {
-        currentSlide++;
-        updateSlide();
-    } else {
-        completeOnboarding();
-    }
-}
-
-function skipOnboarding() {
-    completeOnboarding();
-}
-
-function completeOnboarding() {
-    localStorage.setItem('hasCompletedOnboarding', 'true');
-    
-    if (currentUser) {
-        db.collection('users').doc(currentUser.uid).update({
-            profileComplete: true,
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        }).catch(error => {
-            console.error('Error updating onboarding status:', error);
-        });
-    }
-    
-    document.getElementById('onboardingContainer').style.display = 'none';
-    checkAuthState();
-}
-
-function setupSearchAndFilters() {
-    // Only set up search and filters if user is a receiver
-    if (userData && userData.role === 'receiver') {
-        // Search functionality
-        const searchInput = document.getElementById('listingSearch');
-        if (searchInput) {
-            searchInput.addEventListener('input', filterListings);
-        }
-        
-        // Category filter functionality
-        const categoryFilters = document.querySelectorAll('.category-filter');
-        categoryFilters.forEach(filter => {
-            filter.addEventListener('click', () => {
-                categoryFilters.forEach(f => f.classList.remove('active'));
-                filter.classList.add('active');
-                filterListings();
-            });
-        });
-    }
-}
-
-function setupEventListeners() {
-    // Onboarding navigation
-    const skipBtn = document.getElementById('skipBtn');
-    const nextBtn = document.getElementById('nextBtn');
-    
-    if (skipBtn) skipBtn.addEventListener('click', skipOnboarding);
-    if (nextBtn) nextBtn.addEventListener('click', goToNextSlide);
-
-    // Profile setup
-    const defaultAvatarBtn = document.getElementById('defaultAvatarBtn');
-    const customAvatarBtn = document.getElementById('customAvatarBtn');
-    const avatarUpload = document.getElementById('avatarUpload');
-    const completeProfileBtn = document.getElementById('completeProfileBtn');
-    
-    if (defaultAvatarBtn) defaultAvatarBtn.addEventListener('click', showDefaultAvatarOptions);
-    if (customAvatarBtn) customAvatarBtn.addEventListener('click', showCustomAvatarUpload);
-    if (avatarUpload) avatarUpload.addEventListener('change', handleAvatarUpload);
-    if (completeProfileBtn) completeProfileBtn.addEventListener('click', completeProfileSetup);
-
-    // Image uploads
-    const listingImageUpload = document.getElementById('listingImageUpload');
-    if (listingImageUpload) listingImageUpload.addEventListener('change', handleListingImageUpload);
-
-    // Chat functionality
-    const sendMessageBtn = document.getElementById('sendMessageBtn');
-    const chatMessageInput = document.getElementById('chatMessageInput');
-    
-    if (sendMessageBtn) sendMessageBtn.addEventListener('click', sendMessage);
-    if (chatMessageInput) {
-        chatMessageInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') sendMessage();
-        });
-    }
-
-    // Search and filters
-    const searchInput = document.getElementById('listingSearch');
-    if (searchInput) searchInput.addEventListener('input', filterListings);
-
-    // Category filters
-    document.querySelectorAll('.category-filter').forEach(filter => {
-        filter.addEventListener('click', () => {
-            document.querySelectorAll('.category-filter').forEach(f => f.classList.remove('active'));
-            filter.classList.add('active');
-            filterListings();
-        });
-    });
-
-    // Modal close buttons
-    document.querySelectorAll('.modal-close').forEach(button => {
-        button.addEventListener('click', function() {
-            const modal = this.closest('.modal-overlay');
-            if (modal) modal.style.display = 'none';
-        });
-    });
-
-        // Verification banner click handlers
-    document.getElementById('verificationBanner')?.addEventListener('click', showVerificationModal);
-    document.getElementById('profileVerificationBanner')?.addEventListener('click', showVerificationModal);
-
-    // Verification image uploads
-    document.getElementById('idImageUpload')?.addEventListener('change', function(e) {
-        handleImageUpload(e, 'idImagePreview');
-    });
-    document.getElementById('addressImageUpload')?.addEventListener('change', function(e) {
-        handleImageUpload(e, 'addressImagePreview');
-    });
-
-    // Toast close buttons
-    document.addEventListener('click', function(e) {
-        if (e.target.classList.contains('toast-close')) {
-            e.target.parentElement.remove();
-        }
-    });
-
-    // Navigation items
-    document.querySelectorAll('.sidebar-item, .nav-item').forEach(item => {
-        item.addEventListener('click', function(e) {
-            const page = this.getAttribute('onclick').match(/showPage\('([^']+)'\)/)[1];
-            if (page) showPage(page);
-        });
-    });
-
-    // FAB button
-    const fabButton = document.getElementById('fabButton');
-    if (fabButton) fabButton.addEventListener('click', showCreateListingModal);
-
-    // Notification bell
-    const notificationBadge = document.querySelector('.notification-badge');
-    if (notificationBadge) notificationBadge.addEventListener('click', toggleNotificationsModal);
-}
-
-        function showAuthScreen() {
-            loadingScreen.style.display = 'none';
-            authScreen.style.display = 'flex';
-            appContainer.style.display = 'none';
-            profileSetup.style.display = 'none';
-        }
-
-        function showProfileSetup() {
-            loadingScreen.style.display = 'none';
-            authScreen.style.display = 'none';
-            appContainer.style.display = 'none';
-            profileSetup.style.display = 'flex';
-        }
-
-
-async function fetchUserData() {
-    try {
-        const userDoc = await db.collection('users').doc(currentUser.uid).get();
-        if (userDoc.exists) {
-            userData = userDoc.data();
-            updateStatsCards();
-            setupSearchAndFilters();
-        } else {
-            // Create new user document if it doesn't exist
-            userData = {
-                name: currentUser.displayName || '',
-                email: currentUser.email,
-                role: selectedRole,
-                profileComplete: false,
-                verified: false,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                avatarType: 'default',
-                avatarInitial: 'A',
-                avatarColor: 'color-1',
-                bio: '',
-                location: '',
-                organization: '',
-                stats: {
-                    donations: 0,
-                    requests: 0,
-                    peopleHelped: 0,
-                    successfulRequests: 0,
-                    rating: 0,
-                    ratingCount: 0,
-                    activeListings: 0,
-                    lastMonthDonations: 0,
-                    lastMonthActiveListings: 0,
-                    lastMonthRating: 0,
-                    lastMonthPeopleHelped: 0
-                }
-            };
-            
-            await db.collection('users').doc(currentUser.uid).set(userData);
-        }
-        updateStatsCards(); // Update stats after fetching user data
-    } catch (error) {
-        console.error('Error fetching user data:', error);
-        showToast('Error loading user data', 'error');
-    }
-}
-
-async function updateNearbyListingsCount() {
-    if (userData.role !== 'receiver') return;
-    
-    try {
-        // Get user's location (simplified - in a real app you'd use geolocation)
-        const userLocation = userData.location || '';
-        
-        // Count listings near the user (simplified - in a real app you'd use geoqueries)
-        const snapshot = await db.collection('listings')
-            .where('status', '==', 'available')
-            .get();
-            
-        const totalListings = snapshot.size;
-        document.getElementById('peopleHelped').textContent = totalListings;
-        
-    } catch (error) {
-        console.error('Error counting nearby listings:', error);
-    }
-}
-
-async function loadInitialData() {
-    try {
-        // Load user data first to get stats
-        await fetchUserData();
-        
-        // Load user listings based on role
-        if (userData.role === 'donor') {
-            const listingsSnapshot = await db.collection('listings')
-                .where('userId', '==', currentUser.uid)
-                .orderBy('createdAt', 'desc')
-                .get();
-            
-            userListings = listingsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            
-            // Load recent requests
-            const requestsSnapshot = await db.collection('requests')
-                .where('listingOwnerId', '==', currentUser.uid)
-                .orderBy('createdAt', 'desc')
-                .limit(3)
-                .get();
-            
-            recentRequests = requestsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        } else {
-            // Load all available listings for receivers
-            const listingsSnapshot = await db.collection('listings')
-                .where('status', '==', 'available')
-                .orderBy('createdAt', 'desc')
-                .get();
-            
-            userListings = listingsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        }
-        
-        // Load chats with last message info
-        const chatsSnapshot = await db.collection('chats')
-            .where('participants', 'array-contains', currentUser.uid)
-            .orderBy('lastMessageAt', 'desc')
-            .get();
-        
-        messages = chatsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        
-        // Load notifications
-        const notificationsSnapshot = await db.collection('notifications')
-            .where('userId', '==', currentUser.uid)
-            .orderBy('createdAt', 'desc')
-            .get();
-        
-        notifications = notificationsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        
-        // Update UI with loaded data
-        updateStatsCards();  // Make sure this is called
-        renderUserListings();
-        renderMessages();
-        renderNotificationsList();
-        updateNotificationBadges(notifications.filter(n => !n.read).length);
-        
-    } catch (error) {
-        console.error('Error loading initial data:', error);
-        showToast('Error loading data: ' + error.message, 'error');
-    }
-}
-
-function updateStatsCards() {
-    if (!userData || !userData.stats) return;
-
-    const stats = userData.stats;
-    const isDonor = userData.role === 'donor';
-
-    // Calculate percentage changes with safer checks
-    const donationsChange = stats.lastMonthDonations && stats.lastMonthDonations !== 0 ? 
-        Math.round((stats.donations - stats.lastMonthDonations) / stats.lastMonthDonations * 100) : 0;
-    const activeListingsChange = stats.lastMonthActiveListings && stats.lastMonthActiveListings !== 0 ? 
-        Math.round((stats.activeListings - stats.lastMonthActiveListings) / stats.lastMonthActiveListings * 100) : 0;
-    const ratingChange = stats.lastMonthRating ? 
-        (stats.rating - stats.lastMonthRating).toFixed(1) : 0;
-    const peopleHelpedChange = stats.lastMonthPeopleHelped ? 
-        (stats.peopleHelped - stats.lastMonthPeopleHelped) : 0;
-
-
-    // Update all stat cards in one go
-    const statCards = [
-        {
-            element: document.querySelector('.stat-card:nth-child(1)'),
-            title: isDonor ? 'Total Donations' : 'Total Requests',
-            value: isDonor ? stats.donations || 0 : stats.requests || 0,
-            change: donationsChange,
-            positive: true // Always show as positive
-        },
-        {
-            element: document.querySelector('.stat-card:nth-child(2)'),
-            title: isDonor ? 'Active Listings' : 'Successful Requests',
-            value: isDonor ? stats.activeListings || 0 : stats.successfulRequests || 0,
-            change: activeListingsChange,
-            positive: true
-        },
-        {
-            element: document.querySelector('.stat-card:nth-child(3)'),
-            title: 'Your Rating',
-            value: stats.rating ? stats.rating.toFixed(1) : '0.0',
-            change: ratingChange,
-            positive: stats.rating >= (stats.lastMonthRating || 0)
-        },
-        {
-            element: document.querySelector('.stat-card:nth-child(4)'),
-            title: isDonor ? 'People Helped' : 'Nearby Listings',
-            value: isDonor ? stats.peopleHelped || 0 : userListings.length || 0,
-            change: peopleHelpedChange,
-            positive: true
-        }
-    ];
-
-    statCards.forEach(card => {
-        if (!card.element) return;
-        
-        // Update card content
-        card.element.querySelector('.stat-title').textContent = card.title;
-        card.element.querySelector('.stat-value').textContent = card.value;
-        
-        // Update change indicator
-        const changeElement = card.element.querySelector('.stat-change');
-        if (changeElement) {
-            changeElement.classList.toggle('positive', card.positive);
-            changeElement.classList.toggle('negative', !card.positive);
-            
-            const arrowIcon = changeElement.querySelector('i');
-            const changeText = changeElement.querySelector('span');
-            
-            if (arrowIcon) {
-                arrowIcon.className = card.positive ? 'fas fa-arrow-up' : 'fas fa-arrow-down';
-            }
-            
-            if (changeText) {
-                if (card.title === 'Your Rating') {
-                    changeText.textContent = `${Math.abs(card.change)} from last month`;
-                } else if (card.title === 'People Helped' || card.title === 'Nearby Listings') {
-                    changeText.textContent = `${card.change} from last month`;
-                } else {
-                    changeText.textContent = `${Math.abs(card.change)}% from last month`;
-                }
-            }
-        }
-    });
-}
-
-// Initialize notifications
-async function loadNotifications() {
-    try {
-        const snapshot = await db.collection('notifications')
-            .where('userId', '==', currentUser.uid)
-            .orderBy('createdAt', 'desc')
-            .get();
-        
-        notifications = [];
-        snapshot.forEach(doc => {
-            notifications.push({ id: doc.id, ...doc.data() });
-        });
-        
-        renderNotificationsList();
-        updateNotificationBadges();
-        
-    } catch (error) {
-        console.error('Error loading notifications:', error);
-        showToast('Error loading notifications', 'error');
-    }
-}
-
-    function updateUserInterface() {
-    // Update greeting based on time of day
-    updateGreeting();
-    
-    // Update user name
-    welcomeUserName.textContent = `Welcome back, ${userData.name || 'User'}!`;
-    sidebarUserName.textContent = userData.name || 'User';
-    profileUserName.textContent = userData.name || 'User';
-    
-    // Update user role
-    profileUserRole.textContent = userData.role === 'donor' ? 'Donor' : 'Receiver';
-    
-    // Update verification status
-    updateVerificationStatus();
-    
-    // Update avatar
-    updateAvatar();
-    
-    // Update profile details
-    updateProfileDetails();
-    
-    // Update role-specific UI
-    if (userData.role === 'donor') {
-        listingsNavItem.innerHTML = '<i class="fas fa-utensils"></i><span>My Listings</span>';
-        document.getElementById('listingsHeader').style.display = 'none';
-    } else {
-        listingsNavItem.innerHTML = '<i class="fas fa-search"></i><span>Browse Listings</span>';
-        document.getElementById('listingsHeader').style.display = 'block';
-    }
-    
-    if (userData.role === 'donor' && currentPage === 'listings') {
-        fabButton.style.display = 'flex';
-    } else {
-        fabButton.style.display = 'none';
-    }
-}
-
-async function loadStatsComparison() {
-    try {
-        // Get stats from previous month
-        const now = new Date();
-        const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-        
-        const snapshot = await db.collection('userStatsHistory')
-            .doc(currentUser.uid)
-            .collection('monthly')
-            .where('month', '==', firebase.firestore.Timestamp.fromDate(lastMonth))
-            .get();
-            
-        if (!snapshot.empty) {
-            const lastMonthStats = snapshot.docs[0].data();
-            userData.stats.lastMonthRating = lastMonthStats.rating || 0;
-            updateStatsCards();
-        }
-    } catch (error) {
-        console.error('Error loading stats comparison:', error);
-    }
-}
-        function updateGreeting() {
-            const hour = new Date().getHours();
-            let greetingText = 'Hello';
-            
-            if (hour < 12) {
-                greetingText = 'Good Morning';
-            } else if (hour < 18) {
-                greetingText = 'Good Afternoon';
-            } else {
-                greetingText = 'Good Evening';
-            }
-            
-            greeting.textContent = greetingText;
-        }
-
-        function updateVerificationStatus() {
-            if (userData.verified) {
-                // Verified user
-                verifiedIcon.style.display = 'inline-block';
-                unverifiedIcon.style.display = 'none';
-                statusText.textContent = 'Verified';
-                verificationBanner.style.display = 'none';
-                profileVerificationBanner.style.display = 'none';
-                profileVerificationStatus.innerHTML = '<i class="fas fa-check-circle" style="color: var(--primary-green);"></i><span>Verified</span>';
-            } else if (userData.verificationStatus === 'pending') {
-                // Pending verification
-                verifiedIcon.style.display = 'none';
-                unverifiedIcon.style.display = 'inline-block';
-                statusText.textContent = 'Pending Verification';
-                verificationBanner.style.display = 'flex';
-                profileVerificationBanner.style.display = 'flex';
-                profileVerificationStatus.innerHTML = '<i class="fas fa-clock" style="color: #f59e0b;"></i><span>Pending Verification</span>';
-            } else {
-                // Unverified user
-                verifiedIcon.style.display = 'none';
-                unverifiedIcon.style.display = 'inline-block';
-                statusText.textContent = 'Unverified';
-                verificationBanner.style.display = 'flex';
-                profileVerificationBanner.style.display = 'flex';
-                profileVerificationStatus.innerHTML = '<i class="fas fa-exclamation-circle" style="color: #f59e0b;"></i><span>Unverified</span>';
+            100% {
+                transform: translate(10px, 15px);
             }
         }
 
-        function updateAvatar() {
-            if (userData.avatarType === 'default') {
-                // Default avatar with initial and color
-                sidebarAvatarInitial.textContent = userData.avatarInitial;
-                sidebarAvatarInitial.style.display = 'flex';
-                sidebarAvatarImage.style.display = 'none';
-                sidebarAvatar.style.backgroundColor = '';
-                sidebarAvatar.classList.add(userData.avatarColor);
-                
-                mobileAvatarInitial.textContent = userData.avatarInitial;
-                mobileAvatarInitial.style.display = 'flex';
-                mobileAvatarImage.style.display = 'none';
-                mobileHeaderAvatar.style.backgroundColor = '';
-                mobileHeaderAvatar.classList.add(userData.avatarColor);
-                
-                profileAvatarInitial.textContent = userData.avatarInitial;
-                profileAvatarInitial.style.display = 'flex';
-                profileAvatarImage.style.display = 'none';
-                profileAvatar.style.backgroundColor = '';
-                profileAvatar.classList.add(userData.avatarColor);
-            } else {
-                // Custom avatar image
-                sidebarAvatarInitial.style.display = 'none';
-                sidebarAvatarImage.style.display = 'block';
-                sidebarAvatarImage.src = userData.avatarUrl;
-                sidebarAvatar.style.backgroundColor = '';
-                sidebarAvatar.classList.remove('color-1', 'color-2', 'color-3', 'color-4', 'color-5', 'color-6');
-                
-                mobileAvatarInitial.style.display = 'none';
-                mobileAvatarImage.style.display = 'block';
-                mobileAvatarImage.src = userData.avatarUrl;
-                mobileHeaderAvatar.style.backgroundColor = '';
-                mobileHeaderAvatar.classList.remove('color-1', 'color-2', 'color-3', 'color-4', 'color-5', 'color-6');
-                
-                profileAvatarInitial.style.display = 'none';
-                profileAvatarImage.style.display = 'block';
-                profileAvatarImage.src = userData.avatarUrl;
-                profileAvatar.style.backgroundColor = '';
-                profileAvatar.classList.remove('color-1', 'color-2', 'color-3', 'color-4', 'color-5', 'color-6');
+        .slide-illustration {
+            width: 240px;
+            height: 240px;
+            margin-bottom: 24px;
+            margin-top: 20px;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .slide-image-container {
+            width: 180px;
+            height: 180px;
+            background-color: var(--bg-green-light);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            box-shadow: var(--shadow-sm);
+            animation: pulse 3s infinite ease-in-out;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.2);
+            }
+            70% {
+                transform: scale(1.05);
+                box-shadow: 0 0 0 15px rgba(34, 197, 94, 0);
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
             }
         }
 
-function updateProfileDetails() {
-    // Update bio
-    if (userData.bio && userData.bio.trim() !== '') {
-        profileBioText.textContent = userData.bio;
-    } else {
-        profileBioText.textContent = 'No bio provided';
-    }
-    
-    // Update location
-    if (userData.location && userData.location.trim() !== '') {
-        profileLocationText.textContent = userData.location;
-    } else {
-        profileLocationText.textContent = 'No location provided';
-    }
-    
-    // Update organization (for both roles)
-    if (userData.organization && userData.organization.trim() !== '') {
-        profileOrganizationContainer.style.display = 'block';
-        profileOrganizationText.textContent = userData.organization;
-    } else {
-        profileOrganizationContainer.style.display = 'none';
-    }
-    
-    // Update stats
-    document.getElementById('totalDonations').textContent = userData.stats?.donations || 0;
-    document.getElementById('peopleHelped').textContent = userData.stats?.peopleHelped || 0;
-    document.getElementById('userRating').textContent = userData.stats?.rating || 0;
-    document.getElementById('activeListings').textContent = userData.stats?.activeListings || 0;
-}
+        .slide-image {
+            width: 90px;
+            height: 90px;
+            object-fit: contain;
+        }
 
-function setupRealtimeListeners() {
-    const userListener = db.collection('users').doc(currentUser.uid).onSnapshot((doc) => {
-        if (doc.exists) {
-            userData = doc.data();
-            updateUserInterface();
-            
-            // For receivers, update nearby listings count
-            if (userData.role === 'receiver') {
-                updateNearbyListingsCount();
+        .slide-content {
+            max-width: 300px;
+            animation: fade-in 0.5s ease-out;
+        }
+
+        @keyframes fade-in {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
             }
-        }
-    });
-
-    // Add stats listeners
-    const userStatsListener = db.collection('users').doc(currentUser.uid)
-    .onSnapshot(doc => {
-        if (doc.exists) {
-            userData = doc.data();
-            updateStatsCards(); // This should update all stats including activeListings
-        }
-    });
-    
-        // Listen for activity changes
-    db.collection('activities')
-        .where('userId', '==', currentUser.uid)
-        .orderBy('createdAt', 'desc')
-        .limit(5)
-        .onSnapshot(snapshot => {
-            recentActivities = [];
-            snapshot.forEach(doc => {
-                recentActivities.push({ id: doc.id, ...doc.data() });
-            });
-            
-        });
-    
-// Listen for notifications
-        return db.collection('notifications')
-        .where('userId', '==', currentUser.uid)
-        .orderBy('createdAt', 'desc')
-        .onSnapshot(snapshot => {
-            notifications = [];
-            snapshot.forEach(doc => {
-                notifications.push({ id: doc.id, ...doc.data() });
-            });
-            
-            // Update the notifications list
-            renderNotificationsList(notifications);
-            
-            // Update badge counts
-            const unreadCount = notifications.filter(n => !n.read).length;
-            updateNotificationBadges(unreadCount);
-        });
-        
-         // Notification listener
-    
-        
-    // Listen for listing changes (for donors)
-    let listingsListener;
-    if (userData.role === 'donor') {
-        listingsListener = db.collection('listings')
-            .where('userId', '==', currentUser.uid)
-            .orderBy('createdAt', 'desc')
-            .onSnapshot((snapshot) => {
-                const listings = [];
-                snapshot.docChanges().forEach(change => {
-                    if (change.type === 'added' || change.type === 'modified') {
-                        listings.push({ id: change.doc.id, ...change.doc.data() });
-                    }
-                });
-                
-                // Merge with existing listings, avoiding duplicates
-                const existingIds = new Set(userListings.map(l => l.id));
-                const newListings = listings.filter(l => !existingIds.has(l.id));
-                userListings = [...userListings, ...newListings];
-                
-                renderUserListings();
-                updateStats();
-            });
-        
-        // Listen for requests (for donors)
-        db.collection('requests')
-            .where('listingOwnerId', '==', currentUser.uid)
-            .orderBy('createdAt', 'desc')
-            .limit(3)
-            .onSnapshot((snapshot) => {
-                recentRequests = [];
-                snapshot.forEach(doc => {
-                    recentRequests.push({ id: doc.id, ...doc.data() });
-                });
-                renderRecentRequests();
-            });
-    } else {
-        // Listen for all available listings (for receivers)
-        listingsListener = db.collection('listings')
-            .where('status', '==', 'available')
-            .orderBy('createdAt', 'desc')
-            .onSnapshot((snapshot) => {
-                const listings = [];
-                snapshot.docChanges().forEach(change => {
-                    if (change.type === 'added' || change.type === 'modified') {
-                        listings.push({ id: change.doc.id, ...change.doc.data() });
-                    }
-                });
-                
-                // Merge with existing listings, avoiding duplicates
-                const existingIds = new Set(userListings.map(l => l.id));
-                const newListings = listings.filter(l => !existingIds.has(l.id));
-                userListings = [...userListings, ...newListings];
-                
-                renderUserListings();
-            });
-    }
-    
-    // Listen for messages
-    db.collection('messages')
-        .where('participants', 'array-contains', currentUser.uid)
-        .orderBy('lastUpdated', 'desc')
-        .onSnapshot((snapshot) => {
-            messages = [];
-            snapshot.forEach(doc => {
-                messages.push({ id: doc.id, ...doc.data() });
-            });
-            renderMessages();
-            
-            // Update message badges
-            const unreadCount = messages.reduce((count, message) => {
-                return count + (message[`${currentUser.uid}_unread`] || 0);
-            }, 0);
-            
-            if (unreadCount > 0) {
-                document.getElementById('messageBadge').textContent = unreadCount;
-                document.getElementById('messageBadge').style.display = 'flex';
-                document.getElementById('bottomNavMessageBadge').textContent = unreadCount;
-                document.getElementById('bottomNavMessageBadge').style.display = 'flex';
-            } else {
-                document.getElementById('messageBadge').style.display = 'none';
-                document.getElementById('bottomNavMessageBadge').style.display = 'none';
-            }
-        });
-        
-     const unsubscribeNotifications = db.collection('notifications')
-        .where('userId', '==', currentUser.uid)
-        .orderBy('createdAt', 'desc')
-        .onSnapshot(snapshot => {
-            notifications = [];
-            snapshot.forEach(doc => {
-                notifications.push({ id: doc.id, ...doc.data() });
-            });
-            renderNotificationsList();
-            updateNotificationBadges();
-        });
-       
-// In your chat listener (setupRealtimeListeners):
-const chatsListener = db.collection('chats')
-    .where('participants', 'array-contains', currentUser.uid)
-    .orderBy('lastMessageAt', 'desc')
-    .onSnapshot(snapshot => {
-        const updatedMessages = [];
-        snapshot.forEach(doc => {
-            const chatData = doc.data();
-            updatedMessages.push({
-                id: doc.id,
-                ...chatData,
-                lastMessage: chatData.lastMessage || '',
-                lastMessageSenderId: chatData.lastMessageSenderId || '',
-                lastMessageAt: chatData.lastMessageAt || null
-            });
-        });
-        
-        messages = updatedMessages;
-        renderMessages();
-    });
-        // Message listener for current chat
-    let messagesListener = null;
-    
-    // Store the listeners for cleanup
-    return {
-        userListener,
-        listingsListener,
-        notificationsListener,
-        unsubscribeNotifications,
-        chatsListener,
-        messagesListener,
-        userStatsListener
-    };
-}
-
-  function updateNotificationBadges(count) {
-    const badges = [
-        document.getElementById('notificationBadge'),
-        document.getElementById('mobileNotificationBadge')
-    ];
-    
-    badges.forEach(badge => {
-        if (count > 0) {
-            badge.textContent = count;
-            badge.style.display = 'flex';
-        } else {
-            badge.style.display = 'none';
-        }
-    });
-}
-  
-  function updateMessageBadges(count) {
-    const badges = [
-        document.getElementById('messageBadge'),
-        document.getElementById('bottomNavMessageBadge'),
-        document.getElementById('mobileNotificationBadge')
-    ];
-    
-    badges.forEach(badge => {
-        if (badge) {
-            if (count > 0) {
-                badge.textContent = count > 9 ? '9+' : count;
-                badge.style.display = 'flex';
-            } else {
-                badge.style.display = 'none';
-            }
-        }
-    });
-}
-
-
-async function promptRating(otherUserId, listingId, isDonor) {
-    // Only prompt sometimes (e.g., 30% chance)
-    if (Math.random() > 0.3) return;
-
-    const rating = prompt(`How would you rate this ${isDonor ? 'donor' : 'receiver'} (1-5 stars)?`);
-    if (rating && rating >= 1 && rating <= 5) {
-        try {
-            const otherUserRef = db.collection('users').doc(otherUserId);
-            const otherUserDoc = await otherUserRef.get();
-            
-            const currentRating = otherUserDoc.data().stats?.rating || 0;
-            const currentCount = otherUserDoc.data().stats?.ratingCount || 0;
-            
-            const newRating = ((currentRating * currentCount) + parseInt(rating)) / (currentCount + 1);
-            
-            await otherUserRef.update({
-                'stats.rating': newRating,
-                'stats.ratingCount': firebase.firestore.FieldValue.increment(1),
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-            
-            showToast(`Thank you for your rating!`, 'success');
-            
-            // Record the rating transaction
-            await db.collection('ratings').add({
-                raterId: currentUser.uid,
-                ratedId: otherUserId,
-                listingId: listingId,
-                rating: parseInt(rating),
-                isDonor: isDonor,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-            
-        } catch (error) {
-            console.error('Error submitting rating:', error);
-        }
-    }
-}
-
-function renderUserListings() {
-    listingsLoading = false;
-    listingsContent.innerHTML = '';
-    
-    if (userListings.length === 0) {
-        listingsContent.innerHTML = `
-            <div class="empty-state">
-                <i class="fas fa-utensils"></i>
-                <h3>No Listings Found</h3>
-                <p>${userData.role === 'donor' ? 'You haven\'t created any listings yet' : 'No available listings in your area'}</p>
-            </div>
-        `;
-        return;
-    }
-    
-    const listingsContainer = document.createElement('div');
-    listingsContainer.className = 'food-list';
-    
-    userListings.forEach(listing => {
-        const expiryDate = listing.expiryDate?.toDate() || new Date();
-        const today = new Date();
-        const timeDiff = expiryDate.getTime() - today.getTime();
-        const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
-        const isExpired = daysDiff < 0;
-        const isUnavailable = listing.status === 'unavailable';
-        
-        const userRequest = listing.requests?.find(r => r.receiverId === currentUser.uid);
-        
-        const listingElement = document.createElement('div');
-        listingElement.className = `food-card ${isExpired ? 'expired' : ''} ${isUnavailable ? 'unavailable' : ''}`;
-        listingElement.innerHTML = `
-            <div class="listing-status-badge ${isUnavailable ? 'unavailable' : listing.status}">
-                ${isUnavailable ? 'Unavailable' : listing.status === 'claimed' ? 'Claimed' : isExpired ? 'Expired' : 'Available'}
-            </div>
-            <img src="${listing.imageUrl || 'https://via.placeholder.com/300x200?text=No+Image'}" 
-                 alt="${listing.title}" class="listing-image" onerror="this.src='https://via.placeholder.com/300x200?text=Image+Error'">
-            <div class="listing-details">
-                <div class="listing-header">
-                    <h3 class="listing-title">${listing.title}</h3>
-                    <span class="listing-category">${formatCategory(listing.category)}</span>
-                </div>
-                <div class="listing-meta">
-                    <span><i class="fas fa-map-marker-alt"></i> ${listing.address || 'No address'}</span>
-                    <span class="${isExpired ? 'expired' : daysDiff < 3 ? 'soon' : ''}">
-                        <i class="fas fa-clock"></i> 
-                        ${isExpired ? 'Expired' : `Expires in ${daysDiff} day${daysDiff !== 1 ? 's' : ''}`}
-                    </span>
-                </div>
-                <p class="listing-description">${listing.description || 'No description provided'}</p>
-                <div class="listing-footer">
-                    <div class="listing-donor">
-                        <div class="donor-avatar" style="background-color: ${getRandomColor()}">
-                            ${getInitials(listing.userName)}
-                        </div>
-                        <span class="donor-name">${listing.userName}</span>
-                    </div>
-                    ${userData.role === 'receiver' ? `
-                        <div class="listing-actions">
-                            ${isUnavailable || isExpired ? `
-                                <div class="action-icon disabled" title="This listing is not available">
-                                    <i class="fas fa-ban"></i>
-                                    <span class="tooltip">Not Available</span>
-                                </div>
-                            ` : userRequest ? 
-                                (userRequest.status === 'accepted' ? `
-                                    <div class="action-icon" onclick="startChat('${listing.userId}', '${userRequest.messageThreadId || ''}')">
-                                        <i class="fas fa-comment"></i>
-                                        <span class="tooltip">Chat with Donor</span>
-                                    </div>
-                                ` : userRequest.status === 'rejected' ? `
-                                    <div class="action-icon disabled" title="Request Rejected">
-                                        <i class="fas fa-times"></i>
-                                        <span class="tooltip">Request Rejected</span>
-                                    </div>
-                                ` : `
-                                    <div class="action-icon disabled" title="Pending Approval">
-                                        <i class="fas fa-clock"></i>
-                                        <span class="tooltip">Pending Approval</span>
-                                    </div>
-                                `)
-                                : `
-                                <div class="action-icon" onclick="createFoodRequest('${listing.id}')">
-                                    <i class="fas fa-hand-holding-heart"></i>
-                                    <span class="tooltip">Request this Item</span>
-                                </div>
-                            `}
-                        </div>
-                    ` : userData.role === 'donor' ? `
-                        <div class="listing-actions">
-                            ${listing.status === 'available' ? `
-                                <div class="action-icon" onclick="markListingUnavailable('${listing.id}')">
-                                    <i class="fas fa-times-circle"></i>
-                                    <span class="tooltip">Mark as Unavailable</span>
-                                </div>
-                            ` : ''}
-                            ${listing.status === 'unavailable' ? `
-                                <div class="action-icon" onclick="markListingAvailable('${listing.id}')">
-                                    <i class="fas fa-check-circle"></i>
-                                    <span class="tooltip">Mark as Available</span>
-                                </div>
-                            ` : ''}
-                        </div>
-                    ` : ''}
-                </div>
-            </div>
-        `;
-        
-        listingsContainer.appendChild(listingElement);
-    });
-    
-    listingsContent.appendChild(listingsContainer);
-    
-    // Add click handlers for tooltips on mobile
-    if (window.innerWidth <= 768) {
-        document.querySelectorAll('.action-icon').forEach(icon => {
-            icon.addEventListener('click', function(e) {
-                // If this is a disabled icon, don't show tooltip
-                if (this.classList.contains('disabled')) return;
-                
-                // Hide all other tooltips
-                document.querySelectorAll('.action-icon').forEach(otherIcon => {
-                    if (otherIcon !== this) {
-                        otherIcon.classList.remove('active');
-                    }
-                });
-                
-                // Toggle this tooltip
-                this.classList.toggle('active');
-                
-                // Hide after delay
-                setTimeout(() => {
-                    this.classList.remove('active');
-                }, 2000);
-            });
-        });
-    }
-}
-
-async function markListingUnavailable(listingId) {
-    try {
-        // Confirm with the user
-        const confirmed = confirm("Are you sure you want to mark this listing as unavailable? This will prevent any further requests.");
-        
-        if (!confirmed) return;
-        
-        // Update the listing status to 'unavailable'
-        await db.collection('listings').doc(listingId).update({
-            status: 'unavailable',
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        
-        // Update the local state
-        const listingIndex = userListings.findIndex(l => l.id === listingId);
-        if (listingIndex !== -1) {
-            userListings[listingIndex].status = 'unavailable';
-        }
-        
-        showToast('Listing marked as unavailable', 'success');
-        
-        // Re-render the listings
-        renderUserListings();
-        
-    } catch (error) {
-        console.error('Error marking listing as unavailable:', error);
-        showToast('Failed to update listing status', 'error');
-    }
-}
-function getRandomColor() {
-    const colors = ['#3b82f6', '#ef4444', '#f59e0b', '#8b5cf6', '#10b981', '#ec4899'];
-    return colors[Math.floor(Math.random() * colors.length)];
-}
-
-function formatCategory(category) {
-    const categories = {
-        'bakery': 'Bakery',
-        'produce': 'Produce',
-        'dairy': 'Dairy',
-        'pantry': 'Pantry',
-        'prepared': 'Prepared',
-        'other': 'Other'
-    };
-    return categories[category] || 'Other';
-}
-
-// Helper function to get initials from name
-function getInitials(name) {
-    if (!name) return '';
-    const parts = name.split(' ');
-    let initials = parts[0].charAt(0).toUpperCase();
-    if (parts.length > 1) {
-        initials += parts[parts.length - 1].charAt(0).toUpperCase();
-    }
-    return initials;
-}
-
-// Filter listings based on search and category
-function filterListings() {
-    // Only apply filters if user is a receiver
-    if (userData.role !== 'receiver') return;
-    
-    const searchTerm = document.getElementById('listingSearch').value.toLowerCase();
-    const activeCategory = document.querySelector('.category-filter.active').getAttribute('data-category');
-    
-    const listings = document.querySelectorAll('.food-card');
-    listings.forEach(listing => {
-        const title = listing.querySelector('.listing-title').textContent.toLowerCase();
-        const description = listing.querySelector('.listing-description').textContent.toLowerCase();
-        const category = listing.querySelector('.listing-category').textContent.toLowerCase();
-        
-        const matchesSearch = title.includes(searchTerm) || description.includes(searchTerm);
-        const matchesCategory = activeCategory === 'all' || category.includes(activeCategory);
-        
-        if (matchesSearch && matchesCategory) {
-            listing.style.display = 'flex';
-        } else {
-            listing.style.display = 'none';
-        }
-    });
-}
-
-function renderNotifications(notifications, containerId = 'notificationsContent') {
-    const container = document.getElementById(containerId);
-    if (!container) return;
-    
-    container.innerHTML = '';
-
-    if (notifications.length === 0) {
-        container.innerHTML = `
-            <div class="empty-state">
-                <i class="fas fa-bell"></i>
-                <h3>No Notifications</h3>
-                <p>Your notifications will appear here</p>
-            </div>
-        `;
-        return;
-    }
-
-    notifications.forEach(notification => {
-        const notificationElement = document.createElement('div');
-        notificationElement.className = 'notification-item';
-        
-        let icon, message, color, actions = '';
-        
-        switch(notification.type) {
-            case 'request':
-                icon = 'fa-hand-holding-heart';
-                message = `${notification.receiverName} requested your "${notification.listingTitle}" listing`;
-                color = 'var(--primary-green)';
-                if (notification.status === 'pending') {
-                    actions = `
-                        <div class="notification-actions">
-                            <button class="btn btn-primary" onclick="handleNotificationAction('${notification.id}', 'accept')">
-                                Accept
-                            </button>
-                            <button class="btn btn-secondary" onclick="handleNotificationAction('${notification.id}', 'reject')">
-                                Reject
-                            </button>
-                        </div>
-                    `;
-                }
-                break;
-            case 'request_accepted':
-                icon = 'fa-check-circle';
-                message = `${notification.donorName} accepted your request for "${notification.listingTitle}"`;
-                color = 'var(--primary-green)';
-                break;
-            case 'request_rejected':
-                icon = 'fa-times-circle';
-                message = `${notification.donorName} declined your request for "${notification.listingTitle}"`;
-                color = '#ef4444';
-                break;
-            default:
-                icon = 'fa-bell';
-                message = notification.message || 'New notification';
-                color = 'var(--gray-400)';
-        }
-        
-        notificationElement.innerHTML = `
-            <div class="notification-content">
-                <i class="fas ${icon}" style="color: ${color};"></i>
-                <div class="notification-text">
-                    <p>${message}</p>
-                    <small class="notification-time">
-                        <i class="fas fa-clock"></i> ${formatTime(notification.createdAt.toDate())}
-                    </small>
-                    ${actions}
-                </div>
-                ${!notification.read ? '<div class="notification-badge"></div>' : ''}
-            </div>
-        `;
-        
-        container.appendChild(notificationElement);
-    });
-}
-
-        function formatCategory(category) {
-            const categories = {
-                'bakery': 'Bakery',
-                'produce': 'Produce',
-                'dairy': 'Dairy',
-                'pantry': 'Pantry',
-                'prepared': 'Prepared',
-                'other': 'Other'
-            };
-            
-            return categories[category] || 'Other';
-        }
-
-        function formatDate(date) {
-            const options = { year: 'numeric', month: 'short', day: 'numeric' };
-            return date.toLocaleDateString(undefined, options);
-        }
-
-function formatTime(date) {
-    if (!date) return ''; // Return empty string if date is undefined/null
-    
-    // Check if date is a Firestore Timestamp and convert to Date if needed
-    const jsDate = date.toDate ? date.toDate() : date;
-    
-    const options = { hour: '2-digit', minute: '2-digit' };
-    return jsDate.toLocaleTimeString(undefined, options);
-}
-
-
-function showPage(page) {
-    currentPage = page;
-    
-    // Hide all pages
-    document.querySelectorAll('.page-content').forEach(el => {
-        if (el) el.style.display = 'none'; // Add null check
-    });
-
-    // Show the selected page
-    const pageElement = document.getElementById(`${page}Page`);
-    if (pageElement) {
-        pageElement.style.display = 'block';
-    }
-
-    // Handle special pages
-    if (page === 'terms') {
-        mobileHeaderTitle.textContent = 'Terms of Service';
-    } else if (page === 'privacy') {
-        mobileHeaderTitle.textContent = 'Privacy Policy';
-    } else if (page === 'contact') {
-        mobileHeaderTitle.textContent = 'Contact Us';
-    }
-    
-    // Handle chat page specifically
-    if (page === 'chat') {
-        document.body.classList.add('chat-page-active');
-    } else {
-        document.body.classList.remove('chat-page-active');
-    }
-    
-    // Show/hide FAB based on role and page
-    if (userData?.role === 'donor' && page === 'listings') {
-        if (fabButton) fabButton.style.display = 'flex';
-    } else {
-        if (fabButton) fabButton.style.display = 'none';
-    }
-    
-    // Update navigation and header
-    updateNavigationState(page);
-}
-
-async function submitContactForm() {
-    const name = document.getElementById('contactName').value.trim();
-    const email = document.getElementById('contactEmail').value.trim();
-    const subject = document.getElementById('contactSubject').value.trim();
-    const message = document.getElementById('contactMessage').value.trim();
-    
-    if (!name || !email || !subject || !message) {
-        showToast('Please fill in all fields', 'error');
-        return;
-    }
-    
-    if (!validateEmail(email)) {
-        showToast('Please enter a valid email address', 'error');
-        return;
-    }
-    
-    try {
-        // In a real app, you would send this to your backend
-        // For demo purposes, we'll just show a success message
-        showToast('Message sent successfully! We\'ll get back to you soon.', 'success');
-        
-        // Clear the form
-        document.getElementById('contactName').value = '';
-        document.getElementById('contactEmail').value = '';
-        document.getElementById('contactSubject').value = '';
-        document.getElementById('contactMessage').value = '';
-        
-        // Optionally save to Firestore
-        await db.collection('contactMessages').add({
-            name: name,
-            email: email,
-            subject: subject,
-            message: message,
-            userId: currentUser?.uid || null,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        
-    } catch (error) {
-        console.error('Error submitting contact form:', error);
-        showToast('Failed to send message. Please try again.', 'error');
-    }
-}
-
-function updateNavigationState(page) {
-    // Update active nav items
-    document.querySelectorAll('.sidebar-item').forEach(el => {
-        el.classList.remove('active');
-    });
-    
-    document.querySelectorAll('.nav-item').forEach(el => {
-        el.classList.remove('active');
-    });
-    
-    if (page === 'home') {
-        document.querySelector('.sidebar-item[onclick="showPage(\'home\')"]').classList.add('active');
-        document.querySelector('.nav-item[onclick="showPage(\'home\')"]').classList.add('active');
-        mobileHeaderTitle.textContent = 'Home';
-    } else if (page === 'listings') {
-        document.querySelector('.sidebar-item[onclick="showPage(\'listings\')"]').classList.add('active');
-        document.querySelector('.nav-item[onclick="showPage(\'listings\')"]').classList.add('active');
-        mobileHeaderTitle.textContent = userData.role === 'donor' ? 'My Listings' : 'Browse Listings';
-    } else if (page === 'messages') {
-        document.querySelector('.sidebar-item[onclick="showPage(\'messages\')"]').classList.add('active');
-        document.querySelector('.nav-item[onclick="showPage(\'messages\')"]').classList.add('active');
-        mobileHeaderTitle.textContent = 'Messages';
-    } else if (page === 'chat') {
-        mobileHeaderTitle.textContent = 'Chat';
-    } else if (page === 'profile') {
-        mobileHeaderTitle.textContent = 'Profile';
-    }
-    
-    // Scroll to top for non-chat pages
-    if (page !== 'chat') {
-        mainContent.scrollTo(0, 0);
-    }
-}
-
-        function showDefaultAvatarOptions() {
-            defaultAvatarBtn.classList.add('active');
-            customAvatarBtn.classList.remove('active');
-            defaultAvatarOptions.style.display = 'flex';
-            customAvatarUpload.style.display = 'none';
-            selectedAvatarType = 'default';
-        }
-
-        function showCustomAvatarUpload() {
-            defaultAvatarBtn.classList.remove('active');
-            customAvatarBtn.classList.add('active');
-            defaultAvatarOptions.style.display = 'none';
-            customAvatarUpload.style.display = 'flex';
-            selectedAvatarType = 'custom';
-        }
-
-        function selectDefaultAvatar(element, initial) {
-            // Remove selected class from all options
-            document.querySelectorAll('.avatar-option').forEach(option => {
-                option.classList.remove('selected');
-            });
-            
-            // Add selected class to clicked option
-            element.classList.add('selected');
-            
-            // Update selected avatar
-            selectedAvatar = initial;
-            selectedAvatarColor = element.classList[1]; // Get the color class
-            
-            // Update preview
-            avatarPreview.innerHTML = `<span style="font-size: 3rem; font-weight: 600; color: white;">${initial}</span>`;
-            avatarPreview.style.backgroundColor = '';
-            avatarPreview.classList.add(selectedAvatarColor);
-        }
-
-        function handleAvatarUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            
-            if (!file.type.match('image.*')) {
-                showToast('Please select an image file', 'error');
-                return;
-            }
-            
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                avatarPreview.innerHTML = `<img src="${e.target.result}" style="width: 100%; height: 100%; object-fit: cover;">`;
-                avatarPreview.style.backgroundColor = '';
-                avatarPreview.classList.remove('color-1', 'color-2', 'color-3', 'color-4', 'color-5', 'color-6');
-            };
-            reader.readAsDataURL(file);
-        }
-
-        async function completeProfileSetup() {
-    try {
-        // Show loading state
-        const completeProfileBtn = document.getElementById('completeProfileBtn');
-        completeProfileBtn.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right: 8px;"></i><span>Setting Up...</span>';
-        completeProfileBtn.disabled = true;
-        
-        let avatarUrl = '';
-        
-        // Handle avatar upload based on selected type
-        if (selectedAvatarType === 'default') {
-            // For default avatar, we just store the initial and color
-            avatarUrl = '';
-        } else {
-            // For custom avatar, upload to ImageBB
-            const file = document.getElementById('avatarUpload').files[0];
-            if (!file) {
-                showToast('Please select a profile photo', 'error');
-                completeProfileBtn.innerHTML = '<span>Complete Profile</span>';
-                completeProfileBtn.disabled = false;
-                return;
-            }
-            
-            const formData = new FormData();
-            formData.append('image', file);
-            
-            const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMAGEBB_API_KEY}`, {
-                method: 'POST',
-                body: formData
-            });
-            
-            const data = await response.json();
-            if (!data.success) {
-                throw new Error('Image upload failed');
-            }
-            
-            avatarUrl = data.data.url;
-        }
-
-        // Get profile details from form
-        const bio = document.getElementById('profileBio').value.trim();
-        const location = document.getElementById('profileLocation').value.trim();
-        const organization = document.getElementById('profileOrganization').value.trim();
-
-        // Prepare update data
-        const updateData = {
-            profileComplete: true,
-            avatarType: selectedAvatarType,
-            avatarInitial: selectedAvatar,
-            avatarColor: selectedAvatarColor,
-            bio: bio,
-            location: location,
-            organization: organization, // Include organization for both roles
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        };
-
-        // Only add avatarUrl if it exists (for custom avatars)
-        if (avatarUrl) {
-            updateData.avatarUrl = avatarUrl;
-        }
-
-        // Update user data in Firestore
-        await db.collection('users').doc(currentUser.uid).update(updateData);
-
-        // Update local user data
-        userData = {
-            ...userData,
-            ...updateData,
-            profileComplete: true
-        };
-
-        // Set onboarding completion in localStorage
-        localStorage.setItem('hasCompletedOnboarding', 'true');
-
-        // Show success message
-        showToast('Profile setup complete!', 'success');
-        
-        // Update UI with new profile data
-        updateUserInterface();
-        
-        // Show the app
-        showApp();
-        
-    } catch (error) {
-        console.error('Error completing profile setup:', error);
-        showToast('Error completing profile setup: ' + error.message, 'error');
-    } finally {
-        // Reset button state
-        const completeProfileBtn = document.getElementById('completeProfileBtn');
-        if (completeProfileBtn) {
-            completeProfileBtn.innerHTML = '<span>Complete Profile</span>';
-            completeProfileBtn.disabled = false;
-        }
-    }
-}
-
-function showCreateListingModal() {
-    if (!userData.verified) {
-        showToast('Please verify your account to create listings', 'error');
-        showPage('profile');
-        return;
-    }
-    
-    // Set minimum date to today
-    const today = new Date();
-    const dd = String(today.getDate()).padStart(2, '0');
-    const mm = String(today.getMonth() + 1).padStart(2, '0'); // January is 0!
-    const yyyy = today.getFullYear();
-    const minDate = `${yyyy}-${mm}-${dd}`;
-    document.getElementById('listingExpiry').min = minDate;
-    
-    // Reset form
-    listingImagePreview.innerHTML = '<i class="fas fa-camera"></i>';
-    document.getElementById('listingTitle').value = '';
-    document.getElementById('listingDescription').value = '';
-    document.getElementById('listingExpiry').value = '';
-    document.getElementById('listingAddress').value = '';
-    
-    // Reset category selection
-    document.querySelectorAll('.category-option').forEach(option => {
-        option.classList.remove('selected');
-    });
-    document.querySelector('.category-option[data-category="bakery"]').classList.add('selected');
-    selectedCategory = 'bakery';
-    
-    // Show modal
-    createListingModal.style.display = 'flex';
-}
-
-        function handleListingImageUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            
-            if (!file.type.match('image.*')) {
-                showToast('Please select an image file', 'error');
-                return;
-            }
-            
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                listingImagePreview.innerHTML = `<img src="${e.target.result}" style="width: 100%; height: 100%; object-fit: cover;">`;
-            };
-            reader.readAsDataURL(file);
-        }
-        
-  async function createListing() {
-    try {
-        // Get form values
-        const title = document.getElementById('listingTitle').value.trim();
-        const description = document.getElementById('listingDescription').value.trim();
-        const expiryDate = document.getElementById('listingExpiry').value;
-        const address = document.getElementById('listingAddress').value.trim();
-        const imageFile = document.getElementById('listingImageUpload').files[0];
-        
-        // Validate form
-        if (!title) {
-            document.getElementById('listingTitleError').style.display = 'block';
-            document.getElementById('listingTitle').parentElement.classList.add('error');
-            return;
-        }
-        
-        if (!expiryDate) {
-            document.getElementById('listingExpiryError').style.display = 'block';
-            document.getElementById('listingExpiryError').textContent = 'Please select an expiry date';
-            document.getElementById('listingExpiry').parentElement.classList.add('error');
-            return;
-        }
-        
-        // Validate expiry date is not in the past
-        const selectedDate = new Date(expiryDate);
-        const today = new Date();
-        today.setHours(0, 0, 0, 0); // Set to start of day for comparison
-        
-        if (selectedDate < today) {
-            document.getElementById('listingExpiryError').style.display = 'block';
-            document.getElementById('listingExpiryError').textContent = 'Expiry date cannot be in the past';
-            document.getElementById('listingExpiry').parentElement.classList.add('error');
-            return;
-        }
-        
-        if (!address) {
-            document.getElementById('listingAddressError').style.display = 'block';
-            document.getElementById('listingAddress').parentElement.classList.add('error');
-            return;
-        }
-
-        // Show loading state on button
-        const originalButtonText = createListingBtn.innerHTML;
-        createListingBtn.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right: 8px;"></i><span>Creating...</span>';
-        createListingBtn.disabled = true;
-        
-        let imageUrl = '';
-        
-        // Upload image if provided
-        if (imageFile) {
-            const formData = new FormData();
-            formData.append('image', imageFile);
-            
-            const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMAGEBB_API_KEY}`, {
-                method: 'POST',
-                body: formData
-            });
-            
-            const data = await response.json();
-            if (!data.success) {
-                throw new Error('Image upload failed');
-            }
-            
-            imageUrl = data.data.url;
-        }
-        
-        // Create listing in Firestore
-        const newListing = {
-            userId: currentUser.uid,
-            userName: userData.name,
-            title: title,
-            description: description,
-            category: selectedCategory,
-            expiryDate: firebase.firestore.Timestamp.fromDate(new Date(expiryDate)),
-            address: address,
-            imageUrl: imageUrl,
-            status: 'available',
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        };
-        
-        // Add the new listing to Firestore
-        const docRef = await db.collection('listings').add(newListing);
-        
-        // Update UI immediately
-        userListings.unshift({
-            id: docRef.id,
-            ...newListing
-        });
-        
-        renderUserListings();
-        
-        // Hide modal and show success message
-        hideModal('createListingModal');
-        showToast('Listing created successfully!', 'success');
-
-                // Update donor stats
-        await db.collection('users').doc(currentUser.uid).update({
-            'stats.activeListings': firebase.firestore.FieldValue.increment(1),
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-
-         // Update donor stats
-        await db.collection('users').doc(currentUser.uid).update({
-            'stats.activeListings': firebase.firestore.FieldValue.increment(1),
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-
-        // Refresh stats
-        await fetchUserData();
-        
-    } catch (error) {
-        console.error('Error creating listing:', error);
-        showToast('Error creating listing: ' + error.message, 'error');
-    } finally {
-        // Reset button state
-        createListingBtn.innerHTML = originalButtonText;
-        createListingBtn.disabled = false;
-    }
-}
-
-  function selectCategory(element, category) {
-      // Remove selected class from all options
-      document.querySelectorAll('.category-option').forEach(option => {
-          option.classList.remove('selected');
-      });
-      
-      // Add selected class to clicked option
-      element.classList.add('selected');
-      
-      // Update selected category
-      selectedCategory = category;
-  }
-
-async function createFoodRequest(listingId) {
-    try {
-        // Get listing details
-        const listingDoc = await db.collection('listings').doc(listingId).get();
-        if (!listingDoc.exists) {
-            showToast('Listing not found', 'error');
-            return;
-        }
-        const listing = listingDoc.data();
-
-        // Check if listing is available
-        if (listing.status !== 'available') {
-            showToast('This listing is no longer available', 'error');
-            return;
-        }
-        
-
-        // Create unique chat ID (sorted user IDs)
-        const participants = [currentUser.uid, listing.userId].sort();
-        const channelId = participants.join('-');
-
-        // 1. Create the request record
-        const requestRef = await db.collection('requests').add({
-            listingId: listingId,
-            listingOwnerId: listing.userId,
-            receiverId: currentUser.uid,
-            status: 'pending',
-            chatId: channelId,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-
-        // 2. Create/update the chat document
-        const chatRef = db.collection('chats').doc(channelId);
-        await chatRef.set({
-            id: channelId,
-            participants: participants,
-            participantsInfo: {
-                [currentUser.uid]: {
-                    name: userData.name,
-                    avatarUrl: userData.avatarUrl || '',
-                    lastRead: firebase.firestore.FieldValue.serverTimestamp()
-                },
-                [listing.userId]: {
-                    name: listing.userName,
-                    avatarUrl: listing.userAvatarUrl || '',
-                    lastRead: null
-                }
-            },
-            listingId: listingId,
-            listingTitle: listing.title,
-            listingImageUrl: listing.imageUrl || '',
-            lastMessage: `${userData.name} requested ${listing.title}`,
-            lastMessageAt: firebase.firestore.FieldValue.serverTimestamp(),
-            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        }, { merge: true });
-
-        // 3. Add initial message to the chat's messages subcollection
-        const messageData = {
-            text: `${userData.name} requested ${listing.title}`,
-            senderId: currentUser.uid,
-            senderName: userData.name,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-            isSystemMessage: true,
-            status: 'delivered'
-        };
-        
-        await chatRef.collection('messages').add(messageData);
-
-        // 4. Create notification for the donor
-        await db.collection('notifications').add({
-            type: 'request',
-            requestId: requestRef.id,
-            listingId: listingId,
-            listingTitle: listing.title,
-            receiverId: currentUser.uid,
-            receiverName: userData.name,
-            donorId: listing.userId,
-            messageThreadId: channelId,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-            read: false
-        });
-
-        // 5. Update UI immediately
-        messages.unshift({
-            id: channelId,
-            ...(await chatRef.get()).data()
-        });
-        renderMessages();
-
-        // 6. Open the chat immediately
-        startChat(listing.userId, listing.userName, channelId);
-
-        showToast('Request sent successfully!', 'success');
-
-        // Update receiver stats
-        await db.collection('users').doc(currentUser.uid).update({
-            'stats.requests': firebase.firestore.FieldValue.increment(1),
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-
-    } catch (error) {
-        console.error('Request error:', error);
-        showToast('Failed to send request: ' + error.message, 'error');
-    }
-}
-
-// Start a chat with another user
-async function startChat(userId, userName, channelId = null) {
-    try {
-        // Clean up previous chat listener if exists
-        if (currentChat.unsubscribe) {
-            currentChat.unsubscribe();
-        }
-        
-        // Create channel ID if not provided (sorted user IDs joined by '-')
-        const participants = [currentUser.uid, userId].sort();
-        channelId = channelId || participants.join('-');
-        
-        // Update current chat state
-        currentChat = {
-            userId: userId,
-            userName: userName,
-            channelId: channelId,
-            unsubscribe: null
-        };
-        
-        // Update UI
-        document.getElementById('chatHeaderName').textContent = userName;
-        document.getElementById('chatHeaderAvatar').innerHTML = getInitials(userName);
-        
-        // Show loading state
-        document.getElementById('chatMessages').innerHTML = `
-            <div class="page-loading">
-                <div class="page-loading-spinner"></div>
-                <div class="page-loading-text">Loading chat...</div>
-            </div>
-        `;
-        
-        // Create/update chat document if needed
-        const chatRef = db.collection('chats').doc(channelId);
-        const chatDoc = await chatRef.get();
-        
-        if (!chatDoc.exists) {
-            await chatRef.set({
-                participants: participants,
-                participantsInfo: {
-                    [currentUser.uid]: {
-                        name: userData.name,
-                        lastRead: firebase.firestore.FieldValue.serverTimestamp()
-                    },
-                    [userId]: {
-                        name: userName,
-                        lastRead: null
-                    }
-                },
-                lastMessage: '',
-                lastMessageAt: null,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-        } else {
-            // Update last read timestamp for current user
-            await chatRef.update({
-                [`participantsInfo.${currentUser.uid}.lastRead`]: firebase.firestore.FieldValue.serverTimestamp(),
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-        }
-        
-        // Set up real-time listener for messages
-        const messagesQuery = db.collection('messages')
-            .where('channelId', '==', channelId)
-            .orderBy('timestamp', 'asc');
-        
-        currentChat.unsubscribe = messagesQuery.onSnapshot(snapshot => {
-            const messagesContainer = document.getElementById('chatMessages');
-            messagesContainer.innerHTML = '';
-            
-            if (snapshot.empty) {
-                messagesContainer.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-comments"></i>
-                        <h3>No messages yet</h3>
-                        <p>Send a message to start the conversation!</p>
-                    </div>
-                `;
-            } else {
-                snapshot.forEach(doc => {
-                    const message = doc.data();
-                    displayMessage({
-                        text: message.text,
-                        senderId: message.senderId,
-                        timestamp: message.timestamp?.toDate() || new Date()
-                    }, message.senderId !== currentUser.uid);
-                });
-                
-                // Scroll to bottom
-                setTimeout(() => {
-                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
-                }, 100);
-            }
-        }, error => {
-            console.error('Chat listener error:', error);
-            document.getElementById('chatMessages').innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <h3>Error loading messages</h3>
-                    <p>${error.message}</p>
-                </div>
-            `;
-        });
-        
-        // Show the chat page
-        showPage('chat');
-        
-    } catch (error) {
-        console.error('Error starting chat:', error);
-        showToast('Error starting chat: ' + error.message, 'error');
-    }
-}
-
-async function loadMessages() {
-    try {
-        // Load all chats where user is a participant
-        const snapshot = await db.collection('chats')
-            .where('participants', 'array-contains', currentUser.uid)
-            .orderBy('lastMessageAt', 'desc')
-            .get();
-
-        messages = [];
-        snapshot.forEach(doc => {
-            messages.push({
-                id: doc.id,
-                ...doc.data()
-            });
-        });
-
-        renderMessages();
-    } catch (error) {
-        console.error('Error loading messages:', error);
-        showToast('Error loading messages', 'error');
-    }
-}
-
-// Display a message in the chat
-function displayMessage(message, isReceived) {
-    const messagesContainer = document.getElementById('chatMessages');
-    const emptyState = messagesContainer.querySelector('.empty-state');
-    
-    if (emptyState) {
-        messagesContainer.removeChild(emptyState);
-    }
-    
-    const messageElement = document.createElement('div');
-    messageElement.className = `message ${isReceived ? 'received' : 'sent'}`;
-    
-    const messageTime = new Date(message.timestamp).toLocaleTimeString([], {
-        hour: '2-digit',
-        minute: '2-digit'
-    });
-    
-    messageElement.innerHTML = `
-        <div class="message-content">${message.text}</div>
-        <div class="message-time">${messageTime}</div>
-    `;
-    
-    messagesContainer.appendChild(messageElement);
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
-}
-
-// Send a chat message
-async function sendMessage() {
-    const messageInput = document.getElementById('chatMessageInput');
-    const messageText = messageInput.value.trim();
-    
-    if (!messageText || !currentChat.channelId) return;
-    
-    try {
-        // Create message object
-        const message = {
-            channelId: currentChat.channelId,
-            text: messageText,
-            senderId: currentUser.uid,
-            senderName: userData.name,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        };
-        
-        // Display message optimistically
-        displayMessage({
-            text: messageText,
-            senderId: currentUser.uid,
-            timestamp: new Date()
-        }, false);
-        
-        // Clear input
-        messageInput.value = '';
-        
-        // Save message to Firestore
-        await db.collection('messages').add(message);
-        
-        // Update chat document
-        await db.collection('chats').doc(currentChat.channelId).update({
-            lastMessage: messageText,
-            lastMessageAt: firebase.firestore.FieldValue.serverTimestamp(),
-            [`participantsInfo.${currentUser.uid}.lastRead`]: firebase.firestore.FieldValue.serverTimestamp(),
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-
-        // Check if this is a positive interaction (e.g., contains "thanks")
-        if (messageText.toLowerCase().includes('thank') || messageText.toLowerCase().includes('thanks, welcome, nice, good')) {
-            // Get chat info to find the listing and other user
-            const chatDoc = await db.collection('chats').doc(currentChat.channelId).get();
-            if (chatDoc.exists) {
-                const chatData = chatDoc.data();
-                const otherUserId = chatData.participants.find(id => id !== currentUser.uid);
-                
-                // Prompt to rate the other user
-                promptRating(otherUserId, chatData.listingId, userData.role === 'receiver');
-            }
-        }
-        
-    } catch (error) {
-        console.error('Error sending message:', error);
-        showToast('Error sending message', 'error');
-    }
-}
-
-// Back to messages from chat
-function backToMessages() {
-    if (currentChat.unsubscribe) {
-        currentChat.unsubscribe();
-        currentChat = {
-            userId: null,
-            userName: null,
-            channelId: null,
-            unsubscribe: null
-        };
-    }
-    showPage('messages');
-}
-
-function renderMessages() {
-    const container = document.getElementById('messagesContent');
-    container.innerHTML = '';
-
-    if (!messages || messages.length === 0) {
-        container.innerHTML = `
-            <div class="empty-state">
-                <i class="fas fa-comments"></i>
-                <h3>No messages yet</h3>
-                <p>Start a conversation by requesting a listing</p>
-            </div>
-        `;
-        return;
-    }
-
-    const list = document.createElement('div');
-    list.className = 'messages-list';
-
-    // Sort messages by lastMessageAt to ensure most recent first
-    messages.sort((a, b) => (b.lastMessageAt?.seconds || 0) - (a.lastMessageAt?.seconds || 0));
-
-    messages.forEach(chat => {
-        if (!chat || !chat.participants) return;
-        
-        const otherUserId = chat.participants.find(id => id !== currentUser.uid);
-        if (!otherUserId) return;
-        
-        const otherUser = chat.participantsInfo?.[otherUserId] || { name: 'Unknown User' };
-        const unreadCount = chat[`${currentUser.uid}_unread`] || 0;
-        const lastMessageTime = chat.lastMessageAt;
-        
-        // Get the actual last message from the subcollection
-        // Note: This is simplified - in production you'd want to cache this
-        let lastMessageText = 'No messages yet';
-        let lastMessageFromCurrentUser = false;
-        
-        if (chat.lastMessage) {
-            lastMessageText = chat.lastMessage;
-            lastMessageFromCurrentUser = chat.lastMessageSenderId === currentUser.uid;
-        }
-
-        // Truncate long messages
-        const lastMessagePreview = lastMessageText.length > 30 
-            ? lastMessageText.substring(0, 30) + '...' 
-            : lastMessageText;
-
-        list.innerHTML += `
-            <div class="message-item ${unreadCount > 0 ? 'unread' : ''}" onclick="startChat('${otherUserId}', '${otherUser.name}', '${chat.id}')">
-                <div class="message-avatar">
-                    ${otherUser.avatarUrl ? 
-                        `<img src="${otherUser.avatarUrl}" alt="${otherUser.name}">` : 
-                        `<span style="background-color: ${stringToColor(otherUser.name)}">${getInitials(otherUser.name)}</span>`
-                    }
-                    ${unreadCount > 0 ? `<div class="unread-indicator"></div>` : ''}
-                </div>
-                <div class="message-content">
-                    <div class="message-header">
-                        <h3>${otherUser.name}</h3>
-                        <span class="message-time">${formatChatTime(lastMessageTime)}</span>
-                    </div>
-                    <p class="message-preview">
-                        ${lastMessageFromCurrentUser ? 'You: ' : ''}${lastMessagePreview}
-                    </p>
-                </div>
-            </div>
-        `;
-    });
-
-    container.appendChild(list);
-    
-    // Update message badges
-    const totalUnread = messages.reduce((sum, chat) => sum + (chat[`${currentUser.uid}_unread`] || 0), 0);
-    updateMessageBadges(totalUnread);
-}
-
-// Helper functions
-function stringToColor(str) {
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-        hash = str.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    const hue = Math.abs(hash % 360);
-    return `hsl(${hue}, 70%, 60%)`;
-}
-
-function formatChatTime(date) {
-    if (!date) return '';
-    
-    const now = new Date();
-    const jsDate = date.toDate ? date.toDate() : date;
-    const diffDays = Math.floor((now - jsDate) / (1000 * 60 * 60 * 24));
-    
-    if (diffDays === 0) {
-        return jsDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    } else if (diffDays === 1) {
-        return 'Yesterday';
-    } else if (diffDays < 7) {
-        return jsDate.toLocaleDateString([], { weekday: 'short' });
-    } else {
-        return jsDate.toLocaleDateString([], { month: 'short', day: 'numeric' });
-    }
-}
-async function loadRecentActivities() {
-    try {
-        const snapshot = await db.collection('activities')
-            .where('userId', '==', currentUser.uid)
-            .orderBy('createdAt', 'desc')
-            .limit(5)
-            .get();
-        
-        recentActivities = [];
-        snapshot.forEach(doc => {
-            recentActivities.push({ id: doc.id, ...doc.data() });
-        });
-        
-    } catch (error) {
-        console.error('Error loading activities:', error);
-    }
-}
-
-function renderNotificationsList() {
-    const container = document.getElementById('notificationsList');
-    if (!container) return;
-    
-    container.innerHTML = '';
-
-    if (notifications.length === 0) {
-        container.innerHTML = `
-            <div class="empty-state">
-                <i class="fas fa-bell"></i>
-                <h3>No Notifications</h3>
-                <p>Your notifications will appear here</p>
-            </div>
-        `;
-        return;
-    }
-
-    notifications.forEach(notification => {
-        const notificationElement = document.createElement('div');
-        notificationElement.className = `notification-item ${notification.read ? '' : 'unread'}`;
-        
-        let icon, message, color, actions = '';
-        
-        switch(notification.type) {
-            case 'request':
-                icon = 'fa-hand-holding-heart';
-                message = `${notification.receiverName} requested your "${notification.listingTitle}" listing`;
-                color = 'var(--primary-green)';
-                actions = `
-                    <div class="notification-actions">
-                        <button class="btn btn-primary" onclick="handleNotificationAction('${notification.id}', 'accept', event)">
-                            Accept
-                        </button>
-                        <button class="btn btn-secondary" onclick="handleNotificationAction('${notification.id}', 'reject', event)">
-                            Reject
-                        </button>
-                        <button class="btn btn-text" onclick="startChat('${notification.receiverId}', '${notification.messageThreadId}')">
-                            <i class="fas fa-comment"></i> Chat
-                        </button>
-                    </div>
-                `;
-                break;
-            case 'request_accepted':
-                icon = 'fa-check-circle';
-                message = `${notification.donorName} accepted your request for "${notification.listingTitle}"`;
-                color = 'var(--primary-green)';
-                actions = `
-                    <div class="notification-actions">
-                        <button class="btn btn-primary" onclick="startChat('${notification.donorId}', '${notification.messageThreadId}')">
-                            <i class="fas fa-comment"></i> Message Donor
-                        </button>
-                    </div>
-                `;
-                break;
-            case 'request_rejected':
-                icon = 'fa-times-circle';
-                message = `${notification.donorName} declined your request for "${notification.listingTitle}"`;
-                color = '#ef4444';
-                break;
-            default:
-                icon = 'fa-bell';
-                message = notification.message || 'New notification';
-                color = 'var(--gray-400)';
-        }
-        
-        notificationElement.innerHTML = `
-            <div class="notification-content">
-                <i class="fas ${icon}" style="color: ${color};"></i>
-                <div class="notification-text">
-                    <p>${message}</p>
-                    <small class="notification-time">
-                        <i class="fas fa-clock"></i> ${formatTime(notification.createdAt.toDate())}
-                    </small>
-                    ${actions}
-                </div>
-                ${!notification.read ? '<div class="notification-badge"></div>' : ''}
-            </div>
-        `;
-        
-        container.appendChild(notificationElement);
-    });
-}
-
-async function handleNotificationAction(notificationId, action, event) {
-    event.stopPropagation();
-    
-    try {
-        const notificationRef = db.collection('notifications').doc(notificationId);
-        const notificationDoc = await notificationRef.get();
-        
-        if (!notificationDoc.exists) return;
-
-        const notification = notificationDoc.data();
-
-        if (action === 'accept') {
-            // Update request status
-            await db.collection('requests').doc(notification.requestId).update({
-                status: 'accepted',
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-
-            // Update donor stats
-            await updateDonorStats(notification.listingId);
-
-            // Update notification status
-            await notificationRef.update({
-                status: 'accepted',
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-                read: true
-            });
-
-            // Create a new notification for the receiver
-            await db.collection('notifications').add({
-                type: 'request_accepted',
-                requestId: notification.requestId,
-                listingId: notification.listingId,
-                listingTitle: notification.listingTitle,
-                donorId: currentUser.uid,
-                donorName: userData.name,
-                receiverId: notification.receiverId,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                read: false
-            });
-
-            // Prompt donor to rate receiver
-            promptRating(notification.receiverId, notification.listingId, false);
-
-            showToast('Request accepted!', 'success');
-
-            // Update donor stats
-        await db.collection('users').doc(currentUser.uid).update({
-            'stats.donations': firebase.firestore.FieldValue.increment(1),
-            'stats.peopleHelped': firebase.firestore.FieldValue.increment(1),
-            'stats.activeListings': firebase.firestore.FieldValue.increment(-1),
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        
-        // Update receiver stats
-        await db.collection('users').doc(notification.receiverId).update({
-            'stats.successfulRequests': firebase.firestore.FieldValue.increment(1),
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-
-        } else if (action === 'reject') {
-            // ... existing rejection code ...
-        }
-
-        // Update the notifications list
-        await loadNotifications();
-    } catch (error) {
-        console.error('Error handling notification action:', error);
-        showToast('Error processing request', 'error');
-    }
-}
-
-async function markAllAsRead() {
-    try {
-        const batch = db.batch();
-        const unreadNotifications = notifications.filter(n => !n.read);
-        
-        unreadNotifications.forEach(notification => {
-            const notificationRef = db.collection('notifications').doc(notification.id);
-            batch.update(notificationRef, {
-                read: true,
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-        });
-        
-        await batch.commit();
-        showToast('All notifications marked as read', 'success');
-    } catch (error) {
-        console.error('Error marking notifications as read:', error);
-        showToast('Error marking notifications as read', 'error');
-    }
-}
-
-function showVerificationModal() {
-    // Reset form
-    document.getElementById('idImagePreview').innerHTML = '<i class="fas fa-id-card"></i>';
-    document.getElementById('addressImagePreview').innerHTML = '<i class="fas fa-file-invoice"></i>';
-    
-    // Clear file inputs
-    document.getElementById('idImageUpload').value = '';
-    document.getElementById('addressImageUpload').value = '';
-    
-    // Show modal
-    document.getElementById('verificationModal').style.display = 'flex';
-}
-
-        function handleImageUpload(event, previewId) {
-            const file = event.target.files[0];
-            if (!file) return;
-            
-            if (!file.type.match('image.*')) {
-                showToast('Please select an image file', 'error');
-                return;
-            }
-            
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const preview = document.getElementById(previewId);
-                preview.innerHTML = `<img src="${e.target.result}" style="width: 100%; height: 100%; object-fit: contain;">`;
-            };
-            reader.readAsDataURL(file);
-        }
-
-        function hideVerificationModal() {
-            verificationModal.style.display = 'none';
-        }
-
-async function submitVerification() {
-    try {
-        // Validate form
-        const idFile = document.getElementById('idImageUpload').files[0];
-        const utilityFile = document.getElementById('addressImageUpload').files[0];
-        
-        if (!idFile) {
-            showToast('Please upload your ID photo', 'error');
-            return;
-        }
-        
-        if (!utilityFile) {
-            showToast('Please upload your utility bill', 'error');
-            return;
-        }
-        
-        // Show loading state
-        const btn = document.getElementById('submitVerificationBtn');
-        const originalText = btn.innerHTML;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
-        btn.disabled = true;
-        
-        // Upload both images in parallel
-        const [idUpload, utilityUpload] = await Promise.all([
-            uploadImageToImageBB(idFile),
-            uploadImageToImageBB(utilityFile)
-        ]);
-        
-        // Submit verification request to admin
-        await db.collection('verificationRequests').add({
-            userId: currentUser.uid,
-            userName: userData.name,
-            userEmail: userData.email,
-            idImageUrl: idUpload.url,
-            utilityImageUrl: utilityUpload.url,
-            status: 'pending',
-            submittedAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        
-        // Update user verification status to "pending"
-        await db.collection('users').doc(currentUser.uid).update({
-            verificationStatus: 'pending',
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        
-        // Hide modal and show success
-        hideVerificationModal();
-        showToast('Verification submitted for review!', 'success');
-        
-        // Update UI
-        userData.verificationStatus = 'pending';
-        updateVerificationStatus();
-        
-    } catch (error) {
-        console.error('Verification error:', error);
-        showToast('Error submitting verification: ' + error.message, 'error');
-    } finally {
-        const btn = document.getElementById('submitVerificationBtn');
-        if (btn) {
-            btn.innerHTML = originalText;
-            btn.disabled = false;
-        }
-    }
-}
-
-// Helper function for ImageBB uploads
-async function uploadImageToImageBB(file) {
-    const formData = new FormData();
-    formData.append('image', file);
-    
-    const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMAGEBB_API_KEY}`, {
-        method: 'POST',
-        body: formData
-    });
-    
-    const data = await response.json();
-    if (!data.success) {
-        throw new Error('Image upload failed');
-    }
-    
-    return {
-        url: data.data.url,
-        deleteUrl: data.data.delete_url
-    };
-}
-
-        function showDeleteAccountModal() {
-            // Reset form
-            document.getElementById('deletePassword').value = '';
-            document.getElementById('deletePasswordError').style.display = 'none';
-            
-            // Show modal
-            deleteAccountModal.style.display = 'flex';
-        }
-
-        async function deleteAccount() {
-            try {
-                const password = document.getElementById('deletePassword').value;
-                
-                if (!password) {
-                    document.getElementById('deletePasswordError').textContent = 'Please enter your password';
-                    document.getElementById('deletePasswordError').style.display = 'block';
-                    return;
-                }
-                
-                // Reauthenticate user
-                const credential = firebase.auth.EmailAuthProvider.credential(
-                    currentUser.email,
-                    password
-                );
-                
-                await currentUser.reauthenticateWithCredential(credential);
-                
-                // Delete user data from Firestore
-                await db.collection('users').doc(currentUser.uid).delete();
-                
-                // Delete user account
-                await currentUser.delete();
-                
-                // Hide modal
-                hideModal('deleteAccountModal');
-                
-                // Show success message
-                showToast('Account deleted successfully', 'success');
-                
-                // Redirect to auth screen
-                setTimeout(() => {
-                    showAuthScreen();
-                }, 1500);
-            } catch (error) {
-                console.error('Error deleting account:', error);
-                
-                if (error.code === 'auth/wrong-password') {
-                    document.getElementById('deletePasswordError').textContent = 'Incorrect password';
-                    document.getElementById('deletePasswordError').style.display = 'block';
-                } else {
-                    showToast('Error deleting account', 'error');
-                }
+            to {
+                opacity: 1;
+                transform: translateY(0);
             }
         }
 
-        function hideModal(modalId) {
-            document.getElementById(modalId).style.display = 'none';
+        .slide-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: var(--gray-600);
         }
 
-        function showToast(message, type) {
-            const toast = document.createElement('div');
-            toast.className = `toast toast-${type}`;
-            
-            toast.innerHTML = `
-                <div class="toast-icon">
-                    <i class="fas ${type === 'success' ? 'fa-check' : type === 'error' ? 'fa-times' : 'fa-info'}"></i>
-                </div>
-                <div class="toast-content">
-                    <h3 class="toast-title">${type.charAt(0).toUpperCase() + type.slice(1)}</h3>
-                    <p class="toast-message">${message}</p>
-                </div>
-                <button class="toast-close" onclick="this.parentElement.remove()">&times;</button>
-            `;
-            
-            toastContainer.appendChild(toast);
-            
-            // Auto-remove after 5 seconds
-            setTimeout(() => {
-                toast.classList.add('hide');
-                setTimeout(() => {
-                    toast.remove();
-                }, 300);
-            }, 5000);
+        .slide-description {
+            font-size: 16px;
+            line-height: 1.6;
+            color: var(--gray-400);
+            margin-bottom: 32px;
         }
 
-        // Auth functions
-        function switchTab(tab) {
-            const loginTab = document.getElementById('loginTab');
-            const signupTab = document.getElementById('signupTab');
-            const loginForm = document.getElementById('loginForm');
-            const signupForm = document.getElementById('signupForm');
-            const tabIndicator = document.getElementById('tabIndicator');
-            
-            if (tab === 'login') {
-                loginTab.classList.add('active');
-                signupTab.classList.remove('active');
-                
-                // Animate tab indicator
-                tabIndicator.style.left = '0';
-                tabIndicator.style.width = '50%';
-                
-                // Animate forms
-                if (signupForm.style.display !== 'none') {
-                    signupForm.style.animation = 'formSwitchOut 0.4s forwards';
-                    setTimeout(() => {
-                        signupForm.style.display = 'none';
-                        loginForm.style.display = 'flex';
-                        loginForm.style.animation = 'formSwitchIn 0.4s forwards';
-                    }, 300);
-                }
-            } else {
-                loginTab.classList.remove('active');
-                signupTab.classList.add('active');
-                
-                // Animate tab indicator
-                tabIndicator.style.left = '50%';
-                tabIndicator.style.width = '50%';
-                
-                // Animate forms
-                if (loginForm.style.display !== 'none') {
-                    loginForm.style.animation = 'formSwitchOut 0.4s forwards';
-                    setTimeout(() => {
-                        loginForm.style.display = 'none';
-                        signupForm.style.display = 'flex';
-                        signupForm.style.animation = 'formSwitchIn 0.4s forwards';
-                    }, 300);
-                }
+        .slide-indicators {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: auto;
+            padding: 24px 0;
+            position: relative;
+            z-index: 2;
+        }
+
+        .slide-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--gray-300);
+            transition: all 0.3s ease;
+        }
+
+        .slide-indicator.active {
+            width: 28px;
+            border-radius: 12px;
+            background-color: var(--primary-green);
+        }
+
+        .onboarding-actions {
+            display: flex;
+            justify-content: space-between;
+            padding: 16px 24px;
+            position: relative;
+            z-index: 2;
+            width: 100%;
+        }
+
+        .btn {
+            padding: 14px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 16px;
+            border: none;
+            transition: all 0.2s ease;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .skip-btn {
+            background-color: var(--gray-100);
+            color: var(--gray-400);
+        }
+
+        .btn-primary {
+            background-color: var(--primary-green);
+            color: white;
+            box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:active {
+            transform: scale(0.97);
+        }
+
+        /* Custom animations for each slide's icon */
+        #slide1 .slide-image {
+            animation: share-animation 5s infinite ease-in-out;
+        }
+
+        @keyframes share-animation {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        #slide2 .slide-image {
+            animation: find-animation 5s infinite ease-in-out;
+        }
+
+        @keyframes find-animation {
+            0%, 100% {
+                transform: rotate(0deg);
+            }
+            25% {
+                transform: rotate(5deg);
+            }
+            75% {
+                transform: rotate(-5deg);
+            }
+        }
+
+        #slide3 .slide-image {
+            animation: smile-animation 5s infinite ease-in-out;
+        }
+
+        @keyframes smile-animation {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+        }
+
+        /* Auth Screens */
+        .auth-screen {
+            display: none;
+            min-height: 100vh;
+            flex-direction: column;
+            padding: 2rem;
+            background-color: white;
+            max-width: 480px;
+            margin: 0 auto;
+            position: relative;
+        }
+        
+        .auth-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.8rem;
+            margin-bottom: 2.5rem;
+            transform-origin: center;
+            animation: logoEnter 1s ease-out;
+        }
+        
+        @keyframes logoEnter {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .auth-logo i {
+            font-size: 2.5rem;
+            color: var(--primary-green);
+            text-shadow: 0 2px 10px rgba(34, 197, 94, 0.3);
+        }
+
+        .auth-logo h1 {
+            color: var(--primary-green-dark);
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .auth-tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2.5rem;
+            border-bottom: 1px solid var(--gray-200);
+            position: relative;
+        }
+        
+        .auth-tab-indicator {
+            position: absolute;
+            bottom: -1px;
+            height: 2px;
+            background-color: var(--primary-green);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .auth-tab {
+            padding: 0.85rem 1.2rem;
+            color: var(--gray-600);
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s ease;
+            z-index: 1;
+            font-weight: 500;
+            flex: 1;
+            text-align: center;
+        }
+
+        .auth-tab.active {
+            color: var(--primary-green);
+            font-weight: 600;
+        }
+
+        .auth-form-container {
+            flex: 1;
+            perspective: 1000px;
+        }
+
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            transform-style: preserve-3d;
+            transform-origin: center center;
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        
+        #loginForm {
+            animation: formEnter 0.6s ease-out 0.2s backwards;
+        }
+        
+        #signupForm {
+            animation: formEnter 0.6s ease-out;
+        }
+        
+        @keyframes formEnter {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+        }
+
+        .input-group label {
+            color: var(--gray-600);
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-left: 0.2rem;
+        }
+
+        .input-field {
+            display: flex;
+            align-items: center;
+            border: 1.5px solid var(--gray-300);
+            border-radius: 12px;
+            padding: 0 1.2rem;
+            overflow: hidden;
+            transition: all 0.25s ease;
+            background: white;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .input-field.error {
+            border-color: #ef4444;
+            animation: shake 0.4s ease-in-out;
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-5px); }
+            40%, 80% { transform: translateX(5px); }
+        }
+
+        .input-field i {
+            color: var(--gray-400);
+            margin-right: 0.85rem;
+            font-size: 1.1rem;
+            transition: all 0.25s ease;
+        }
+
+        .input-field input, .input-field textarea {
+            width: 100%;
+            padding: 1rem 0;
+            border: none;
+            font-size: 1rem;
+            background: transparent;
+        }
+
+        .input-field input:focus, .input-field textarea:focus {
+            outline: none;
+        }
+
+        .input-field:focus-within {
+            border-color: var(--primary-green);
+            box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .input-field:focus-within i {
+            color: var(--primary-green);
+        }
+
+        .error-message {
+            color: #ef4444;
+            font-size: 0.8rem;
+            margin-top: 0.3rem;
+            margin-left: 0.2rem;
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .role-options {
+            display: flex;
+            gap: 1.2rem;
+            margin-top: 0.8rem;
+        }
+
+        .role-option {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.7rem;
+            padding: 1.7rem 1rem;
+            border: 1.5px solid var(--gray-300);
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+            box-shadow: var(--shadow-sm);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .role-option::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--bg-green-light), rgba(255,255,255,0));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 0;
+        }
+
+        .role-option:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .role-option:hover::before {
+            opacity: 1;
+        }
+
+        .role-option.selected {
+            border-color: var(--primary-green);
+            background-color: var(--bg-green-light);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px rgba(34, 197, 94, 0.15);
+        }
+        
+        .role-option.selected::after {
+            content: '\f00c';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            color: white;
+            background: var(--primary-green);
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            animation: checkmarkEnter 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        
+        @keyframes checkmarkEnter {
+            from { transform: scale(0); }
+            to { transform: scale(1); }
+        }
+
+        .role-option i {
+            font-size: 2rem;
+            color: var(--primary-green);
+            z-index: 1;
+            transition: all 0.3s ease;
+        }
+        
+        .role-option.selected i {
+            transform: scale(1.2);
+        }
+
+        .role-option h3 {
+            color: var(--gray-600);
+            font-size: 1.1rem;
+            font-weight: 600;
+            z-index: 1;
+        }
+
+        .role-option p {
+            color: var(--gray-400);
+            font-size: 0.9rem;
+            text-align: center;
+            z-index: 1;
+        }
+
+        /* Terms and Conditions */
+        .terms-container {
+            background-color: var(--gray-50);
+            border-radius: 12px;
+            padding: 1rem;
+            margin: 1rem 0;
+            max-height: 150px;
+            overflow-y: auto;
+            border: 1px solid var(--gray-200);
+        }
+
+        .terms-content {
+            font-size: 0.8rem;
+            color: var(--gray-600);
+            line-height: 1.5;
+        }
+
+        .terms-content h4 {
+            margin-bottom: 0.5rem;
+            color: var(--gray-700);
+        }
+
+        .terms-content p {
+            margin-bottom: 0.8rem;
+        }
+
+        .terms-checkbox {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.8rem;
+            margin-top: 1rem;
+        }
+
+        .terms-checkbox input {
+            margin-top: 0.2rem;
+        }
+
+        .terms-checkbox label {
+            font-size: 0.9rem;
+            color: var(--gray-600);
+            line-height: 1.4;
+        }
+
+        /* Form switch animation */
+        @keyframes formSwitchOut {
+            from { opacity: 1; transform: rotateY(0); }
+            to { opacity: 0; transform: rotateY(-20deg); }
+        }
+        
+        @keyframes formSwitchIn {
+            from { opacity: 0; transform: rotateY(20deg); }
+            to { opacity: 1; transform: rotateY(0); }
+        }
+
+        /* Profile Setup Screen */
+        .profile-setup {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            z-index: 9997;
+            padding: 2rem;
+            flex-direction: column;
+            align-items: center;
+            overflow-y: auto;
+        }
+
+        .profile-setup-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .profile-setup-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary-green-dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .profile-setup-subtitle {
+            font-size: 1rem;
+            color: var(--gray-600);
+        }
+
+        .profile-form {
+            width: 100%;
+            max-width: 500px;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .avatar-choice {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .avatar-choice-btn {
+            padding: 0.8rem 1.5rem;
+            border-radius: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background-color: var(--gray-100);
+            color: var(--gray-600);
+            border: none;
+        }
+
+        .avatar-choice-btn.active {
+            background-color: var(--primary-green);
+            color: white;
+        }
+
+        .avatar-options {
+            display: flex;
+            gap: 1.5rem;
+            margin: 1rem 0;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .avatar-option {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background-color: var(--gray-100);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .avatar-option.selected {
+            border: 3px solid var(--primary-green);
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(34, 197, 94, 0.3);
+        }
+
+        .avatar-option.selected::after {
+            content: '\f00c';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            background: var(--primary-green);
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+        }
+
+        .avatar-option.color-1 {
+            background-color: #3b82f6;
+        }
+
+        .avatar-option.color-2 {
+            background-color: #ef4444;
+        }
+
+        .avatar-option.color-3 {
+            background-color: #f59e0b;
+        }
+
+        .avatar-option.color-4 {
+            background-color: #8b5cf6;
+        }
+
+        .avatar-option.color-5 {
+            background-color: #10b981;
+        }
+
+        .avatar-option.color-6 {
+            background-color: #ec4899;
+        }
+
+        .custom-avatar-upload {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .avatar-preview {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background-color: var(--gray-100);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .avatar-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .avatar-preview i {
+            font-size: 3rem;
+            color: var(--gray-400);
+        }
+
+        .upload-btn {
+            background-color: var(--gray-100);
+            color: var(--gray-600);
+            padding: 0.8rem 1.5rem;
+            border-radius: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .upload-btn:hover {
+            background-color: var(--gray-200);
+        }
+
+        /* Main App Container */
+        .app-container {
+            display: none;
+            height: 100vh;
+            width: 100%;
+            position: relative;
+        }
+
+        /* Sidebar - Visible on wide screens */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: var(--sidebar-width);
+            height: 100%;
+            background-color: white;
+            box-shadow: var(--shadow-md);
+            z-index: 100;
+            display: none;
+            flex-direction: column;
+            padding: 1.5rem;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .sidebar-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: var(--gray-100);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: white;
+            overflow: hidden;
+        }
+
+        .sidebar-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .sidebar-user-info h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--gray-600);
+            margin-bottom: 0.2rem;
+        }
+
+        .sidebar-user-info p {
+            font-size: 0.8rem;
+            color: var(--gray-400);
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .sidebar-user-info p i {
+            font-size: 0.7rem;
+        }
+
+        .sidebar-user-info .verified {
+            color: var(--primary-green);
+        }
+
+        .sidebar-user-info .unverified {
+            color: #f59e0b;
+        }
+
+        .sidebar-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            flex: 1;
+        }
+
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.8rem 1rem;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: var(--gray-600);
+            text-decoration: none;
+        }
+
+        .sidebar-item i {
+            font-size: 1.1rem;
+            width: 24px;
+            text-align: center;
+        }
+
+        .sidebar-item:hover {
+            background-color: var(--bg-green-light);
+            color: var(--primary-green);
+        }
+
+        .sidebar-item.active {
+            background-color: var(--bg-green-light);
+            color: var(--primary-green);
+            font-weight: 600;
+        }
+
+        .sidebar-footer {
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--gray-200);
+        }
+
+        .sidebar-footer .sidebar-item {
+            color: #ef4444;
+        }
+
+        .sidebar-footer .sidebar-item:hover {
+            background-color: #fef2f2;
+        }
+
+        /* Mobile Header - Visible on small screens */
+        .mobile-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: var(--header-height);
+            background-color: var(--primary-green);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 1.5rem;
+            z-index: 90;
+            box-shadow: var(--shadow-md);
+        }
+
+        .mobile-header-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .mobile-header-actions {
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+        }
+
+        .mobile-header-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .mobile-header-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .mobile-header-avatar i {
+            font-size: 1rem;
+            color: white;
+        }
+
+        .notification-badge {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .notification-badge i {
+            font-size: 1.3rem;
+            color: white;
+        }
+
+        .badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: #ef4444;
+            color: white;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        /* Bottom Navigation - Visible on small screens */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: var(--bottom-nav-height);
+            background-color: white;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 90;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+            border-radius:20px 20px 0 0;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.3rem;
+            color: var(--gray-400);
+            text-decoration: none;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .nav-item i {
+            font-size: 1.3rem;
+        }
+
+        .nav-item.active {
+            color: var(--primary-green);
+        }
+
+        .nav-item .badge {
+            top: -2px;
+            right: -8px;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-top: var(--header-height);
+            margin-bottom: var(--bottom-nav-height);
+            padding: 1.5rem;
+            height: calc(100vh - var(--header-height) - var(--bottom-nav-height));
+            box-sizing: border-box;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* Page transition */
+        .page-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Loading state for pages */
+        .page-loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            gap: 1rem;
+        }
+
+        .page-loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--gray-200);
+            border-top: 4px solid var(--primary-green);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .page-loading-text {
+            color: var(--gray-500);
+            font-size: 0.9rem;
+        }
+
+        /* Skeleton loading */
+        .skeleton {
+            background-color: var(--gray-200);
+            border-radius: 8px;
+            animation: pulse 1.5s infinite ease-in-out;
+        }
+
+        .skeleton-card {
+            height: 120px;
+            width: 100%;
+            margin-bottom: 1rem;
+        }
+
+        .skeleton-text {
+            height: 16px;
+            width: 80%;
+            margin-bottom: 0.5rem;
+        }
+
+        .skeleton-text.short {
+            width: 50%;
+        }
+
+        /* Home Page */
+
+        .stats-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            flex: 1 1 calc(50% - 0.5rem);
+            background-color: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s ease;
+        }
+        
+        @media (min-width: 768px) {
+            .stat-card {
+                flex: 1 1 calc(25% - 0.75rem);
             }
         }
         
-        function selectRoleOption(element, role) {
-            // Remove selected class from all options
-            const options = document.querySelectorAll('.role-option');
-            options.forEach(option => {
-                option.classList.remove('selected');
-            });
-            
-            // Add selected class to clicked option
-            element.classList.add('selected');
-            
-            // Update selected role
-            selectedRole = role;
-            
-            // Show/hide organization field based on role
-            if (role === 'donor') {
-                document.getElementById('organizationGroup').style.display = 'block';
-            } else {
-                document.getElementById('organizationGroup').style.display = 'none';
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md);
+        }
+        .stat-title {
+            font-size: 0.9rem;
+            color: var(--gray-400);
+            margin-bottom: 0.5rem;
+        }
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary-green-dark);
+            margin-bottom: 0.5rem;
+        }
+        .stat-change {
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        .stat-change.positive {
+            color: var(--primary-green);
+        }
+        .stat-change.negative {
+            color: #ef4444;
+        }
+        
+        .quick-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .action-card {
+            flex: 1 1 calc(50% - 0.5rem);
+            background-color: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            gap: 0.8rem;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-decoration: none;
+            color: var(--gray-600);
+        }
+        
+        @media (min-width: 768px) {
+            .action-card {
+                flex: 1 1 calc(25% - 0.75rem);
             }
         }
         
-        async function login() {
-            const email = document.getElementById('loginEmail').value;
-            const password = document.getElementById('loginPassword').value;
-            const emailField = document.getElementById('loginEmail').parentElement;
-            const passwordField = document.getElementById('loginPassword').parentElement;
-            const emailError = document.getElementById('loginEmailError');
-            const passwordError = document.getElementById('loginPasswordError');
-            
-            let isValid = true;
-            
-            // Reset errors
-            emailField.classList.remove('error');
-            passwordField.classList.remove('error');
-            emailError.style.display = 'none';
-            passwordError.style.display = 'none';
-            
-            // Validate email
-            if (!email || !email.includes('@')) {
-                emailField.classList.add('error');
-                emailError.style.display = 'block';
-                isValid = false;
+        .action-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md);
+        }
+        .action-card i {
+            font-size: 1.8rem;
+            color: var(--primary-green);
+        }
+        .action-card h3 {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--gray-600);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .section-title a {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--primary-green);
+            text-decoration: none;
+        }
+
+        /* Food Listings */
+        .food-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .food-card {
+            background-color: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .food-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .food-image {
+            height: 160px;
+            background-color: var(--gray-100);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .food-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+
+        .food-card:hover .food-image img {
+            transform: scale(1.05);
+        }
+
+        .food-badge {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: var(--primary-green);
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .food-details {
+            padding: 1.2rem;
+        }
+
+        .food-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--gray-600);
+            margin-bottom: 0.5rem;
+        }
+
+        .food-description {
+            font-size: 0.9rem;
+            color: var(--gray-400);
+            margin-bottom: 1rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .food-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: var(--gray-400);
+        }
+
+        .food-distance {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .food-expiry {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .food-expiry.soon {
+            color: #f59e0b;
+        }
+
+        .food-expiry.expired {
+            color: #ef4444;
+        }
+
+        /* Verification Banner */
+        .verification-banner {
+            background-color: #fffbeb;
+            border: 1px solid #fcd34d;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+
+        .verification-content {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .verification-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #fef3c7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #d97706;
+            font-size: 1.2rem;
+        }
+
+        .verification-text h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--gray-600);
+            margin-bottom: 0.2rem;
+        }
+
+        .verification-text p {
+            font-size: 0.9rem;
+            color: var(--gray-400);
+        }
+
+        /* Empty State */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 3rem 1rem;
+            background-color: var(--bg-green-light);
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            color: var(--gray-300);
+            margin-bottom: 1.5rem;
+        }
+
+        .empty-state h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--gray-600);
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-state p {
+            font-size: 0.9rem;
+            color: var(--gray-400);
+            margin-bottom: 1.5rem;
+            max-width: 300px;
+        }
+
+        /* Floating Action Button */
+        .fab {
+            position: fixed;
+            bottom: calc(var(--bottom-nav-height) + 20px);
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: var(--primary-green);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: var(--shadow-lg);
+            cursor: pointer;
+            z-index: 80;
+            transition: all 0.3s ease;
+            display: flex;
+        }
+
+        .fab:hover {
+            background-color: var(--primary-green-dark);
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        /* Verification Modal */
+        .verification-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            z-index: 999;
+            display: none;
+            flex-direction: column;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .verification-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .verification-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary-green-dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .verification-subtitle {
+            font-size: 1rem;
+            color: var(--gray-600);
+            margin-bottom: 2rem;
+        }
+
+        .verification-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .verification-step {
+            display: flex;
+            gap: 1.5rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .step-number {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--bg-green-light);
+            color: var(--primary-green);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .step-content {
+            flex: 1;
+        }
+
+        .step-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--gray-600);
+            margin-bottom: 0.5rem;
+        }
+
+        .step-description {
+            font-size: 0.9rem;
+            color: var(--gray-500);
+            margin-bottom: 1rem;
+            line-height: 1.6;
+        }
+
+        .verification-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+
+        /* Create Listing Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal {
+            background-color: white;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: modalFadeIn 0.3s ease-out;
+            box-shadow: var(--shadow-lg);
+        }
+
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .modal-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--gray-600);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--gray-400);
+            cursor: pointer;
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .modal-footer {
+            padding: 1.5rem;
+            border-top: 1px solid var(--gray-200);
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--gray-600);
+            font-size: 0.9rem;
+        }
+
+        .image-upload {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .image-preview {
+            width: 100%;
+            height: 200px;
+            border-radius: 12px;
+            background-color: var(--gray-100);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .image-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .image-preview i {
+            font-size: 3rem;
+            color: var(--gray-400);
+        }
+
+.verification-step {
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #eee;
+}
+
+.verification-step:last-child {
+    border-bottom: none;
+}
+
+        .upload-label {
+            background-color: var(--gray-100);
+            color: var(--gray-600);
+            padding: 0.8rem 1.5rem;
+            border-radius: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .upload-label:hover {
+            background-color: var(--gray-200);
+        }
+
+        .category-select {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.8rem;
+            margin-bottom: 1rem;
+        }
+
+        .category-option {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1rem 0.5rem;
+            border: 1.5px solid var(--gray-200);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .category-option i {
+            font-size: 1.5rem;
+            color: var(--gray-400);
+        }
+
+        .category-option h4 {
+            font-size: 0.9rem;
+            color: var(--gray-600);
+            font-weight: 600;
+        }
+
+        .category-option.selected {
+            border-color: var(--primary-green);
+            background-color: var(--bg-green-light);
+        }
+
+        .category-option.selected i {
+            color: var(--primary-green);
+        }
+
+        /* Delete Account Modal */
+        .delete-account-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            z-index: 999;
+            display: none;
+            flex-direction: column;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .delete-account-icon {
+            font-size: 3rem;
+            color: #ef4444;
+            margin-bottom: 1rem;
+        }
+
+        .delete-account-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--gray-700);
+            margin-bottom: 0.5rem;
+        }
+
+        .delete-account-text {
+            font-size: 1rem;
+            color: var(--gray-600);
+            margin-bottom: 2rem;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .delete-account-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            bottom: 90px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        .toast {
+            background-color: white;
+            border-radius: 12px;
+            padding: 1rem;
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            animation: slideIn 0.3s ease-out;
+            transition: all 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .toast.hide {
+            animation: slideOut 0.3s ease-out forwards;
+        }
+
+        @keyframes slideOut {
+            from { transform: translateY(0); opacity: 1; }
+            to { transform: translateY(20px); opacity: 0; }
+        }
+
+        .toast-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .toast-success .toast-icon {
+            background-color: var(--bg-green-light);
+            color: var(--primary-green);
+        }
+
+        .toast-error .toast-icon {
+            background-color: #fef2f2;
+            color: #ef4444;
+        }
+
+        .toast-warning .toast-icon {
+            background-color: #fffbeb;
+            color: #f59e0b;
+        }
+
+        .toast-content {
+            flex: 1;
+        }
+
+        .toast-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--gray-600);
+            margin-bottom: 0.2rem;
+        }
+
+        .toast-message {
+            font-size: 0.9rem;
+            color: var(--gray-400);
+        }
+
+        .toast-close {
+            background: none;
+            border: none;
+            color: var(--gray-400);
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        /* Responsive Layout */
+        @media (min-width: 768px) {
+            .app-container {
+                padding-left: var(--sidebar-width);
             }
-            
-            // Validate password
-            if (!password || password.length < 6) {
-                passwordField.classList.add('error');
-                passwordError.style.display = 'block';
-                isValid = false;
+
+            .sidebar {
+                display: flex;
             }
-            
-            if (!isValid) return;
-            
-            try {
-                // Show loading state
-                const loginBtn = document.getElementById('loginBtn');
-                loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right: 8px;"></i><span>Logging In...</span>';
-                
-                // Sign in with Firebase
-                await auth.signInWithEmailAndPassword(email, password);
-                
-                // Success - handled by auth state listener
-            } catch (error) {
-                console.error('Login error:', error);
-                
-                // Show error message
-                if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
-                    showToast('Invalid email or password', 'error');
-                } else {
-                    showToast('Login failed. Please try again.', 'error');
-                }
-                
-                // Reset button
-                loginBtn.innerHTML = '<span>Login</span>';
+
+            .mobile-header {
+                display: none;
+            }
+
+            .bottom-nav {
+                display: none;
+            }
+
+            .main-content {
+                margin-top: 0;
+                margin-bottom: 0;
+                height: 100vh;
+                padding: 2rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+
+            .quick-actions {
+                grid-template-columns: repeat(4, 1fr);
+            }
+
+            .fab {
+                bottom: 30px;
+                right: 30px;
+            }
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 480px) {
+            .auth-screen {
+                padding: 1.5rem;
+                border-radius: 0;
+            }
+
+            .role-options {
+                flex-direction: column;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .quick-actions {
+                grid-template-columns: 1fr;
+            }
+
+            .food-list {
+                grid-template-columns: 1fr;
             }
         }
         
-        async function signup() {
-            const name = document.getElementById('signupName').value.trim();
-            const email = document.getElementById('signupEmail').value.trim();
-            const password = document.getElementById('signupPassword').value;
-            const agreeTerms = document.getElementById('agreeTerms').checked;
-            const nameField = document.getElementById('signupName').parentElement;
-            const emailField = document.getElementById('signupEmail').parentElement;
-            const passwordField = document.getElementById('signupPassword').parentElement;
-            const termsError = document.getElementById('termsError');
-            const nameError = document.getElementById('signupNameError');
-            const emailError = document.getElementById('signupEmailError');
-            const passwordError = document.getElementById('signupPasswordError');
-            
-            let isValid = true;
-            
-            // Reset errors
-            nameField.classList.remove('error');
-            emailField.classList.remove('error');
-            passwordField.classList.remove('error');
-            termsError.style.display = 'none';
-            nameError.style.display = 'none';
-            emailError.style.display = 'none';
-            passwordError.style.display = 'none';
-            
-            // Validate name
-    if (!name || name.length < 2 || name.length > 30) {
-        document.getElementById('signupNameError').textContent = 'Name must be 2-30 characters (letters and numbers only)';
-        document.getElementById('signupNameError').style.display = 'block';
-        isValid = false;
+        /* Add these styles to your existing CSS */
+.search-container {
+    margin-bottom: 1.5rem;
+    position: relative;
+}
+
+.search-input {
+    width: 100%;
+    padding: 1rem 1rem 1rem 3rem;
+    border: 1px solid var(--gray-300);
+    border-radius: 12px;
+    font-size: 1rem;
+    background-color: white;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.3s ease;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: var(--primary-green);
+    box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2);
+}
+
+.search-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--gray-400);
+}
+
+.category-filters {
+    display: flex;
+    gap: 0.8rem;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.5rem;
+    scrollbar-width: none; /* Firefox */
+}
+
+.category-filters::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+}
+
+.category-filter {
+    flex: 0 0 auto;
+    padding: 0.6rem 1.2rem;
+    border-radius: 20px;
+    background-color: var(--gray-100);
+    color: var(--gray-600);
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.category-filter:hover {
+    background-color: var(--gray-200);
+}
+
+.category-filter.active {
+    background-color: var(--primary-green);
+    color: white;
+}
+
+/* Updated listing card styles */
+.food-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.food-card {
+    background-color: white;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+}
+
+.food-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+}
+
+.listing-image {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+}
+
+.listing-details {
+    padding: 1.2rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.listing-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.8rem;
+}
+
+.listing-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--gray-700);
+    margin: 0;
+    flex: 1;
+}
+
+.listing-category {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: white;
+    background-color: var(--primary-green);
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    margin-left: 0.8rem;
+}
+
+.listing-meta {
+    font-size: 0.8rem;
+    color: var(--gray-500);
+    margin-bottom: 0.8rem;
+    display: flex;
+    align-items: center;
+}
+
+.listing-description {
+    font-size: 0.9rem;
+    color: var(--gray-600);
+    margin-bottom: 1rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    flex: 1;
+}
+
+.listing-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto;
+}
+
+.listing-donor {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.donor-avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: white;
+}
+
+.donor-name {
+    font-size: 0.8rem;
+    color: var(--gray-600);
+}
+
+.listing-actions {
+    display: flex;
+    gap: 0.8rem;
+}
+
+.action-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: var(--gray-100);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--gray-600);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.action-icon:hover {
+    background-color: var(--primary-green);
+    color: white;
+}
+
+
+.notification-item {
+    padding: 1rem;
+    border-bottom: 1px solid var(--gray-200);
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.notification-item:hover {
+    background-color: var(--gray-50);
+}
+
+.notification-item.unread {
+    background-color: var(--bg-green-light);
+}
+
+.notification-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.notification-text {
+    flex: 1;
+}
+
+.notification-time {
+    font-size: 0.8rem;
+    color: var(--gray-400);
+    margin-top: 0.3rem;
+    display: block;
+}
+
+.notification-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.8rem;
+}
+
+.notification-badge {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--primary-green);
+    margin-left: 0.5rem;
+}
+
+/* Chat Page Styles */
+.chat-header {
+    position: fixed;
+    top: var(--header-height);
+    left: 0;
+    width: 100%;
+    background-color: white;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    border-bottom: 1px solid var(--gray-200);
+    z-index: 10;
+}
+
+.chat-header-back {
+    font-size: 1.2rem;
+    cursor: pointer;
+    color: var(--gray-600);
+}
+
+.chat-header-info {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    flex: 1;
+}
+
+.chat-header-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: var(--gray-100);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    color: white;
+    overflow: hidden;
+}
+
+.chat-messages {
+    margin-top: calc(var(--header-height) + 60px);
+    margin-bottom: 70px;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    height: calc(100vh - var(--header-height) - 70px - 60px);
+    overflow-y: auto;
+}
+
+.message {
+    max-width: 80%;
+    padding: 0.8rem 1rem;
+    border-radius: 18px;
+    position: relative;
+}
+
+.message.sent {
+    align-self: flex-end;
+    background-color: var(--primary-green);
+    color: white;
+    border-bottom-right-radius: 4px;
+}
+
+.message.received {
+    align-self: flex-start;
+    background-color: var(--gray-100);
+    color: var(--gray-800);
+    border-bottom-left-radius: 4px;
+}
+
+.message-time {
+    font-size: 0.7rem;
+    opacity: 0.7;
+    margin-top: 0.3rem;
+    text-align: right;
+}
+
+.chat-input-container {
+    position: fixed;
+    bottom: var(--bottom-nav-height);
+    left: 0;
+    width: 100%;
+    padding: 0.8rem;
+    background-color: white;
+    border-top: 1px solid var(--gray-200);
+    display: flex;
+    gap: 0.8rem;
+    z-index: 10;
+}
+
+.chat-input {
+    flex: 1;
+    padding: 0.8rem 1.2rem;
+    border: 1px solid var(--gray-300);
+    border-radius: 24px;
+    font-size: 1rem;
+}
+
+.chat-send-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background-color: var(--primary-green);
+    color: white;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+@media (min-width: 768px) {
+    .chat-header {
+        left: var(--sidebar-width);
+        width: calc(100% - var(--sidebar-width));
     }
     
-    // Validate email format
-    if (!validateEmail(email)) {
-        document.getElementById('signupEmailError').textContent = 'Please enter a valid email address';
-        document.getElementById('signupEmailError').style.display = 'block';
-        isValid = false;
+    .chat-messages {
+        margin-left: var(--sidebar-width);
     }
     
-    // Validate password (6+ chars)
-    if (!password || password.length < 6) {
-        document.getElementById('signupPasswordError').textContent = 'Password must be at least 6 characters';
-        document.getElementById('signupPasswordError').style.display = 'block';
-        isValid = false;
-    }
-            
-            // Validate terms agreement
-            if (!agreeTerms) {
-                termsError.style.display = 'block';
-                isValid = false;
-            }
-            
-            if (!isValid) return;
-            
-            try {
-                // Show loading state
-                const signupBtn = document.getElementById('signupBtn');
-                signupBtn.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right: 8px;"></i><span>Creating Account...</span>';
-                
-                // Create user with Firebase
-                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-                
-                // Update user profile
-                await userCredential.user.updateProfile({
-                    displayName: name
-                });
-                
-                // Get organization if donor
-                const organization = selectedRole === 'donor' ? document.getElementById('profileOrganization').value.trim() : '';
-                
-                // Create user document in Firestore
-                await db.collection('users').doc(userCredential.user.uid).set({
-                    name: name,
-                    email: email,
-                    role: selectedRole,
-                    profileComplete: false,
-                    verified: false,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    avatarType: 'default',
-                    avatarInitial: 'A',
-                    avatarColor: 'color-1',
-                    organization: organization,
-                    stats: {
-                        donations: 0,
-                        peopleHelped: 0,
-                        rating: 0,
-                        activeListings: 0
-                    }
-                });
-                
-                // Show success message
-                showToast('Account created successfully!', 'success');
-                
-                // Show profile setup
-                currentUser = userCredential.user;
-                await fetchUserData();
-                showProfileSetup();
-            } catch (error) {
-                console.error('Signup error:', error);
-                if (error.code === 'auth/email-already-in-use') {
-                    showToast('Email already in use', 'error');
-                } else {
-                    showToast('Signup failed. Please try again.', 'error');
-                }
-                
-                // Reset button
-                signupBtn.innerHTML = '<span>Create Account</span>';
-            }
-        }
-        
-         async function logout() {
-            try {
-                await auth.signOut();
-                showToast('Logged out successfully', 'success');
-                showAuthScreen();
-            } catch (error) {
-                console.error('Logout error:', error);
-                showToast('Logout failed', 'error');
-            }
-        }
-        
-function toggleNotificationsModal() {
-    const modal = document.getElementById('notificationsModal');
-    if (modal.style.display === 'flex') {
-        hideModal('notificationsModal');
-    } else {
-        showNotificationsModal();
+    .chat-input-container {
+        left: var(--sidebar-width);
+        width: calc(100% - var(--sidebar-width));
     }
 }
 
-function showNotificationsModal() {
-    const modal = document.getElementById('notificationsModal');
-    modal.style.display = 'flex';
-    
-    // Render notifications in the modal
-    renderNotifications(notifications, 'notificationsModalContent');
-    
-    // Mark notifications as read
-    markNotificationsAsRead();
+/* Add to your existing CSS */
+.chat-page {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: white;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
 }
 
-function markNotificationsAsRead() {
-    notifications.forEach(notification => {
-        if (!notification.read) {
-            db.collection('notifications').doc(notification.id).update({
-                read: true,
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-        }
-    });
+.chat-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background-color: white;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    border-bottom: 1px solid var(--gray-200);
+    z-index: 10;
 }
-      
-// When logging out or changing screens
-function cleanupListeners() {
-    const listeners = setupRealtimeListeners();
-    listeners.userListener();
-    listeners.listingsListener();
-    listeners.notificationsListener();
-}      
 
-function togglePasswordVisibility(inputId, icon) {
-    const input = document.getElementById(inputId);
-    if (input.type === 'password') {
-        input.type = 'text';
-        icon.classList.remove('fa-eye-slash');
-        icon.classList.add('fa-eye');
-    } else {
-        input.type = 'password';
-        icon.classList.remove('fa-eye');
-        icon.classList.add('fa-eye-slash');
+.chat-messages {
+    flex: 1;
+    padding: 1rem;
+    overflow-y: auto;
+    margin-top: 60px; /* Height of header */
+    margin-bottom: 70px; /* Height of input */
+}
+
+.chat-input-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 0.8rem;
+    background-color: white;
+    border-top: 1px solid var(--gray-200);
+    display: flex;
+    gap: 0.8rem;
+    z-index: 10;
+}
+
+/* Hide header and bottom nav when in chat */
+.chat-page-active .mobile-header,
+.chat-page-active .bottom-nav {
+    display: none;
+}
+
+.chat-page-active .main-content {
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+/* Add to your styles.css */
+.input-field .toggle-password {
+    position: absolute;
+    right: 1rem;
+    cursor: pointer;
+    color: var(--gray-400);
+    transition: color 0.2s;
+}
+
+.input-field .toggle-password:hover {
+    color: var(--gray-600);
+}
+
+/* Messages List */
+.messages-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.message-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: white;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.message-item:hover {
+    background: #f5f5f5;
+}
+
+.message-item.unread {
+    background: #f0f9ff;
+}
+
+.message-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: #e5e7eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.message-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.message-avatar span {
+    font-weight: 600;
+    color: #374151;
+}
+
+.message-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.message-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.25rem;
+}
+
+.message-header h4 {
+    margin: 0;
+    font-size: 1rem;
+    color: #111827;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.message-time {
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+.message-preview {
+    margin: 0;
+    font-size: 0.875rem;
+    color: #6b7280;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Chat Messages */
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.message {
+    max-width: 80%;
+    padding: 0.75rem 1rem;
+    border-radius: 1rem;
+    position: relative;
+    word-wrap: break-word;
+}
+
+.message.received {
+    align-self: flex-start;
+    background: #e5e7eb;
+    color: #111827;
+    border-bottom-left-radius: 0;
+}
+
+.message-time {
+    font-size: 0.75rem;
+    color: inherit;
+    opacity: 0.8;
+    margin-top: 0.25rem;
+    display: block;
+    text-align: right;
+}
+
+.chat-item.unread {
+  background-color: #f8f9fa;
+}
+
+.chat-item.unread .user-info h3 {
+  font-weight: bold;
+}
+
+.chat-item.unread .message-preview {
+  color: #000;
+  font-weight: 500;
+}
+
+.unread-badge {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  background-color: var(--primary-green);
+  border-radius: 50%;
+  margin-right: 5px;
+}
+
+/* Add these styles to your CSS */
+.messages-list {
+    background-color: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.message-item {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid #f3f4f6;
+    transition: background-color 0.2s;
+    cursor: pointer;
+}
+
+.message-item:hover {
+    background-color: #f9fafb;
+}
+
+.message-item.unread {
+    background-color: #f0fdf4;
+}
+
+.message-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background-color: #22c55e;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+    font-weight: bold;
+    font-size: 1.25rem;
+}
+
+.message-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.message-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.25rem;
+}
+
+.message-header h3 {
+    margin: 0;
+    font-size: 1rem;
+    color: #1f2937;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.message-time {
+    font-size: 0.75rem;
+    color: #9ca3af;
+    white-space: nowrap;
+    margin-left: 0.5rem;
+}
+
+.message-preview {
+    margin: 0;
+    color: #6b7280;
+    font-size: 0.875rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.message-listing {
+    display: inline-block;
+    background-color: #e5e7eb;
+    color: #4b5563;
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    margin-top: 0.25rem;
+}
+
+.unread-badge {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: #22c55e;
+    margin-left: 1rem;
+}
+
+.search-bar {
+    position: relative;
+    margin-bottom: 1rem;
+}
+
+.search-bar i {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9ca3af;
+}
+
+.search-bar input {
+    width: 100%;
+    padding: 0.75rem 1rem 0.75rem 2.5rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 0.875rem;
+}
+
+.search-bar input:focus {
+    outline: none;
+    border-color: #22c55e;
+}
+
+.notification-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.notification-actions .btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+}
+
+.notification-actions .btn-text {
+    background: none;
+    border: none;
+    color: var(--primary-green);
+    padding: 0;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.notification-actions .btn-text i {
+    font-size: 0.9rem;
+}
+
+.listing-status {
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: capitalize;
+}
+
+.listing-status[data-status="available"] {
+    background-color: var(--primary-green-light);
+    color: var(--primary-green);
+}
+
+.listing-status[data-status="claimed"] {
+    background-color: #fef3c7;
+    color: #d97706;
+}
+
+.listing-status[data-status="unavailable"] {
+    background-color: #fee2e2;
+    color: #dc2626;
+}
+
+.food-card.unavailable {
+    opacity: 0.7;
+    background-color: #f5f5f5;
+}
+
+.listing-status-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    background-color: var(--primary-green);
+    color: white;
+    z-index: 1;
+}
+
+.listing-status-badge.unavailable {
+    background-color: var(--gray-400);
+}
+
+.listing-status-badge.claimed {
+    background-color: var(--primary-blue);
+}
+
+.listing-status-badge.expired {
+    background-color: var(--gray-500);
+}
+
+/* Tooltip styles */
+.action-icon {
+    position: relative;
+    cursor: pointer;
+}
+
+.action-icon .tooltip {
+    visibility: hidden;
+    width: max-content;
+    max-width: 120px;
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px 8px;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%;
+    left: 50%;
+    transform: translateX(-50%);
+    opacity: 0;
+    transition: opacity 0.3s;
+    font-size: 12px;
+    font-weight: normal;
+}
+
+.action-icon .tooltip::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: #333 transparent transparent transparent;
+}
+
+.action-icon:hover .tooltip,
+.action-icon.active .tooltip {
+    visibility: visible;
+    opacity: 1;
+}
+
+.welcome-message {
+    margin-bottom: 2rem;
+    padding: 2rem;
+    background-color: white;
+    border-radius: 16px;
+    box-shadow: var(--shadow-sm);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.welcome-message::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 6px;
+    height: 100%;
+    background-color: var(--primary-green);
+}
+
+.welcome-message:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+}
+
+.greeting {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--primary-green-dark);
+    margin-bottom: 0.5rem;
+    position: relative;
+    display: inline-block;
+}
+
+.greeting::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 0;
+    width: 50px;
+    height: 3px;
+    background-color: var(--primary-green-light);
+    border-radius: 3px;
+}
+
+.user-name {
+    color: var(--gray-600);
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.user-name::before {
+    content: '\f2bb';
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    color: var(--primary-green);
+    font-size: 1.2rem;
+}
+
+/* Animation for the greeting text */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }
-    
-function validateNameInput(input) {
-    // Remove any non-alphanumeric characters
-    input.value = input.value.replace(/[^a-zA-Z0-9\s]/g, '');
+
+.greeting, .user-name {
+    animation: fadeInUp 0.6s ease-out;
 }
 
-// Validate email format
-function validateEmail(email) {
-    const re = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    return re.test(String(email).toLowerCase());
-}    
-        
-   function cleanupListeners() {
-    if (currentChat.unsubscribe) {
-        currentChat.unsubscribe();
-    }
-    // Add any other listeners you need to clean up
+.user-name {
+    animation-delay: 0.2s;
 }
-        
- window.addEventListener('DOMContentLoaded', initApp);
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .welcome-message {
+        padding: 1.2rem;
+    }
+    
+    .greeting {
+        font-size: 1.5rem;
+    }
+    
+    .user-name {
+        font-size: 0.9rem;
+    }
+}  
+
+/* Listings Header Styles */
+.listings-header {
+    margin-bottom: 1.5rem;
+}
+
+.search-container {
+    margin-bottom: 1rem;
+}
+
+.search-container .input-field {
+    background-color: white;
+    border-radius: 12px;
+    padding: 0.8rem 1rem;
+    box-shadow: var(--shadow-sm);
+}
+
+.search-container input {
+    border: none;
+    width: 100%;
+    font-size: 1rem;
+    background: transparent;
+}
+
+.search-container input:focus {
+    outline: none;
+}
+
+.category-filters {
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+    scrollbar-width: none; /* Firefox */
+}
+
+.category-filters::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+}
+
+.category-filter {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1rem;
+    background-color: white;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.2s ease;
+}
+
+.category-filter.active {
+    background-color: var(--primary-green);
+    color: white;
+}
+
+.category-filter i {
+    font-size: 0.9rem;
+}
+
+.unread-indicator {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 12px;
+    height: 12px;
+    background-color: var(--primary-green);
+    border-radius: 50%;
+    border: 2px solid white;
+}
