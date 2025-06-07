@@ -11,8 +11,6 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-storage-compat.js"></script>
-    <!-- Add this after your Firebase scripts -->
-<script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -415,31 +413,31 @@
                         <h2 class="stat-value" id="totalDonations">0</h2>
                         <p class="stat-change positive">
                             <i class="fas fa-arrow-up"></i>
-                            <span>0% from last month</span>
-                        </p>
-                    </div>
-                    <div class="stat-card">
-                        <p class="stat-title">People Helped</p>
-                        <h2 class="stat-value" id="peopleHelped">0</h2>
-                        <p class="stat-change positive">
-                            <i class="fas fa-arrow-up"></i>
-                            <span>0% from last month</span>
-                        </p>
-                    </div>
-                    <div class="stat-card">
-                        <p class="stat-title">Your Rating</p>
-                        <h2 class="stat-value" id="userRating">0.0</h2>
-                        <p class="stat-change positive">
-                            <i class="fas fa-arrow-up"></i>
-                            <span>0.0 from last month</span>
+                            <span id="stat1Change">0% from last month</span>
                         </p>
                     </div>
                     <div class="stat-card">
                         <p class="stat-title">Active Listings</p>
                         <h2 class="stat-value" id="activeListings">0</h2>
-                        <p class="stat-change negative">
-                            <i class="fas fa-arrow-down"></i>
-                            <span>0 from yesterday</span>
+                        <p class="stat-change positive">
+                            <i class="fas fa-arrow-up"></i>
+                            <span id="stat2Change">0% from last month</span>
+                        </p>
+                    </div>
+                    <div class="stat-card">
+                        <p class="stat-title">Your Rating</p>
+                        <h2 class="stat-value" id="userRating">0.0</h2>
+                        <p class="stat-change" id="ratingChange">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>0.0 from last month</span>
+                        </p>
+                    </div>
+                    <div class="stat-card">
+                        <p class="stat-title">People Helped</p>
+                        <h2 class="stat-value" id="peopleHelped">0</h2>
+                        <p class="stat-change" id="stat4Change">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>0 from last month</span>
                         </p>
                     </div>
                 </div>
@@ -603,21 +601,21 @@
                 </div>
 
                 <div class="settings-list" style="background-color: white; border-radius: 12px; overflow: hidden; box-shadow: var(--shadow-sm); margin-bottom: 2rem;">
-                    <a href="#" class="setting-item" style="display: flex; align-items: center; justify-content: space-between; padding: 1rem; text-decoration: none; color: var(--gray-600); border-bottom: 1px solid var(--gray-200);">
+                    <a href="#" class="setting-item" onclick="showPage('termsPage')" style="display: flex; align-items: center; justify-content: space-between; padding: 1rem; text-decoration: none; color: var(--gray-600); border-bottom: 1px solid var(--gray-200);">
                         <div style="display: flex; align-items: center; gap: 1rem;">
                             <i class="fas fa-file-alt" style="color: var(--gray-400);"></i>
                             <span>Terms of Service</span>
                         </div>
                         <i class="fas fa-chevron-right" style="color: var(--gray-400);"></i>
                     </a>
-                    <a href="#" class="setting-item" style="display: flex; align-items: center; justify-content: space-between; padding: 1rem; text-decoration: none; color: var(--gray-600); border-bottom: 1px solid var(--gray-200);">
+                    <a href="#" class="setting-item" onclick="showPage('privacyPage')" style="display: flex; align-items: center; justify-content: space-between; padding: 1rem; text-decoration: none; color: var(--gray-600); border-bottom: 1px solid var(--gray-200);">
                         <div style="display: flex; align-items: center; gap: 1rem;">
                             <i class="fas fa-shield-alt" style="color: var(--gray-400);"></i>
                             <span>Privacy Policy</span>
                         </div>
                         <i class="fas fa-chevron-right" style="color: var(--gray-400);"></i>
                     </a>
-                    <a href="#" class="setting-item" style="display: flex; align-items: center; justify-content: space-between; padding: 1rem; text-decoration: none; color: var(--gray-600);">
+                    <a href="#" class="setting-item" onclick="showPage('contactPage')" style="display: flex; align-items: center; justify-content: space-between; padding: 1rem; text-decoration: none; color: var(--gray-600);">
                         <div style="display: flex; align-items: center; gap: 1rem;">
                             <i class="fas fa-envelope" style="color: var(--gray-400);"></i>
                             <span>Contact Us</span>
@@ -625,6 +623,7 @@
                         <i class="fas fa-chevron-right" style="color: var(--gray-400);"></i>
                     </a>
                 </div>
+
 
                 <button class="btn btn-primary" onclick="logout()" style="width: 100%; background-color: white; color: var(--gray-600); border: 1px solid var(--gray-200); margin-bottom: 1rem;">
                     <i class="fas fa-sign-out-alt" style="margin-right: 8px;"></i>
@@ -649,6 +648,14 @@
     <div id="notificationsList">
         <!-- Notifications will be rendered here -->
     </div>
+</div>
+
+<!-- Alerts Page -->
+<div class="page-content" id="alertsPage" style="display: none;">
+    <div class="section-title">
+        <h2>Recent Requests</h2>
+    </div>
+    <div id="alertsContent"></div>
 </div>
 
 <!-- Notifications Modal -->
@@ -813,6 +820,249 @@
             <button class="btn btn-primary" style="background-color: #ef4444;" onclick="deleteAccount()">Delete Account</button>
         </div>
     </div>
+
+<div class="page-content" id="termsPage" style="display: none;">
+    <div class="section-title">
+        <h2>Terms of Service</h2>
+    </div>
+
+    <div class="legal-content" style="background-color: white; border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; box-shadow: var(--shadow-sm);">
+        <h3 style="margin-bottom: 1rem; color: var(--gray-700);">Last Updated: June 7, 2023</h3>
+        
+        <div style="margin-bottom: 2rem;">
+            <h4 style="margin-bottom: 0.5rem; color: var(--gray-700);">1. Introduction</h4>
+            <p style="color: var(--gray-600); line-height: 1.6; margin-bottom: 1rem;">
+                Welcome to Food Share. These Terms of Service ("Terms") govern your use of our platform that connects food donors with receivers to reduce food waste. By accessing or using our service, you agree to be bound by these Terms.
+            </p>
+        </div>
+
+        <div style="margin-bottom: 2rem;">
+            <h4 style="margin-bottom: 0.5rem; color: var(--gray-700);">2. User Responsibilities</h4>
+            <p style="color: var(--gray-600); line-height: 1.6; margin-bottom: 1rem;">
+                As a user of Food Share, you agree to:
+            </p>
+            <ul style="color: var(--gray-600); line-height: 1.6; padding-left: 1.5rem; margin-bottom: 1rem;">
+                <li>Provide accurate information about food items you list</li>
+                <li>Ensure all shared food is safe for consumption</li>
+                <li>Comply with all local food safety regulations</li>
+                <li>Not use the platform for commercial purposes without authorization</li>
+                <li>Treat other users with respect in all communications</li>
+            </ul>
+        </div>
+
+        <div style="margin-bottom: 2rem;">
+            <h4 style="margin-bottom: 0.5rem; color: var(--gray-700);">3. Food Safety Disclaimer</h4>
+            <p style="color: var(--gray-600); line-height: 1.6; margin-bottom: 1rem;">
+                Food Share acts solely as a platform to connect donors and receivers. We do not verify the quality, safety, or condition of any food items shared through our service. Users assume all risks associated with consuming food obtained through the platform.
+            </p>
+        </div>
+
+        <div style="margin-bottom: 2rem;">
+            <h4 style="margin-bottom: 0.5rem; color: var(--gray-700);">4. Account Termination</h4>
+            <p style="color: var(--gray-600); line-height: 1.6; margin-bottom: 1rem;">
+                We reserve the right to suspend or terminate accounts that violate these Terms, engage in fraudulent activity, or misuse the platform in any way.
+            </p>
+        </div>
+
+        <div style="margin-bottom: 2rem;">
+            <h4 style="margin-bottom: 0.5rem; color: var(--gray-700);">5. Limitation of Liability</h4>
+            <p style="color: var(--gray-600); line-height: 1.6; margin-bottom: 1rem;">
+                Food Share shall not be liable for any direct, indirect, incidental, special, or consequential damages resulting from the use or inability to use our service, or from any food items obtained through the platform.
+            </p>
+        </div>
+
+        <div style="margin-bottom: 2rem;">
+            <h4 style="margin-bottom: 0.5rem; color: var(--gray-700);">6. Changes to Terms</h4>
+            <p style="color: var(--gray-600); line-height: 1.6; margin-bottom: 1rem;">
+                We may modify these Terms at any time. Continued use of the service after changes constitutes acceptance of the new Terms.
+            </p>
+        </div>
+    </div>
+
+    <button class="btn btn-primary" onclick="showPage('profile')" style="width: 100%;">
+        <i class="fas fa-arrow-left" style="margin-right: 8px;"></i>
+        <span>Back to Profile</span>
+    </button>
+</div>
+
+<div class="page-content" id="privacyPage" style="display: none;">
+    <div class="section-title">
+        <h2>Privacy Policy</h2>
+    </div>
+
+    <div class="legal-content" style="background-color: white; border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; box-shadow: var(--shadow-sm);">
+        <h3 style="margin-bottom: 1rem; color: var(--gray-700);">Last Updated: June 7, 2023</h3>
+        
+        <div style="margin-bottom: 2rem;">
+            <h4 style="margin-bottom: 0.5rem; color: var(--gray-700);">1. Information We Collect</h4>
+            <p style="color: var(--gray-600); line-height: 1.6; margin-bottom: 1rem;">
+                When you use Food Share, we collect:
+            </p>
+            <ul style="color: var(--gray-600); line-height: 1.6; padding-left: 1.5rem; margin-bottom: 1rem;">
+                <li>Account information (name, email, role)</li>
+                <li>Profile details (bio, location, organization)</li>
+                <li>Food listing information (photos, descriptions, locations)</li>
+                <li>Messages between users</li>
+                <li>Usage data and analytics</li>
+            </ul>
+        </div>
+
+        <div style="margin-bottom: 2rem;">
+            <h4 style="margin-bottom: 0.5rem; color: var(--gray-700);">2. How We Use Your Information</h4>
+            <p style="color: var(--gray-600); line-height: 1.6; margin-bottom: 1rem;">
+                We use the information we collect to:
+            </p>
+            <ul style="color: var(--gray-600); line-height: 1.6; padding-left: 1.5rem; margin-bottom: 1rem;">
+                <li>Provide and improve our services</li>
+                <li>Connect donors and receivers</li>
+                <li>Ensure platform safety and prevent fraud</li>
+                <li>Communicate with users about their accounts</li>
+                <li>Analyze usage patterns to enhance user experience</li>
+            </ul>
+        </div>
+
+        <div style="margin-bottom: 2rem;">
+            <h4 style="margin-bottom: 0.5rem; color: var(--gray-700);">3. Data Sharing</h4>
+            <p style="color: var(--gray-600); line-height: 1.6; margin-bottom: 1rem;">
+                We may share your information with:
+            </p>
+            <ul style="color: var(--gray-600); line-height: 1.6; padding-left: 1.5rem; margin-bottom: 1rem;">
+                <li>Other users as necessary for food sharing transactions</li>
+                <li>Service providers who assist in operating our platform</li>
+                <li>Legal authorities when required by law</li>
+            </ul>
+            <p style="color: var(--gray-600); line-height: 1.6; margin-bottom: 1rem;">
+                We do not sell your personal information to third parties.
+            </p>
+        </div>
+
+        <div style="margin-bottom: 2rem;">
+            <h4 style="margin-bottom: 0.5rem; color: var(--gray-700);">4. Data Security</h4>
+            <p style="color: var(--gray-600); line-height: 1.6; margin-bottom: 1rem;">
+                We implement appropriate security measures to protect your information. However, no system is completely secure, and we cannot guarantee absolute security.
+            </p>
+        </div>
+
+        <div style="margin-bottom: 2rem;">
+            <h4 style="margin-bottom: 0.5rem; color: var(--gray-700);">5. Your Rights</h4>
+            <p style="color: var(--gray-600); line-height: 1.6; margin-bottom: 1rem;">
+                You may:
+            </p>
+            <ul style="color: var(--gray-600); line-height: 1.6; padding-left: 1.5rem; margin-bottom: 1rem;">
+                <li>Access, update, or delete your account information</li>
+                <li>Opt out of non-essential communications</li>
+                <li>Request a copy of your personal data</li>
+            </ul>
+        </div>
+
+        <div style="margin-bottom: 2rem;">
+            <h4 style="margin-bottom: 0.5rem; color: var(--gray-700);">6. Children's Privacy</h4>
+            <p style="color: var(--gray-600); line-height: 1.6; margin-bottom: 1rem;">
+                Our service is not intended for users under 13 years of age. We do not knowingly collect personal information from children under 13.
+            </p>
+        </div>
+
+        <div style="margin-bottom: 2rem;">
+            <h4 style="margin-bottom: 0.5rem; color: var(--gray-700);">7. Changes to This Policy</h4>
+            <p style="color: var(--gray-600); line-height: 1.6; margin-bottom: 1rem;">
+                We may update this Privacy Policy periodically. We will notify users of significant changes through the app or via email.
+            </p>
+        </div>
+    </div>
+
+    <button class="btn btn-primary" onclick="showPage('profile')" style="width: 100%;">
+        <i class="fas fa-arrow-left" style="margin-right: 8px;"></i>
+        <span>Back to Profile</span>
+    </button>
+</div>
+
+<div class="page-content" id="contactPage" style="display: none;">
+    <div class="section-title">
+        <h2>Contact Us</h2>
+    </div>
+
+    <div class="contact-content" style="background-color: white; border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; box-shadow: var(--shadow-sm);">
+        <div style="margin-bottom: 2rem;">
+            <h3 style="margin-bottom: 1rem; color: var(--gray-700);">Get in Touch</h3>
+            <p style="color: var(--gray-600); line-height: 1.6; margin-bottom: 1rem;">
+                We'd love to hear from you! Whether you have questions about using Food Share, need support, or want to provide feedback, please reach out using one of the methods below.
+            </p>
+        </div>
+
+        <div style="margin-bottom: 2rem;">
+            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                <i class="fas fa-envelope" style="color: var(--primary-green); font-size: 1.2rem;"></i>
+                <div>
+                    <h4 style="margin-bottom: 0.2rem; color: var(--gray-700);">Email</h4>
+                    <p style="color: var(--gray-600);">support@foodshareapp.com</p>
+                </div>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                <i class="fas fa-phone" style="color: var(--primary-green); font-size: 1.2rem;"></i>
+                <div>
+                    <h4 style="margin-bottom: 0.2rem; color: var(--gray-700);">Phone</h4>
+                    <p style="color: var(--gray-600);">+1 (800) 555-1234</p>
+                    <p style="color: var(--gray-400); font-size: 0.9rem;">Monday-Friday, 9am-5pm EST</p>
+                </div>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                <i class="fas fa-map-marker-alt" style="color: var(--primary-green); font-size: 1.2rem;"></i>
+                <div>
+                    <h4 style="margin-bottom: 0.2rem; color: var(--gray-700);">Mailing Address</h4>
+                    <p style="color: var(--gray-600);">Food Share Inc.</p>
+                    <p style="color: var(--gray-600);">123 Green Street</p>
+                    <p style="color: var(--gray-600);">Eco City, EC 12345</p>
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-bottom: 2rem;">
+            <h3 style="margin-bottom: 1rem; color: var(--gray-700);">Send Us a Message</h3>
+            <div class="form-group">
+                <label for="contactName">Your Name</label>
+                <div class="input-field">
+                    <i class="fas fa-user"></i>
+                    <input type="text" id="contactName" placeholder="Enter your name">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="contactEmail">Email Address</label>
+                <div class="input-field">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="contactEmail" placeholder="Enter your email">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="contactSubject">Subject</label>
+                <div class="input-field">
+                    <i class="fas fa-tag"></i>
+                    <input type="text" id="contactSubject" placeholder="What's this about?">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="contactMessage">Message</label>
+                <div class="input-field" style="align-items: flex-start; padding-top: 1rem;">
+                    <i class="fas fa-comment" style="margin-top: 1rem;"></i>
+                    <textarea id="contactMessage" placeholder="Type your message here" style="width: 100%; border: none; resize: none; min-height: 150px; padding: 1rem 0; font-size: 1rem; font-family: var(--font-main);"></textarea>
+                </div>
+            </div>
+
+            <button class="btn btn-primary" onclick="submitContactForm()" style="width: 100%;">
+                <span>Send Message</span>
+            </button>
+        </div>
+    </div>
+
+    <button class="btn btn-primary" onclick="showPage('profile')" style="width: 100%;">
+        <i class="fas fa-arrow-left" style="margin-right: 8px;"></i>
+        <span>Back to Profile</span>
+    </button>
+</div>
 
     <!-- Toast Notifications Container -->
     <div class="toast-container" id="toastContainer"></div>
