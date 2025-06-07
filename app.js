@@ -16,8 +16,6 @@
         const db = firebase.firestore();
         const storage = firebase.storage();
 
-        const socket = io('https://foodshare-fgm9.onrender.com');
-
         // ImageBB API Key
         const IMAGEBB_API_KEY = '1dbc58387d100c16d5e7012f6fd434c1';
 
@@ -137,52 +135,19 @@ function checkAuthState() {
     loadingScreen.style.display = 'flex';
     
     auth.onAuthStateChanged(async (user) => {
-  if (user) {
-    // User is signed in
-    currentUser = user;
-    await fetchUserData();
-    
-    // Authenticate with Socket.io
-    socket.emit('authenticate', user.uid);
-    
-    // Now check onboarding status for authenticated users
-    await checkOnboardingStatus();
-  } else {
-    // No user is signed in
-    showAuthScreen();
-  }
-});
-
+        if (user) {
+            // User is signed in
+            currentUser = user;
+            await fetchUserData();
+            
+            // Now check onboarding status for authenticated users
+            await checkOnboardingStatus();
+        } else {
+            // No user is signed in
+            showAuthScreen();
+        }
+    });
 }
-
-// socket io listeners
-socket.on('newMessage', (message) => {
-  showToast(`New message from ${message.senderName}`, 'info');
-  // Refresh messages if on messages page
-  if (currentPage === 'messages' || currentPage === 'chat') {
-    loadMessages();
-  }
-  updateMessageBadges(); // Update badge count
-});
-
-socket.on('newRequest', async (request) => {
-  showToast('New food request received', 'info');
-  // Refresh requests if on home page or listings page
-  if (currentPage === 'home' || currentPage === 'listings') {
-    await loadInitialData();
-  }
-  updateNotificationBadges(); // Update badge count
-});
-
-socket.on('newListing', (listing) => {
-  if (userData.role === 'receiver') {
-    showToast(`New listing available: ${listing.title} (${listing.category})`, 'info');
-    // Refresh listings if on listings page
-    if (currentPage === 'listings') {
-      loadInitialData();
-    }
-  }
-});
 
 // Check if user has completed onboarding (only for authenticated users)
 async function checkOnboardingStatus() {
@@ -229,6 +194,7 @@ function showApp() {
     
     updateUserInterface();
     loadInitialData();
+    loadStatsComparison(); // Add this line
     setupRealtimeListeners();
     showPage('home');
 }
@@ -482,25 +448,56 @@ async function fetchUserData() {
                 avatarColor: 'color-1',
                 bio: '',
                 location: '',
-                organization: '', // Include for both roles
+                organization: '',
                 stats: {
                     donations: 0,
+                    requests: 0,
                     peopleHelped: 0,
+                    successfulRequests: 0,
                     rating: 0,
-                    activeListings: 0
+                    ratingCount: 0,
+                    activeListings: 0,
+                    lastMonthDonations: 0,
+                    lastMonthActiveListings: 0,
+                    lastMonthRating: 0,
+                    lastMonthPeopleHelped: 0
                 }
             };
             
             await db.collection('users').doc(currentUser.uid).set(userData);
         }
+        updateStatsCards(); // Update stats after fetching user data
     } catch (error) {
         console.error('Error fetching user data:', error);
         showToast('Error loading user data', 'error');
     }
 }
 
-  async function loadInitialData() {
+async function updateNearbyListingsCount() {
+    if (userData.role !== 'receiver') return;
+    
     try {
+        // Get user's location (simplified - in a real app you'd use geolocation)
+        const userLocation = userData.location || '';
+        
+        // Count listings near the user (simplified - in a real app you'd use geoqueries)
+        const snapshot = await db.collection('listings')
+            .where('status', '==', 'available')
+            .get();
+            
+        const totalListings = snapshot.size;
+        document.getElementById('peopleHelped').textContent = totalListings;
+        
+    } catch (error) {
+        console.error('Error counting nearby listings:', error);
+    }
+}
+
+async function loadInitialData() {
+    try {
+        // Load user data first to get stats
+        await fetchUserData();
+        
         // Load user listings based on role
         if (userData.role === 'donor') {
             const listingsSnapshot = await db.collection('listings')
@@ -545,6 +542,7 @@ async function fetchUserData() {
         notifications = notificationsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         
         // Update UI with loaded data
+        updateStatsCards();  // Make sure this is called
         renderUserListings();
         renderMessages();
         renderNotificationsList();
@@ -554,6 +552,88 @@ async function fetchUserData() {
         console.error('Error loading initial data:', error);
         showToast('Error loading data: ' + error.message, 'error');
     }
+}
+
+function updateStatsCards() {
+    if (!userData || !userData.stats) return;
+
+    const stats = userData.stats;
+    const isDonor = userData.role === 'donor';
+
+    // Calculate percentage changes with safer checks
+    const donationsChange = stats.lastMonthDonations && stats.lastMonthDonations !== 0 ? 
+        Math.round((stats.donations - stats.lastMonthDonations) / stats.lastMonthDonations * 100) : 0;
+    const activeListingsChange = stats.lastMonthActiveListings && stats.lastMonthActiveListings !== 0 ? 
+        Math.round((stats.activeListings - stats.lastMonthActiveListings) / stats.lastMonthActiveListings * 100) : 0;
+    const ratingChange = stats.lastMonthRating ? 
+        (stats.rating - stats.lastMonthRating).toFixed(1) : 0;
+    const peopleHelpedChange = stats.lastMonthPeopleHelped ? 
+        (stats.peopleHelped - stats.lastMonthPeopleHelped) : 0;
+
+
+    // Update all stat cards in one go
+    const statCards = [
+        {
+            element: document.querySelector('.stat-card:nth-child(1)'),
+            title: isDonor ? 'Total Donations' : 'Total Requests',
+            value: isDonor ? stats.donations || 0 : stats.requests || 0,
+            change: donationsChange,
+            positive: true // Always show as positive
+        },
+        {
+            element: document.querySelector('.stat-card:nth-child(2)'),
+            title: isDonor ? 'Active Listings' : 'Successful Requests',
+            value: isDonor ? stats.activeListings || 0 : stats.successfulRequests || 0,
+            change: activeListingsChange,
+            positive: true
+        },
+        {
+            element: document.querySelector('.stat-card:nth-child(3)'),
+            title: 'Your Rating',
+            value: stats.rating ? stats.rating.toFixed(1) : '0.0',
+            change: ratingChange,
+            positive: stats.rating >= (stats.lastMonthRating || 0)
+        },
+        {
+            element: document.querySelector('.stat-card:nth-child(4)'),
+            title: isDonor ? 'People Helped' : 'Nearby Listings',
+            value: isDonor ? stats.peopleHelped || 0 : userListings.length || 0,
+            change: peopleHelpedChange,
+            positive: true
+        }
+    ];
+
+    statCards.forEach(card => {
+        if (!card.element) return;
+        
+        // Update card content
+        card.element.querySelector('.stat-title').textContent = card.title;
+        card.element.querySelector('.stat-value').textContent = card.value;
+        
+        // Update change indicator
+        const changeElement = card.element.querySelector('.stat-change');
+        if (changeElement) {
+            changeElement.classList.toggle('positive', card.positive);
+            changeElement.classList.toggle('negative', !card.positive);
+            
+            const arrowIcon = changeElement.querySelector('i');
+            const changeText = changeElement.querySelector('span');
+            
+            if (arrowIcon) {
+                arrowIcon.className = card.positive ? 'fas fa-arrow-up' : 'fas fa-arrow-down';
+            }
+            
+            if (changeText) {
+                if (card.title === 'Your Rating') {
+                    changeText.textContent = `${Math.abs(card.change)} from last month`;
+                } else if (card.title === 'People Helped' || card.title === 'Nearby Listings') {
+                    changeText.textContent = `${card.change} from last month`;
+                } else {
+                    changeText.textContent = `${Math.abs(card.change)}% from last month`;
+                }
+            }
+        }
+    });
 }
 
 // Initialize notifications
@@ -578,41 +658,62 @@ async function loadNotifications() {
     }
 }
 
-        function updateUserInterface() {
-            // Update greeting based on time of day
-            updateGreeting();
-            
-            // Update user name
-            welcomeUserName.textContent = `Welcome back, ${userData.name || 'User'}!`;
-            sidebarUserName.textContent = userData.name || 'User';
-            profileUserName.textContent = userData.name || 'User';
-            
-            // Update user role
-            profileUserRole.textContent = userData.role === 'donor' ? 'Donor' : 'Receiver';
-            
-            // Update verification status
-            updateVerificationStatus();
-            
-            // Update avatar
-            updateAvatar();
-            
-            // Update profile details
-            updateProfileDetails();
-            
-            // Update role-specific UI
-            if (userData.role === 'donor') {
-                listingsNavItem.innerHTML = '<i class="fas fa-utensils"></i><span>My Listings</span>';
-            } else {
-                listingsNavItem.innerHTML = '<i class="fas fa-search"></i><span>Browse Listings</span>';
-            }
-            
-            if (userData.role === 'donor' && currentPage === 'listings') {
-                fabButton.style.display = 'flex';
-            } else {
-                fabButton.style.display = 'none';
-            }
-        }
+    function updateUserInterface() {
+    // Update greeting based on time of day
+    updateGreeting();
+    
+    // Update user name
+    welcomeUserName.textContent = `Welcome back, ${userData.name || 'User'}!`;
+    sidebarUserName.textContent = userData.name || 'User';
+    profileUserName.textContent = userData.name || 'User';
+    
+    // Update user role
+    profileUserRole.textContent = userData.role === 'donor' ? 'Donor' : 'Receiver';
+    
+    // Update verification status
+    updateVerificationStatus();
+    
+    // Update avatar
+    updateAvatar();
+    
+    // Update profile details
+    updateProfileDetails();
+    
+    // Update role-specific UI
+    if (userData.role === 'donor') {
+        listingsNavItem.innerHTML = '<i class="fas fa-utensils"></i><span>My Listings</span>';
+    } else {
+        listingsNavItem.innerHTML = '<i class="fas fa-search"></i><span>Browse Listings</span>';
+    }
+    
+    if (userData.role === 'donor' && currentPage === 'listings') {
+        fabButton.style.display = 'flex';
+    } else {
+        fabButton.style.display = 'none';
+    }
+}
 
+async function loadStatsComparison() {
+    try {
+        // Get stats from previous month
+        const now = new Date();
+        const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        
+        const snapshot = await db.collection('userStatsHistory')
+            .doc(currentUser.uid)
+            .collection('monthly')
+            .where('month', '==', firebase.firestore.Timestamp.fromDate(lastMonth))
+            .get();
+            
+        if (!snapshot.empty) {
+            const lastMonthStats = snapshot.docs[0].data();
+            userData.stats.lastMonthRating = lastMonthStats.rating || 0;
+            updateStatsCards();
+        }
+    } catch (error) {
+        console.error('Error loading stats comparison:', error);
+    }
+}
         function updateGreeting() {
             const hour = new Date().getHours();
             let greetingText = 'Hello';
@@ -729,11 +830,24 @@ function updateProfileDetails() {
 }
 
   function setupRealtimeListeners() {
-    // Listen for user data changes
     const userListener = db.collection('users').doc(currentUser.uid).onSnapshot((doc) => {
         if (doc.exists) {
             userData = doc.data();
             updateUserInterface();
+            
+            // For receivers, update nearby listings count
+            if (userData.role === 'receiver') {
+                updateNearbyListingsCount();
+            }
+        }
+    });
+
+    // Add stats listeners
+    const userStatsListener = db.collection('users').doc(currentUser.uid)
+    .onSnapshot(doc => {
+        if (doc.exists) {
+            userData = doc.data();
+            updateStatsCards(); // This should update all stats including activeListings
         }
     });
     
@@ -909,7 +1023,8 @@ function updateProfileDetails() {
         notificationsListener,
         unsubscribeNotifications,
         chatsListener,
-        messagesListener
+        messagesListener,
+        userStatsListener
     };
 }
 
@@ -948,19 +1063,45 @@ function updateProfileDetails() {
     });
 }
 
-        function updateStats() {
-            // Update active listings count
-            const activeListingsCount = userListings.filter(listing => 
-                listing.status === 'available').length;
+
+async function promptRating(otherUserId, listingId, isDonor) {
+    // Only prompt sometimes (e.g., 30% chance)
+    if (Math.random() > 0.3) return;
+
+    const rating = prompt(`How would you rate this ${isDonor ? 'donor' : 'receiver'} (1-5 stars)?`);
+    if (rating && rating >= 1 && rating <= 5) {
+        try {
+            const otherUserRef = db.collection('users').doc(otherUserId);
+            const otherUserDoc = await otherUserRef.get();
             
-            document.getElementById('activeListings').textContent = activeListingsCount;
+            const currentRating = otherUserDoc.data().stats?.rating || 0;
+            const currentCount = otherUserDoc.data().stats?.ratingCount || 0;
             
-            // Update Firestore with new stats
-            db.collection('users').doc(currentUser.uid).update({
-                'stats.activeListings': activeListingsCount,
+            const newRating = ((currentRating * currentCount) + parseInt(rating)) / (currentCount + 1);
+            
+            await otherUserRef.update({
+                'stats.rating': newRating,
+                'stats.ratingCount': firebase.firestore.FieldValue.increment(1),
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             });
+            
+            showToast(`Thank you for your rating!`, 'success');
+            
+            // Record the rating transaction
+            await db.collection('ratings').add({
+                raterId: currentUser.uid,
+                ratedId: otherUserId,
+                listingId: listingId,
+                rating: parseInt(rating),
+                isDonor: isDonor,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            
+        } catch (error) {
+            console.error('Error submitting rating:', error);
         }
+    }
+}
 
 function renderUserListings() {
     listingsLoading = false;
@@ -986,13 +1127,16 @@ function renderUserListings() {
         const timeDiff = expiryDate.getTime() - today.getTime();
         const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
         const isExpired = daysDiff < 0;
+        const isUnavailable = listing.status === 'unavailable';
         
-        // Check if current user has already requested this listing
         const userRequest = listing.requests?.find(r => r.receiverId === currentUser.uid);
         
         const listingElement = document.createElement('div');
-        listingElement.className = `food-card ${isExpired ? 'expired' : ''}`;
+        listingElement.className = `food-card ${isExpired ? 'expired' : ''} ${isUnavailable ? 'unavailable' : ''}`;
         listingElement.innerHTML = `
+            <div class="listing-status-badge ${isUnavailable ? 'unavailable' : listing.status}">
+                ${isUnavailable ? 'Unavailable' : listing.status === 'claimed' ? 'Claimed' : isExpired ? 'Expired' : 'Available'}
+            </div>
             <img src="${listing.imageUrl || 'https://via.placeholder.com/300x200?text=No+Image'}" 
                  alt="${listing.title}" class="listing-image" onerror="this.src='https://via.placeholder.com/300x200?text=Image+Error'">
             <div class="listing-details">
@@ -1017,34 +1161,49 @@ function renderUserListings() {
                     </div>
                     ${userData.role === 'receiver' ? `
                         <div class="listing-actions">
-                            ${isExpired ? `
-                                <div class="action-icon disabled" title="This listing has expired">
+                            ${isUnavailable || isExpired ? `
+                                <div class="action-icon disabled" title="This listing is not available">
                                     <i class="fas fa-ban"></i>
-                                    <span class="tooltip"></span>
+                                    <span class="tooltip">Not Available</span>
                                 </div>
                             ` : userRequest ? 
                                 (userRequest.status === 'accepted' ? `
                                     <div class="action-icon" onclick="startChat('${listing.userId}', '${userRequest.messageThreadId || ''}')">
                                         <i class="fas fa-comment"></i>
-                                        <span class="tooltip">Chat</span>
+                                        <span class="tooltip">Chat with Donor</span>
                                     </div>
                                 ` : userRequest.status === 'rejected' ? `
                                     <div class="action-icon disabled" title="Request Rejected">
                                         <i class="fas fa-times"></i>
-                                        <span class="tooltip">Rejected</span>
+                                        <span class="tooltip">Request Rejected</span>
                                     </div>
                                 ` : `
                                     <div class="action-icon disabled" title="Pending Approval">
                                         <i class="fas fa-clock"></i>
-                                        <span class="tooltip">Pending</span>
+                                        <span class="tooltip">Pending Approval</span>
                                     </div>
                                 `)
                                 : `
-                                <div class="action-icon" onclick="createFoodRequest('${listing.id}')" title="Request Food">
+                                <div class="action-icon" onclick="createFoodRequest('${listing.id}')">
                                     <i class="fas fa-hand-holding-heart"></i>
-                                    <span class="tooltip"></span>
+                                    <span class="tooltip">Request this Item</span>
                                 </div>
                             `}
+                        </div>
+                    ` : userData.role === 'donor' ? `
+                        <div class="listing-actions">
+                            ${listing.status === 'available' ? `
+                                <div class="action-icon" onclick="markListingUnavailable('${listing.id}')">
+                                    <i class="fas fa-times-circle"></i>
+                                    <span class="tooltip">Mark as Unavailable</span>
+                                </div>
+                            ` : ''}
+                            ${listing.status === 'unavailable' ? `
+                                <div class="action-icon" onclick="markListingAvailable('${listing.id}')">
+                                    <i class="fas fa-check-circle"></i>
+                                    <span class="tooltip">Mark as Available</span>
+                                </div>
+                            ` : ''}
                         </div>
                     ` : ''}
                 </div>
@@ -1055,8 +1214,62 @@ function renderUserListings() {
     });
     
     listingsContent.appendChild(listingsContainer);
+    
+    // Add click handlers for tooltips on mobile
+    if (window.innerWidth <= 768) {
+        document.querySelectorAll('.action-icon').forEach(icon => {
+            icon.addEventListener('click', function(e) {
+                // If this is a disabled icon, don't show tooltip
+                if (this.classList.contains('disabled')) return;
+                
+                // Hide all other tooltips
+                document.querySelectorAll('.action-icon').forEach(otherIcon => {
+                    if (otherIcon !== this) {
+                        otherIcon.classList.remove('active');
+                    }
+                });
+                
+                // Toggle this tooltip
+                this.classList.toggle('active');
+                
+                // Hide after delay
+                setTimeout(() => {
+                    this.classList.remove('active');
+                }, 2000);
+            });
+        });
+    }
 }
 
+async function markListingUnavailable(listingId) {
+    try {
+        // Confirm with the user
+        const confirmed = confirm("Are you sure you want to mark this listing as unavailable? This will prevent any further requests.");
+        
+        if (!confirmed) return;
+        
+        // Update the listing status to 'unavailable'
+        await db.collection('listings').doc(listingId).update({
+            status: 'unavailable',
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        
+        // Update the local state
+        const listingIndex = userListings.findIndex(l => l.id === listingId);
+        if (listingIndex !== -1) {
+            userListings[listingIndex].status = 'unavailable';
+        }
+        
+        showToast('Listing marked as unavailable', 'success');
+        
+        // Re-render the listings
+        renderUserListings();
+        
+    } catch (error) {
+        console.error('Error marking listing as unavailable:', error);
+        showToast('Failed to update listing status', 'error');
+    }
+}
 function getRandomColor() {
     const colors = ['#3b82f6', '#ef4444', '#f59e0b', '#8b5cf6', '#10b981', '#ec4899'];
     return colors[Math.floor(Math.random() * colors.length)];
@@ -1200,13 +1413,15 @@ function renderNotifications(notifications, containerId = 'notificationsContent'
             return date.toLocaleDateString(undefined, options);
         }
 
-        function formatTime(date) {
-            const options = { hour: '2-digit', minute: '2-digit' };
-            return date.toLocaleTimeString(undefined, options);
-        }
-
-
- 
+function formatTime(date) {
+    if (!date) return ''; // Return empty string if date is undefined/null
+    
+    // Check if date is a Firestore Timestamp and convert to Date if needed
+    const jsDate = date.toDate ? date.toDate() : date;
+    
+    const options = { hour: '2-digit', minute: '2-digit' };
+    return jsDate.toLocaleTimeString(undefined, options);
+}
 
 
 function showPage(page) {
@@ -1214,42 +1429,83 @@ function showPage(page) {
     
     // Hide all pages
     document.querySelectorAll('.page-content').forEach(el => {
-        el.style.display = 'none';
+        if (el) el.style.display = 'none'; // Add null check
     });
-    
-    // Show/hide FAB based on role and page
-    if (userData?.role === 'donor' && page === 'listings') {
-        fabButton.style.display = 'flex';
-    } else {
-        fabButton.style.display = 'none';
+
+    // Show the selected page
+    const pageElement = document.getElementById(`${page}Page`);
+    if (pageElement) {
+        pageElement.style.display = 'block';
     }
-   
+
+    // Handle special pages
+    if (page === 'terms') {
+        mobileHeaderTitle.textContent = 'Terms of Service';
+    } else if (page === 'privacy') {
+        mobileHeaderTitle.textContent = 'Privacy Policy';
+    } else if (page === 'contact') {
+        mobileHeaderTitle.textContent = 'Contact Us';
+    }
+    
     // Handle chat page specifically
     if (page === 'chat') {
         document.body.classList.add('chat-page-active');
-        document.getElementById('chatPage').style.display = 'block';
-        
-        // Check if we have an active chat to restore
-        if (currentChat.userId && currentChat.channelId) {
-            // Messages should already be loading via the listener
-        } else {
-            // Show empty state if no active chat
-            document.getElementById('chatMessages').innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-comments"></i>
-                    <h3>No active conversation</h3>
-                    <p>Select a conversation from your messages</p>
-                </div>
-            `;
-        }
     } else {
         document.body.classList.remove('chat-page-active');
-        // Show the selected page
-        document.getElementById(`${page}Page`).style.display = 'block';
+    }
+    
+    // Show/hide FAB based on role and page
+    if (userData?.role === 'donor' && page === 'listings') {
+        if (fabButton) fabButton.style.display = 'flex';
+    } else {
+        if (fabButton) fabButton.style.display = 'none';
     }
     
     // Update navigation and header
     updateNavigationState(page);
+}
+
+async function submitContactForm() {
+    const name = document.getElementById('contactName').value.trim();
+    const email = document.getElementById('contactEmail').value.trim();
+    const subject = document.getElementById('contactSubject').value.trim();
+    const message = document.getElementById('contactMessage').value.trim();
+    
+    if (!name || !email || !subject || !message) {
+        showToast('Please fill in all fields', 'error');
+        return;
+    }
+    
+    if (!validateEmail(email)) {
+        showToast('Please enter a valid email address', 'error');
+        return;
+    }
+    
+    try {
+        // In a real app, you would send this to your backend
+        // For demo purposes, we'll just show a success message
+        showToast('Message sent successfully! We\'ll get back to you soon.', 'success');
+        
+        // Clear the form
+        document.getElementById('contactName').value = '';
+        document.getElementById('contactEmail').value = '';
+        document.getElementById('contactSubject').value = '';
+        document.getElementById('contactMessage').value = '';
+        
+        // Optionally save to Firestore
+        await db.collection('contactMessages').add({
+            name: name,
+            email: email,
+            subject: subject,
+            message: message,
+            userId: currentUser?.uid || null,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        
+    } catch (error) {
+        console.error('Error submitting contact form:', error);
+        showToast('Failed to send message. Please try again.', 'error');
+    }
 }
 
 function updateNavigationState(page) {
@@ -1578,6 +1834,21 @@ function showCreateListingModal() {
         // Hide modal and show success message
         hideModal('createListingModal');
         showToast('Listing created successfully!', 'success');
+
+                // Update donor stats
+        await db.collection('users').doc(currentUser.uid).update({
+            'stats.activeListings': firebase.firestore.FieldValue.increment(1),
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+         // Update donor stats
+        await db.collection('users').doc(currentUser.uid).update({
+            'stats.activeListings': firebase.firestore.FieldValue.increment(1),
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        // Refresh stats
+        await fetchUserData();
         
     } catch (error) {
         console.error('Error creating listing:', error);
@@ -1611,6 +1882,13 @@ async function createFoodRequest(listingId) {
             return;
         }
         const listing = listingDoc.data();
+
+        // Check if listing is available
+        if (listing.status !== 'available') {
+            showToast('This listing is no longer available', 'error');
+            return;
+        }
+        
 
         // Create unique chat ID (sorted user IDs)
         const participants = [currentUser.uid, listing.userId].sort();
@@ -1689,6 +1967,13 @@ async function createFoodRequest(listingId) {
         startChat(listing.userId, listing.userName, channelId);
 
         showToast('Request sent successfully!', 'success');
+
+        // Update receiver stats
+        await db.collection('users').doc(currentUser.uid).update({
+            'stats.requests': firebase.firestore.FieldValue.increment(1),
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
     } catch (error) {
         console.error('Request error:', error);
         showToast('Failed to send request: ' + error.message, 'error');
@@ -1895,6 +2180,19 @@ async function sendMessage() {
             [`participantsInfo.${currentUser.uid}.lastRead`]: firebase.firestore.FieldValue.serverTimestamp(),
             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         });
+
+        // Check if this is a positive interaction (e.g., contains "thanks")
+        if (messageText.toLowerCase().includes('thank') || messageText.toLowerCase().includes('thanks, welcome, nice, good')) {
+            // Get chat info to find the listing and other user
+            const chatDoc = await db.collection('chats').doc(currentChat.channelId).get();
+            if (chatDoc.exists) {
+                const chatData = chatDoc.data();
+                const otherUserId = chatData.participants.find(id => id !== currentUser.uid);
+                
+                // Prompt to rate the other user
+                promptRating(otherUserId, chatData.listingId, userData.role === 'receiver');
+            }
+        }
         
     } catch (error) {
         console.error('Error sending message:', error);
@@ -1920,7 +2218,7 @@ function renderMessages() {
     const container = document.getElementById('messagesContent');
     container.innerHTML = '';
 
-    if (messages.length === 0) {
+    if (!messages || messages.length === 0) {
         container.innerHTML = `
             <div class="empty-state">
                 <i class="fas fa-comments"></i>
@@ -1935,10 +2233,14 @@ function renderMessages() {
     list.className = 'messages-list';
 
     messages.forEach(chat => {
+        if (!chat || !chat.participants) return; // Skip invalid chat entries
+        
         const otherUserId = chat.participants.find(id => id !== currentUser.uid);
-        const otherUser = chat.participantsInfo[otherUserId];
+        if (!otherUserId) return;
+        
+        const otherUser = chat.participantsInfo?.[otherUserId] || { name: 'Unknown User' };
         const unreadCount = chat[`${currentUser.uid}_unread`] || 0;
-        const lastMessageTime = chat.lastMessageAt?.toDate();
+        const lastMessageTime = chat.lastMessageAt;
         
         // Determine if the last message was sent by the other user
         const lastMessageIsReceived = chat.lastMessageSenderId === otherUserId;
@@ -1971,7 +2273,6 @@ function renderMessages() {
     const totalUnread = messages.reduce((sum, chat) => sum + (chat[`${currentUser.uid}_unread`] || 0), 0);
     updateMessageBadges(totalUnread);
 }
-
 // Helper functions
 function stringToColor(str) {
     let hash = 0;
@@ -1983,17 +2284,20 @@ function stringToColor(str) {
 }
 
 function formatChatTime(date) {
+    if (!date) return '';
+    
     const now = new Date();
-    const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
+    const jsDate = date.toDate ? date.toDate() : date;
+    const diffDays = Math.floor((now - jsDate) / (1000 * 60 * 60 * 24));
     
     if (diffDays === 0) {
-        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        return jsDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     } else if (diffDays === 1) {
         return 'Yesterday';
     } else if (diffDays < 7) {
-        return date.toLocaleDateString([], { weekday: 'short' });
+        return jsDate.toLocaleDateString([], { weekday: 'short' });
     } else {
-        return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+        return jsDate.toLocaleDateString([], { month: 'short', day: 'numeric' });
     }
 }
 
@@ -2133,6 +2437,9 @@ async function handleNotificationAction(notificationId, action, event) {
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             });
 
+            // Update donor stats
+            await updateDonorStats(notification.listingId);
+
             // Update notification status
             await notificationRef.update({
                 status: 'accepted',
@@ -2153,35 +2460,27 @@ async function handleNotificationAction(notificationId, action, event) {
                 read: false
             });
 
+            // Prompt donor to rate receiver
+            promptRating(notification.receiverId, notification.listingId, false);
+
             showToast('Request accepted!', 'success');
+
+            // Update donor stats
+        await db.collection('users').doc(currentUser.uid).update({
+            'stats.donations': firebase.firestore.FieldValue.increment(1),
+            'stats.peopleHelped': firebase.firestore.FieldValue.increment(1),
+            'stats.activeListings': firebase.firestore.FieldValue.increment(-1),
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        
+        // Update receiver stats
+        await db.collection('users').doc(notification.receiverId).update({
+            'stats.successfulRequests': firebase.firestore.FieldValue.increment(1),
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
         } else if (action === 'reject') {
-            // Update request status
-            await db.collection('requests').doc(notification.requestId).update({
-                status: 'rejected',
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-
-            // Update notification status
-            await notificationRef.update({
-                status: 'rejected',
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-                read: true
-            });
-
-            // Create a new notification for the receiver
-            await db.collection('notifications').add({
-                type: 'request_rejected',
-                requestId: notification.requestId,
-                listingId: notification.listingId,
-                listingTitle: notification.listingTitle,
-                donorId: currentUser.uid,
-                donorName: userData.name,
-                receiverId: notification.receiverId,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                read: false
-            });
-
-            showToast('Request rejected', 'info');
+            // ... existing rejection code ...
         }
 
         // Update the notifications list
@@ -2649,17 +2948,16 @@ async function uploadImageToImageBB(file) {
             }
         }
         
-async function logout() {
-  try {
-    socket.disconnect();
-    await auth.signOut();
-    showToast('Logged out successfully', 'success');
-    showAuthScreen();
-  } catch (error) {
-    console.error('Logout error:', error);
-    showToast('Logout failed', 'error');
-  }
-}
+         async function logout() {
+            try {
+                await auth.signOut();
+                showToast('Logged out successfully', 'success');
+                showAuthScreen();
+            } catch (error) {
+                console.error('Logout error:', error);
+                showToast('Logout failed', 'error');
+            }
+        }
         
 function toggleNotificationsModal() {
     const modal = document.getElementById('notificationsModal');
