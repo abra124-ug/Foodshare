@@ -463,20 +463,52 @@
 
             </div>
 
-            <!-- Listings Page Content -->
-            <div class="page-content" id="listingsPage" style="display: none;">
-                <div class="section-title">
-                    <h2 id="listingsPageTitle" style="display:none;">Food Listings</h2>
-                    <div id="listingsPageActions"style="display:none;"></div>
-                </div>
-
-                <div id="listingsContent">
-                    <div class="page-loading">
-                        <div class="page-loading-spinner"></div>
-                        <div class="page-loading-text">Loading listings...</div>
-                    </div>
-                </div>
+<!-- Listings Page Content -->
+<div class="page-content" id="listingsPage" style="display: none;">
+    <!-- This header will only show for receivers -->
+    <div class="listings-header" id="listingsHeader" style="display: none;">
+        <div class="search-container">
+            <div class="input-field">
+                <i class="fas fa-search"></i>
+                <input type="text" id="listingSearch" placeholder="Search listings...">
             </div>
+        </div>
+        
+        <div class="category-filters">
+            <div class="category-filter active" data-category="all" onclick="filterListings()">
+                <i class="fas fa-utensils"></i>
+                <span>All</span>
+            </div>
+            <div class="category-filter" data-category="bakery" onclick="filterListings()">
+                <i class="fas fa-bread-slice"></i>
+                <span>Bakery</span>
+            </div>
+            <div class="category-filter" data-category="produce" onclick="filterListings()">
+                <i class="fas fa-apple-alt"></i>
+                <span>Produce</span>
+            </div>
+            <div class="category-filter" data-category="dairy" onclick="filterListings()">
+                <i class="fas fa-cheese"></i>
+                <span>Dairy</span>
+            </div>
+            <div class="category-filter" data-category="pantry" onclick="filterListings()">
+                <i class="fas fa-box-open"></i>
+                <span>Pantry</span>
+            </div>
+            <div class="category-filter" data-category="prepared" onclick="filterListings()">
+                <i class="fas fa-utensils"></i>
+                <span>Prepared</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="listingsContent">
+        <div class="page-loading">
+            <div class="page-loading-spinner"></div>
+            <div class="page-loading-text">Loading listings...</div>
+        </div>
+    </div>
+</div>
 
             <!-- Messages Page Content -->
 <div class="page-content" id="messagesPage" style="display: none;">
