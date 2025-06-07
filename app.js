@@ -127,6 +127,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
 function initApp() {
     setupEventListeners();
+    setupSearchAndFilters(); // Add this line
     checkAuthState();
 }
 
@@ -306,21 +307,24 @@ function completeOnboarding() {
 }
 
 function setupSearchAndFilters() {
-    // Search functionality
-    const searchInput = document.getElementById('listingSearch');
-    if (searchInput) {
-        searchInput.addEventListener('input', filterListings);
-    }
-    
-    // Category filter functionality
-    const categoryFilters = document.querySelectorAll('.category-filter');
-    categoryFilters.forEach(filter => {
-        filter.addEventListener('click', () => {
-            categoryFilters.forEach(f => f.classList.remove('active'));
-            filter.classList.add('active');
-            filterListings();
+    // Only set up search and filters if user is a receiver
+    if (userData && userData.role === 'receiver') {
+        // Search functionality
+        const searchInput = document.getElementById('listingSearch');
+        if (searchInput) {
+            searchInput.addEventListener('input', filterListings);
+        }
+        
+        // Category filter functionality
+        const categoryFilters = document.querySelectorAll('.category-filter');
+        categoryFilters.forEach(filter => {
+            filter.addEventListener('click', () => {
+                categoryFilters.forEach(f => f.classList.remove('active'));
+                filter.classList.add('active');
+                filterListings();
+            });
         });
-    });
+    }
 }
 
 function setupEventListeners() {
@@ -434,6 +438,8 @@ async function fetchUserData() {
         const userDoc = await db.collection('users').doc(currentUser.uid).get();
         if (userDoc.exists) {
             userData = userDoc.data();
+            updateStatsCards();
+            setupSearchAndFilters();
         } else {
             // Create new user document if it doesn't exist
             userData = {
@@ -682,8 +688,10 @@ async function loadNotifications() {
     // Update role-specific UI
     if (userData.role === 'donor') {
         listingsNavItem.innerHTML = '<i class="fas fa-utensils"></i><span>My Listings</span>';
+        document.getElementById('listingsHeader').style.display = 'none';
     } else {
         listingsNavItem.innerHTML = '<i class="fas fa-search"></i><span>Browse Listings</span>';
+        document.getElementById('listingsHeader').style.display = 'block';
     }
     
     if (userData.role === 'donor' && currentPage === 'listings') {
@@ -829,7 +837,7 @@ function updateProfileDetails() {
     document.getElementById('activeListings').textContent = userData.stats?.activeListings || 0;
 }
 
-  function setupRealtimeListeners() {
+function setupRealtimeListeners() {
     const userListener = db.collection('users').doc(currentUser.uid).onSnapshot((doc) => {
         if (doc.exists) {
             userData = doc.data();
@@ -883,17 +891,6 @@ function updateProfileDetails() {
         });
         
          // Notification listener
-    const notificationsListener = db.collection('notifications')
-        .where('userId', '==', currentUser.uid)
-        .orderBy('timestamp', 'desc')
-        .onSnapshot(snapshot => {
-            notifications = [];
-            snapshot.forEach(doc => {
-                notifications.push({ id: doc.id, ...doc.data() });
-            });
-            renderNotificationsList();
-            updateNotificationBadges();
-        });
     
         
     // Listen for listing changes (for donors)
@@ -992,27 +989,26 @@ function updateProfileDetails() {
             updateNotificationBadges();
         });
        
-           // Chat listener
-    const chatsListener = db.collection('chats')
-        .where('participants', 'array-contains', currentUser.uid)
-        .orderBy('lastMessageAt', 'desc')
-        .onSnapshot(snapshot => {
-            const newMessages = [];
-            snapshot.forEach(doc => {
-                newMessages.push({
-                    id: doc.id,
-                    ...doc.data()
-                });
+// In your chat listener (setupRealtimeListeners):
+const chatsListener = db.collection('chats')
+    .where('participants', 'array-contains', currentUser.uid)
+    .orderBy('lastMessageAt', 'desc')
+    .onSnapshot(snapshot => {
+        const updatedMessages = [];
+        snapshot.forEach(doc => {
+            const chatData = doc.data();
+            updatedMessages.push({
+                id: doc.id,
+                ...chatData,
+                lastMessage: chatData.lastMessage || '',
+                lastMessageSenderId: chatData.lastMessageSenderId || '',
+                lastMessageAt: chatData.lastMessageAt || null
             });
-            
-            // Only update if there are actual changes
-            if (JSON.stringify(newMessages) !== JSON.stringify(messages)) {
-                messages = newMessages;
-                renderMessages();
-            }
-        }, error => {
-            console.error('Chat listener error:', error);
         });
+        
+        messages = updatedMessages;
+        renderMessages();
+    });
         // Message listener for current chat
     let messagesListener = null;
     
@@ -1300,6 +1296,9 @@ function getInitials(name) {
 
 // Filter listings based on search and category
 function filterListings() {
+    // Only apply filters if user is a receiver
+    if (userData.role !== 'receiver') return;
+    
     const searchTerm = document.getElementById('listingSearch').value.toLowerCase();
     const activeCategory = document.querySelector('.category-filter.active').getAttribute('data-category');
     
@@ -2232,8 +2231,11 @@ function renderMessages() {
     const list = document.createElement('div');
     list.className = 'messages-list';
 
+    // Sort messages by lastMessageAt to ensure most recent first
+    messages.sort((a, b) => (b.lastMessageAt?.seconds || 0) - (a.lastMessageAt?.seconds || 0));
+
     messages.forEach(chat => {
-        if (!chat || !chat.participants) return; // Skip invalid chat entries
+        if (!chat || !chat.participants) return;
         
         const otherUserId = chat.participants.find(id => id !== currentUser.uid);
         if (!otherUserId) return;
@@ -2242,8 +2244,20 @@ function renderMessages() {
         const unreadCount = chat[`${currentUser.uid}_unread`] || 0;
         const lastMessageTime = chat.lastMessageAt;
         
-        // Determine if the last message was sent by the other user
-        const lastMessageIsReceived = chat.lastMessageSenderId === otherUserId;
+        // Get the actual last message from the subcollection
+        // Note: This is simplified - in production you'd want to cache this
+        let lastMessageText = 'No messages yet';
+        let lastMessageFromCurrentUser = false;
+        
+        if (chat.lastMessage) {
+            lastMessageText = chat.lastMessage;
+            lastMessageFromCurrentUser = chat.lastMessageSenderId === currentUser.uid;
+        }
+
+        // Truncate long messages
+        const lastMessagePreview = lastMessageText.length > 30 
+            ? lastMessageText.substring(0, 30) + '...' 
+            : lastMessageText;
 
         list.innerHTML += `
             <div class="message-item ${unreadCount > 0 ? 'unread' : ''}" onclick="startChat('${otherUserId}', '${otherUser.name}', '${chat.id}')">
@@ -2252,16 +2266,16 @@ function renderMessages() {
                         `<img src="${otherUser.avatarUrl}" alt="${otherUser.name}">` : 
                         `<span style="background-color: ${stringToColor(otherUser.name)}">${getInitials(otherUser.name)}</span>`
                     }
+                    ${unreadCount > 0 ? `<div class="unread-indicator"></div>` : ''}
                 </div>
                 <div class="message-content">
                     <div class="message-header">
                         <h3>${otherUser.name}</h3>
-                        <span class="message-time">${formatTime(lastMessageTime)}</span>
+                        <span class="message-time">${formatChatTime(lastMessageTime)}</span>
                     </div>
                     <p class="message-preview">
-                        ${lastMessageIsReceived ? '' : 'You: '}${chat.lastMessage || 'New chat'}
+                        ${lastMessageFromCurrentUser ? 'You: ' : ''}${lastMessagePreview}
                     </p>
-                    ${unreadCount > 0 ? `<div class="unread-badge">${unreadCount}</div>` : ''}
                 </div>
             </div>
         `;
@@ -2273,6 +2287,7 @@ function renderMessages() {
     const totalUnread = messages.reduce((sum, chat) => sum + (chat[`${currentUser.uid}_unread`] || 0), 0);
     updateMessageBadges(totalUnread);
 }
+
 // Helper functions
 function stringToColor(str) {
     let hash = 0;
@@ -2300,24 +2315,6 @@ function formatChatTime(date) {
         return jsDate.toLocaleDateString([], { month: 'short', day: 'numeric' });
     }
 }
-
-function filterMessages() {
-    const searchTerm = document.getElementById('messagesSearch').value.toLowerCase();
-    const messageItems = document.querySelectorAll('.message-item');
-    
-    messageItems.forEach(item => {
-        const name = item.querySelector('h3').textContent.toLowerCase();
-        const preview = item.querySelector('.message-preview').textContent.toLowerCase();
-        const listing = item.querySelector('.message-listing')?.textContent.toLowerCase() || '';
-        
-        const matchesSearch = name.includes(searchTerm) || 
-                             preview.includes(searchTerm) || 
-                             listing.includes(searchTerm);
-        
-        item.style.display = matchesSearch ? 'flex' : 'none';
-    });
-}
-
 async function loadRecentActivities() {
     try {
         const snapshot = await db.collection('activities')
